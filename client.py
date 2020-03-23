@@ -6,6 +6,7 @@ import json
 import random as rand
 from time import time
 from datetime import datetime
+import pytz
 import wikipedia
 import urllib
 
@@ -173,28 +174,64 @@ async def refresh_problems_before():
 async def check_contests():
     contests = get('https://dmoj.ca/api/contest/list')
     if contests is not None:
-        with open('dmoj_contests.json') as f:
+        with open('data/dmoj_contests.json', 'r', encoding='utf8', errors='ignore') as f:
             prev_contests = json.load(f)
         for contest in range(max(len(prev_contests), len(contests)-5), len(contests)):
             name, details = list(contests.items())[contest]
-            spec = get('https://dmoj.ca/api/contest/info/' + name)
-            url = 'https://dmoj.ca/contest/' + name
-            embed = discord.Embed(title=(':trophy: %s' % details['name']), description=url)
-            embed.timestamp = datetime.utcnow()
-            embed.add_field(name='Start Time', value=datetime.strptime(details['start_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z').strftime('%B %d, %Y %H:%M:%S%z'), inline=False)
-            embed.add_field(name='End Time', value=datetime.strptime(details['end_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z').strftime('%B %d, %Y %H:%M:%S%z'), inline=False)
-            if details['time_limit']:
-                embed.add_field(name='Time Limit', value=details['time_limit'], inline=False)
-            if len(details['labels']) > 0:
-                embed.add_field(name='Labels', value=', '.join(details['labels']), inline=False)
-            embed.add_field(name='Rated', value='Yes' if spec['is_rated'] else 'No', inline=False)
-            embed.add_field(name='Format', value=spec['format']['name'], inline=False)
-            for channel_id in contest_channels:
-                ctx = bot.get_channel(channel_id)
-                await ctx.send(embed=embed)
-        with open('dmoj_contests.json', 'w') as json_file:
+            if datetime.strptime(details['start_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z') > datetime.now(pytz.utc):
+                spec = get('https://dmoj.ca/api/contest/info/' + name)
+                url = 'https://dmoj.ca/contest/' + name
+                embed = discord.Embed(title=(':trophy: %s' % details['name']), description=url)
+                embed.timestamp = datetime.utcnow()
+                embed.add_field(name='Start Time', value=datetime.strptime(details['start_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z').strftime('%B %d, %Y %H:%M:%S%z'), inline=False)
+                embed.add_field(name='End Time', value=datetime.strptime(details['end_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z').strftime('%B %d, %Y %H:%M:%S%z'), inline=False)
+                if details['time_limit']:
+                    embed.add_field(name='Time Limit', value=details['time_limit'], inline=False)
+                if len(details['labels']) > 0:
+                    embed.add_field(name='Labels', value=', '.join(details['labels']), inline=False)
+                embed.add_field(name='Rated', value='Yes' if spec['is_rated'] else 'No', inline=False)
+                embed.add_field(name='Format', value=spec['format']['name'], inline=False)
+                for channel_id in contest_channels:
+                    ctx = bot.get_channel(channel_id)
+                    await ctx.send(embed=embed)
+        with open('data/dmoj_contests.json', 'w') as json_file:
             json.dump(contests, json_file)
-    
+
+    contests = get('https://codeforces.com/api/contest.list')
+    if contests is not None and contests['status'] == 'OK':
+        with open('data/cf_contests.json', 'r', encoding='utf8', errors='ignore') as f:
+            prev_contests = json.load(f)
+        for contest in range(max(5, len(contests['result'])-len(prev_contests['result']))):
+            details = contests['result'][contest]
+            if details['phase'] != 'FINISHED':
+                url = 'https://codeforces.com/contest/' + str(details['id'])
+                embed = discord.Embed(title=(':trophy: %s' % details['name']), description=url)
+                embed.add_field(name='Type', value=details['type'], inline=False)
+                embed.add_field(name='Start Time', value=datetime.utcfromtimestamp(details['startTimeSeconds']).strftime('%Y-%m-%d %H:%M:%S'), inline=False)
+                embed.add_field(name='Time Limit', value='%s:%s:%s' % (str(details['durationSeconds']//(24*3600)).zfill(2), str(details['durationSeconds']%(24*3600)//3600).zfill(2), str(details['durationSeconds']%3600//60).zfill(2)), inline=False)
+                for channel_id in contest_channels:
+                    ctx = bot.get_channel(channel_id)
+                    await ctx.send(embed=embed)
+        with open('data/cf_contests.json', 'w') as json_file:
+            json.dump(contests, json_file)
+
+    contests = get('https://atcoder-api.appspot.com/contests')
+    if contests is not None:
+        with open('data/at_contests.json', 'r', encoding='utf8', errors='ignore') as f:
+            prev_contests = json.load(f)
+        for contest in range(max(len(prev_contests), len(contests)-5), len(contests)):
+            details = contests[contest]
+            if details['startTimeSeconds'] > time():
+                url = 'https://atcoder.jp/contests/' + details['id']
+                embed = discord.Embed(title=(':trophy: %s' % details['title'].replace('\n', '').replace('\t', '').replace('◉', '')), description=url)
+                embed.add_field(name='Start Time', value=datetime.utcfromtimestamp(details['startTimeSeconds']).strftime('%Y-%m-%d %H:%M:%S'), inline=False)
+                embed.add_field(name='Time Limit', value='%s:%s:%s' % (str(details['durationSeconds']//(24*3600)).zfill(2), str(details['durationSeconds']%(24*3600)//3600).zfill(2), str(details['durationSeconds']%3600//60).zfill(2)), inline=False)
+                embed.add_field(name='Rated Range', value=details['ratedRange'], inline=False)
+                for channel_id in contest_channels:
+                    ctx = bot.get_channel(channel_id)
+                    await ctx.send(embed=embed)
+        with open('data/at_contests.json', 'w') as json_file:
+            json.dump(contests, json_file)
             
 @check_contests.before_loop
 async def check_contests_before():
