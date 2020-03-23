@@ -201,7 +201,7 @@ async def check_contests():
     if contests is not None and contests['status'] == 'OK':
         with open('data/cf_contests.json', 'r', encoding='utf8', errors='ignore') as f:
             prev_contests = json.load(f)
-        for contest in range(max(5, len(contests['result'])-len(prev_contests['result']))):
+        for contest in range(min(5, len(contests['result'])-len(prev_contests['result']))):
             details = contests['result'][contest]
             if details['phase'] != 'FINISHED':
                 url = 'https://codeforces.com/contest/' + str(details['id'])
