@@ -282,8 +282,8 @@ async def help(ctx):
     embed.add_field(name='!whatis <query>', value='Searches for something on Wikipedia', inline=False)
     embed.add_field(name='!motivation', value='Sends you some (emotional) support :smile:', inline=False)
     embed.add_field(name='!ping', value='Checks my ping to the Discord server', inline=False)
-    ctx.message.author.send(embed=embed)
-    ctx.send(ctx.message.author.mention + ' I\'ve sent you a list of my commands to your DM!')
+    await ctx.message.author.send(embed=embed)
+    await ctx.send(ctx.message.author.mention + ' I\'ve sent you a list of my commands to your DM!')
 
 @bot.event
 async def on_ready():
