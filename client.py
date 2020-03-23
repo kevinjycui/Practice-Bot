@@ -115,6 +115,40 @@ async def whatis(ctx, name=None):
     embed.add_field(name='Summary', value=summary, inline=False)
     await ctx.send(ctx.message.author.mention + ' Here\'s what I found!', embed=embed)
 
+def valid(url):
+    try:
+        if urllib.request.urlopen(url).getcode() == 200:
+            return True
+        else:
+            return False
+    except:
+        return False
+
+@bot.command()
+async def whois(ctx, name=None):
+    start = time()
+    if name is None:
+        await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `!whois <name>`.')
+        return
+    accounts = {}
+    if valid('https://dmoj.ca/api/user/info/%s' % name):
+        accounts['DMOJ'] = 'https://dmoj.ca/user/%s' % name
+    cf_data = get('https://codeforces.com/api/user.info?handles=%s' % name)
+    if cf_data is not None and cf_data['status'] == 'OK':
+        accounts['Codeforces'] = 'https://codeforces.com/profile/%s' % name
+    if valid('https://atcoder.jp/users/%s' % name):
+        accounts['AtCoder'] = 'https://atcoder.jp/users/%s' % name
+    if valid('https://wcipeg.com/user/%s' % name):
+        accounts['WCIPEG'] = 'https://wcipeg.com/user/%s' % name
+    if len(accounts) == 0:
+        await ctx.send(ctx.message.author.mention + ' Sorry, found 0 results for %s' % name)
+        return
+    embed = discord.Embed(title=name, description='(searched in '+str(round((time()-start), 3))+'s)')
+    embed.timestamp = datetime.utcnow()
+    for oj, url in accounts.items():
+        embed.add_field(name=oj, value=url, inline=False)
+    await ctx.send(ctx.message.author.mention + ' Found %d result(s) for `%s`' % (len(accounts), name), embed=embed)
+
 ##@bot.command()
 ##@commands.has_permissions(administrator=True)
 ##async def set(ctx, setting, channel):
@@ -244,6 +278,7 @@ async def help(ctx):
     embed = discord.Embed(title='Practice Bot', description='The all-competitive-programming-purpose Discord bot!', color=0xeee657)
     embed.add_field(name='!help', value='Sends you a list of my commands (obviously)', inline=False)
     embed.add_field(name='!random <online judge>', value='Gets a random problem from DMOJ, Codeforces, or AtCoder', inline=False)
+    embed.add_field(name='!whois <name>', value='Searches for a user on 4 online judges (DMOJ, Codeforces, AtCoder, WCIPEG)', inline=False)
     embed.add_field(name='!whatis <query>', value='Searches for something on Wikipedia', inline=False)
     embed.add_field(name='!motivation', value='Sends you some (emotional) support :smile:', inline=False)
     embed.add_field(name='!ping', value='Checks my ping to the Discord server', inline=False)
