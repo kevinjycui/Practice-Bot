@@ -178,7 +178,7 @@ async def whois(ctx, name=None):
         
 @tasks.loop(minutes=30)
 async def status_change():
-    await bot.change_presence(activity=discord.Game(name=' with %s' % rand.choice(statuses)))
+    await bot.change_presence(activity=discord.Game(name='with %s' % rand.choice(statuses)))
 
 @status_change.before_loop
 async def status_change_before():
