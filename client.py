@@ -256,8 +256,9 @@ async def unnotify_error(error, ctx):
 
 @bot.command()
 async def calc(ctx, *, expression):
-    if len(expression) >= 12 or expression.count('**') > 1:
+    if len(expression) > 12 or expression.count('**') > 1:
         await ctx.send(ctx.message.author.mention + ' Woah, that expression too long! (max 12 digits/operators, max 1 exponent)')
+        return
     try:
         def parse():
             solution = parse_expr(expression)
