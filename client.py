@@ -62,7 +62,7 @@ async def random(ctx, oj=None, points=None, maximum=None):
             if point >= points and point <= maximum:
                 possibilities.append(point)
         if len(possibilities) == 0:
-            await ctx.send(ctx.message.author.mention + ' There seems to be a problem with the DMOJ API. Please try again later :shrug:')
+            await ctx.send(ctx.message.author.mention + ' Sorry, I couldn\'t find any problems with those parameters. :cry:')
             return
         points = rand.choice(possibilities)
         
