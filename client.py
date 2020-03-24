@@ -252,7 +252,7 @@ async def unnotify_error(error, ctx):
 @bot.command()
 async def calc(ctx, *, expression):
     try:
-        solution = parse_expr(expression)
+        solution = str(parse_expr(expression))
         await ctx.send(ctx.message.author.mention + ' `' + solution + '`')
     except:
         await ctx.send(ctx.message.author.mention + ' There seems to be an error with that expression.')
