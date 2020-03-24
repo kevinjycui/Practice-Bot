@@ -155,8 +155,11 @@ async def whois(ctx, name=None):
 
 @bot.command()
 @commands.has_permissions(administrator=True)
-async def notify(ctx, channel):
+async def notify(ctx, channel=None):
     global contest_channels
+    if channel is None:
+        await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `!notify <channel>`.')
+        return
     iden = int(channel[2:-1])
     if iden in contest_channels:
         await ctx.send(ctx.message.author.mention + ' That channel is already a contest notification channel.')
@@ -177,8 +180,11 @@ async def notify_error(error, ctx):
 
 @bot.command()
 @commands.has_permissions(administrator=True)
-async def unnotify(ctx, channel):
+async def unnotify(ctx, channel=None):
     global contest_channels
+    if channel is None:
+        await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `!unnotify <channel>`.')
+        return
     iden = int(channel[2:-1])
     if iden in contest_channels:
         for chan in ctx.guild.text_channels:
