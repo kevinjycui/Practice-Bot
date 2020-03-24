@@ -251,6 +251,8 @@ async def calc(ctx, expression=None):
         return
     expression = expression.replace('`', '')
     try:
+        if '"' in expression:
+            raise SyntaxError
         numbers = expression
         for op in operators:
             numbers = numbers.replace(op, '')
