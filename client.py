@@ -9,9 +9,9 @@ from datetime import datetime
 import pytz
 import wikipedia
 import urllib
-##from sympy.parsing.sympy_parser import parse_expr
-##import asyncio
-##from concurrent.futures import ThreadPoolExecutor
+from sympy.parsing.sympy_parser import parse_expr
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 
 statuses = ('implementation', 'dynamic programming', 'graph theory', 'data structures', 'trees', 'geometry', 'strings', 'optimization')
 replies = ('Practice Bot believes that with enough practice, you can complete any goal!', 'Keep practicing! Practice Bot says that every great programmer starts somewhere!', 'Hey now, you\'re an All Star, get your game on, go play (and practice)!',
@@ -254,24 +254,24 @@ async def unnotify_error(error, ctx):
     if isinstance(error, commands.CheckFailure):
         await ctx.send(ctx.message.author.mention +' Sorry, you don\'t have permissions to remove a contest notification channel.')
 
-##@bot.command()
-##async def calc(ctx, *, expression):
-##    if len(expression) >= 12 or expression.count('**') > 2:
-##        await ctx.send(ctx.message.author.mention + ' Woah, that expression too long! (max 12 digits/operators, max 2 exponents)')
-##    try:
-##        def parse():
-##            solution = parse_expr(expression)
-##            return solution
-##        loop = asyncio.get_event_loop()
-##        solution = await loop.run_in_executor(ThreadPoolExecutor(), parse)
-##        if len(str(solution)) > 2000:
-##            with open('data/solution.txt', 'w+') as f:
-##                f.write(str(solution))
-##            await ctx.send(ctx.message.author.mention + ' That\'s a really long solution, I put it in this file for you. (solved in %ss)' % str(round(bot.latency, 3)), file=discord.File('data/solution.txt', 'solution.txt'))
-##        else:
-##            await ctx.send(ctx.message.author.mention + ' `' + str(solution) + '` (solved in %ss)' % str(round(bot.latency, 3)))
-##    except TypeError:
-##        await ctx.send(ctx.message.author.mention + ' There seems to be an error with that expression.')
+@bot.command()
+async def calc(ctx, *, expression):
+    if len(expression) >= 12 or expression.count('**') > 1:
+        await ctx.send(ctx.message.author.mention + ' Woah, that expression too long! (max 12 digits/operators, max 1 exponent)')
+    try:
+        def parse():
+            solution = parse_expr(expression)
+            return solution
+        loop = asyncio.get_event_loop()
+        solution = await loop.run_in_executor(ThreadPoolExecutor(), parse)
+        if len(str(solution)) > 2000:
+            with open('data/solution.txt', 'w+') as f:
+                f.write(str(solution))
+            await ctx.send(ctx.message.author.mention + ' That\'s a really long solution, I put it in this file for you. (solved in %ss)' % str(round(bot.latency, 3)), file=discord.File('data/solution.txt', 'solution.txt'))
+        else:
+            await ctx.send(ctx.message.author.mention + ' `' + str(solution) + '` (solved in %ss)' % str(round(bot.latency, 3)))
+    except TypeError:
+        await ctx.send(ctx.message.author.mention + ' There seems to be an error with that expression.')
 
 @tasks.loop(minutes=30)
 async def status_change():
@@ -397,7 +397,7 @@ async def help(ctx):
     embed.add_field(name='%swhatis <query>' % prefix, value='Searches for something on Wikipedia', inline=False)
     embed.add_field(name='%snotify <channel>' % prefix, value='Sets a channel as a contest notification channel (requires admin)', inline=False)
     embed.add_field(name='%sunnotify <channel> % prefix', value='Sets a channel to be no longer a contest notification channel (requires admin)', inline=False)
-##    embed.add_field(name='%scalc <expression>' % prefix, value='Evaluates a mathematical expression', inline=False)
+    embed.add_field(name='%scalc <expression>' % prefix, value='Evaluates a mathematical expression', inline=False)
     embed.add_field(name='%smotivation' % prefix, value='Sends you some (emotional) support :smile:', inline=False)
     embed.add_field(name='%scat' % prefix, value='Gets a random cat image', inline=False)
     embed.add_field(name='%sping' % prefix, value='Checks my ping to the Discord server', inline=False)
