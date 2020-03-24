@@ -9,6 +9,7 @@ from datetime import datetime
 import pytz
 import wikipedia
 import urllib
+from sympy.parsing.sympy_parser import parse_expr
 
 statuses = ('implementation', 'dynamic programming', 'graph theory', 'data structures', 'trees', 'geometry', 'strings', 'optimization')
 replies = ('Practice Bot believes that with enough practice, you can complete any goal!', 'Keep practicing! Practice Bot says that every great programmer starts somewhere!', 'Hey now, you\'re an All Star, get your game on, go play (and practice)!',
@@ -16,7 +17,6 @@ replies = ('Practice Bot believes that with enough practice, you can complete an
 with open('data/notification_channels.json', 'r', encoding='utf8', errors='ignore') as f:
     data = json.load(f)
 contest_channels = data['contest_channels']
-operators = ('+', '-', '*', '/', '%', '(', ')', '^', '.')
 input_index = 0
 
 dmoj_problems = None
@@ -248,6 +248,14 @@ async def unnotify(ctx, channel=None):
 async def unnotify_error(error, ctx):
     if isinstance(error, commands.CheckFailure):
         await ctx.send(ctx.message.author.mention +' Sorry, you don\'t have permissions to remove a contest notification channel.')
+
+@bot.command()
+async def calc(ctx, *, expression):
+    try:
+        solution = parse_expr(expression)
+        await ctx.send(ctx.message.author.mention + ' `' + solution + '`')
+    except:
+        await ctx.send(ctx.message.author.mention + ' There seems to be an error with that expression.')
                     
 @tasks.loop(minutes=30)
 async def status_change():
