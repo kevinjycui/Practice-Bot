@@ -13,7 +13,9 @@ import urllib
 statuses = ('implementation', 'dynamic programming', 'graph theory', 'data structures', 'trees', 'geometry', 'strings', 'optimization')
 replies = ('Practice Bot believes that with enough practice, you can complete any goal!', 'Keep practicing! Practice Bot says that every great programmer starts somewhere!', 'Hey now, you\'re an All Star, get your game on, go play (and practice)!',
            'Stuck on a problem? Every logical problem has a solution. You just have to keep practicing!', ':heart:')
-contest_channels = [511001840071213067, 691115746843033683] # contest notification channel ids
+with open('data/notification_channels.json', 'r', encoding='utf8', errors='ignore') as f:
+    data = json.load(f)
+contest_channels = data['contest_channels']
 
 dmoj_problems = None
 cf_problems = None
@@ -149,32 +151,48 @@ async def whois(ctx, name=None):
         embed.add_field(name=oj, value=url, inline=False)
     await ctx.send(ctx.message.author.mention + ' Found %d result(s) for `%s`' % (len(accounts), name), embed=embed)
 
-##@bot.command()
-##@commands.has_permissions(administrator=True)
-##async def set(ctx, setting, channel):
-##    if setting == 'notify':
-##        contest_channels.append(channel[2:1])
-##        ctx.send(discord.get_channel(channel[2:-1]).mention + ' set to contest notification channel.')            
-##
-##@set.error
-##async def set_error(error, ctx):
-##    if isinstance(error, commands.CheckFailure):
-##        ctx.send(ctx.message.author.mention +' Sorry, you don\'t have permissions to set a contest notification channel.')
-##
-##@bot.command()
-##@commands.has_permissions(administrator=True)
-##async def remove(ctx, setting, channel):
-##    if setting == 'notify':
-##        if channel[2:-1] in contest_channels:
-##            contest_channels.remove(channel[2:-1])
-##            ctx.send(discord.get_channel(channel[2:-1]).mention + ' is no longer a contest notification channel.')
-##        else:
-##            ctx.send('That channel is not a contest notification channel.')
-##       
-##@remove.error
-##async def remove_error(error, ctx):
-##    if isinstance(error, commands.CheckFailure):
-##        ctx.send(ctx.message.author.mention +' Sorry, you don\'t have permissions to remove a contest notification channel.')
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def notify(ctx, channel):
+    global contest_channels
+    iden = int(channel[2:-1])
+    if iden in contest_channels:
+        await ctx.send(ctx.message.author.mention + ' That channel is already a contest notification channel.')
+        return
+    for chan in ctx.guild.text_channels:
+        if chan.id == iden:
+            contest_channels.append(iden)
+            with open('data/notification_channels.json', 'w') as json_file:
+                json.dump({'contest_channels':contest_channels}, json_file)
+            await ctx.send(chan.mention + ' set to a contest notification channel.')
+            return
+    await ctx.send(ctx.message.author.mention + ' It seems like that channel does not exist.')
+
+@notify.error
+async def notify_error(error, ctx):
+    if isinstance(error, commands.CheckFailure):
+        await ctx.send(ctx.message.author.mention +' Sorry, you don\'t have permissions to set a contest notification channel.')
+
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def unnotify(ctx, channel):
+    global contest_channels
+    iden = int(channel[2:-1])
+    if iden in contest_channels:
+        for chan in ctx.guild.text_channels:
+            if chan.id == iden:
+                contest_channels.remove(iden)
+                with open('data/notification_channels.json', 'w') as json_file:
+                    json.dump({'contest_channels':contest_channels}, json_file)
+                await ctx.send(chan.mention + ' is no longer a contest notification channel.')
+                return
+    else:
+        await ctx.send('That channel either does not exist or is not a contest notification channel.')
+       
+@unnotify.error
+async def unnotify_error(error, ctx):
+    if isinstance(error, commands.CheckFailure):
+        await ctx.send(ctx.message.author.mention +' Sorry, you don\'t have permissions to remove a contest notification channel.')
         
 @tasks.loop(minutes=30)
 async def status_change():
@@ -280,6 +298,8 @@ async def help(ctx):
     embed.add_field(name='!random <online judge>', value='Gets a random problem from DMOJ, Codeforces, or AtCoder', inline=False)
     embed.add_field(name='!whois <name>', value='Searches for a user on 4 online judges (DMOJ, Codeforces, AtCoder, WCIPEG)', inline=False)
     embed.add_field(name='!whatis <query>', value='Searches for something on Wikipedia', inline=False)
+    embed.add_field(name='!notify <channel>', value='Set a channel as a contest notification channel (requires admin)', inline=False)
+    embed.add_field(name='!unnotify <channel>', value='Set a channel to be no longer a contest notification channel (requires admin)', inline=False)
     embed.add_field(name='!motivation', value='Sends you some (emotional) support :smile:', inline=False)
     embed.add_field(name='!ping', value='Checks my ping to the Discord server', inline=False)
     await ctx.message.author.send(embed=embed)
