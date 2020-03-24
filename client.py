@@ -64,7 +64,7 @@ async def random(ctx, oj=None, points=None, maximum=None):
         if len(possibilities) == 0:
             await ctx.send(ctx.message.author.mention + ' There seems to be a problem with the DMOJ API. Please try again later :shrug:')
             return
-        points = random.choice(possibilities)
+        points = rand.choice(possibilities)
         
     if oj.lower() == 'dmoj':
         if not dmoj_problems:
