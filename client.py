@@ -142,6 +142,8 @@ async def whois(ctx, name=None):
         accounts['AtCoder'] = 'https://atcoder.jp/users/%s' % name
     if valid('https://wcipeg.com/user/%s' % name):
         accounts['WCIPEG'] = 'https://wcipeg.com/user/%s' % name
+    if valid('https://github.com/%s' % name):
+        accounts['GitHub'] = 'https://github.com/%s' % name
     if len(accounts) == 0:
         await ctx.send(ctx.message.author.mention + ' Sorry, found 0 results for %s' % name)
         return
@@ -296,10 +298,10 @@ async def help(ctx):
     embed = discord.Embed(title='Practice Bot', description='The all-competitive-programming-purpose Discord bot!', color=0xeee657)
     embed.add_field(name='!help', value='Sends you a list of my commands (obviously)', inline=False)
     embed.add_field(name='!random <online judge>', value='Gets a random problem from DMOJ, Codeforces, or AtCoder', inline=False)
-    embed.add_field(name='!whois <name>', value='Searches for a user on 4 online judges (DMOJ, Codeforces, AtCoder, WCIPEG)', inline=False)
+    embed.add_field(name='!whois <name>', value='Searches for a user on 4 online judges (DMOJ, Codeforces, AtCoder, WCIPEG) and GitHub', inline=False)
     embed.add_field(name='!whatis <query>', value='Searches for something on Wikipedia', inline=False)
-    embed.add_field(name='!notify <channel>', value='Set a channel as a contest notification channel (requires admin)', inline=False)
-    embed.add_field(name='!unnotify <channel>', value='Set a channel to be no longer a contest notification channel (requires admin)', inline=False)
+    embed.add_field(name='!notify <channel>', value='Sets a channel as a contest notification channel (requires admin)', inline=False)
+    embed.add_field(name='!unnotify <channel>', value='Sets a channel to be no longer a contest notification channel (requires admin)', inline=False)
     embed.add_field(name='!motivation', value='Sends you some (emotional) support :smile:', inline=False)
     embed.add_field(name='!ping', value='Checks my ping to the Discord server', inline=False)
     await ctx.message.author.send(embed=embed)

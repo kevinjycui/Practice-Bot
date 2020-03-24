@@ -8,7 +8,7 @@ The all-competitive-programming-purpose Discord bot!
 ## Commands
  - `!help` Sends you a list of my commands (obviously)
  - `!random <online judge>` Gets a random problem from DMOJ, Codeforces, or AtCoder
- - `!whois <name>` Searches for a user on 4 online judges (DMOJ, Codeforces, AtCoder, WCIPEG)
+ - `!whois <name>` Searches for a user on 4 online judges (DMOJ, Codeforces, AtCoder, WCIPEG) and GitHub
  - `!whatis <query>` Searches for something on Wikipedia
  - `!notify <channel>` Sets a channel as a contest notification channel (requires admin)
  - `!unnotify <channel>` Sets a channel to be no longer a contest notification channel (requires admin)
