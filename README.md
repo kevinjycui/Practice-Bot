@@ -16,6 +16,7 @@ The all-competitive-programming-purpose Discord bot!
  - `!notify <channel>` Sets a channel as a contest notification channel (requires admin)
  - `!unnotify <channel>` Sets a channel to be no longer a contest notification channel (requires admin)
  - `!motivation` Sends you some (emotional) support :smile:
+ - `!cat>` Gets a random cat image
  - `!calc <expression>` Evaluates a mathematical expression
  - `!ping` Checks my ping to the Discord server
   

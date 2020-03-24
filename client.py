@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands, tasks
-from auth import bot_token
+from auth import bot_token, cat_api
 import requests
 import json
 import random as rand
@@ -194,6 +194,11 @@ async def whois(ctx, *, name=None):
     for oj, url in accounts.items():
         embed.add_field(name=oj, value=url, inline=False)
     await ctx.send(ctx.message.author.mention + ' Found %d result(s) for `%s`' % (len(accounts), name), embed=embed)
+
+@bot.command()
+async def cat(ctx):
+    data = get('https://api.thecatapi.com/v1/images/search?x-api-key=' + cat_api)
+    await ctx.send(ctx.message.author.mention + ' :smiley_cat: ' + data['url'])
 
 @bot.command()
 @commands.has_permissions(administrator=True)
@@ -391,6 +396,7 @@ async def help(ctx):
     embed.add_field(name='%snotify <channel>' % prefix, value='Sets a channel as a contest notification channel (requires admin)', inline=False)
     embed.add_field(name='%sunnotify <channel> % prefix', value='Sets a channel to be no longer a contest notification channel (requires admin)', inline=False)
     embed.add_field(name='%smotivation' % prefix, value='Sends you some (emotional) support :smile:', inline=False)
+    embed.add_field(name='%scat' % prefix, value='Gets a random cat image', inline=False)
     embed.add_field(name='%scalc <expression>' % prefix, value='Evaluates a mathematical expression', inline=False)
     embed.add_field(name='%sping' % prefix, value='Checks my ping to the Discord server', inline=False)
     await ctx.message.author.send(embed=embed)
