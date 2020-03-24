@@ -199,7 +199,10 @@ async def whois(ctx, *, name=None):
 
 @bot.command()
 async def cat(ctx):
-    data = get('https://api.thecatapi.com/v1/images/search?x-api-key=' + cat_api)
+    if rand.randint(0, 100) == 0:
+        data = [{'url':'https://media.discordapp.net/attachments/511001840071213067/660303090444140545/539233495000809475.png'}]
+    else:
+        data = get('https://api.thecatapi.com/v1/images/search?x-api-key=' + cat_api)
     await ctx.send(ctx.message.author.mention + ' :smiley_cat: ' + data[0]['url'])
 
 @bot.command()
