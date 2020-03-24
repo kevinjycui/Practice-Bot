@@ -248,28 +248,6 @@ async def unnotify(ctx, channel=None):
 async def unnotify_error(error, ctx):
     if isinstance(error, commands.CheckFailure):
         await ctx.send(ctx.message.author.mention +' Sorry, you don\'t have permissions to remove a contest notification channel.')
-
-@bot.command()
-async def calc(ctx, *, expression=None):
-    if expression is None:
-        await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%scalc <expression>`.' % prefix)
-        return
-    expression = expression.replace('`', '').replace(' ', '').strip()
-    try:
-        if '"' in expression:
-            raise SyntaxError
-        numbers = expression
-        for op in operators:
-            numbers = numbers.replace(op, '')
-        if not numbers.isdigit():
-            raise SyntaxError
-        solution = eval(expression.replace('^', '**'))
-        if solution == int(solution):            
-            await ctx.send(ctx.message.author.mention + ' `%d`' % solution)
-        else:
-            await ctx.send(ctx.message.author.mention + ' `%f`' % solution)
-    except SyntaxError:
-        await ctx.send(ctx.message.author.mention + ' There is an error in that expression.')
                     
 @tasks.loop(minutes=30)
 async def status_change():
@@ -397,7 +375,6 @@ async def help(ctx):
     embed.add_field(name='%sunnotify <channel> % prefix', value='Sets a channel to be no longer a contest notification channel (requires admin)', inline=False)
     embed.add_field(name='%smotivation' % prefix, value='Sends you some (emotional) support :smile:', inline=False)
     embed.add_field(name='%scat' % prefix, value='Gets a random cat image', inline=False)
-    embed.add_field(name='%scalc <expression>' % prefix, value='Evaluates a mathematical expression', inline=False)
     embed.add_field(name='%sping' % prefix, value='Checks my ping to the Discord server', inline=False)
     await ctx.message.author.send(embed=embed)
     await ctx.send(ctx.message.author.mention + ' I\'ve sent you a list of my commands to your DM!')
