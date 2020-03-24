@@ -16,7 +16,7 @@ The all-competitive-programming-purpose Discord bot!
  - `!ping` Checks my ping to the Discord server
   
 ## Tools
- - Discord API
+ - discord.py
  - DMOJ API
  - Codeforces API
  - nomikura/atcoder-api
