@@ -381,6 +381,7 @@ async def help(ctx):
     embed.add_field(name='%swhatis <query>' % prefix, value='Searches for something on Wikipedia', inline=False)
     embed.add_field(name='%snotify <channel>' % prefix, value='Sets a channel as a contest notification channel (requires admin)', inline=False)
     embed.add_field(name='%sunnotify <channel> % prefix', value='Sets a channel to be no longer a contest notification channel (requires admin)', inline=False)
+    embed.add_field(name='%scalc <expression>' % prefix, value='Evaluates a mathematical expression', inline=False)
     embed.add_field(name='%smotivation' % prefix, value='Sends you some (emotional) support :smile:', inline=False)
     embed.add_field(name='%scat' % prefix, value='Gets a random cat image', inline=False)
     embed.add_field(name='%sping' % prefix, value='Checks my ping to the Discord server', inline=False)
