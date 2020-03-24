@@ -58,7 +58,7 @@ async def random(ctx, oj=None, points=None, maximum=None):
             return
         maximum = int(maximum)
         possibilities = []
-        for point in problems_by_points[oj].keys():
+        for point in list(problems_by_points[oj].keys()):
             if point >= points and point <= maximum:
                 possibilities.append(point)
         if len(possibilities) == 0:
@@ -383,7 +383,7 @@ async def help(ctx):
     embed.add_field(name='%srandom' % prefix, value='Gets a random problem from DMOJ, Codeforces, or AtCoder', inline=False)
     embed.add_field(name='%srandom <online judge>' % prefix, value='Gets a random problem from a specific online judge (DMOJ, Codeforces, or AtCoder)', inline=False)
     embed.add_field(name='%srandom <online judge> <points>' % prefix, value='Gets a random problem from a specific online judge (DMOJ, Codeforces, or AtCoder) with a specific number of points', inline=False)
-    embed.add_field(name='%srandom <online judge> <minimum> <maximum>' % prefix, value='Gets a random problem from a specific online judge (DMOJ, Codeforces, or AtCoder) with a specific points range', inline=False)
+    embed.add_field(name='%srandom <online judge> <minimum> <maximum>' % prefix, value='Gets a random problem from a specific online judge (DMOJ, Codeforces, or AtCoder) with a specific point range', inline=False)
     embed.add_field(name='%swhois <name>' % prefix, value='Searches for a user on 4 online judges (DMOJ, Codeforces, AtCoder, WCIPEG) and GitHub', inline=False)
     embed.add_field(name='%swhatis <query>' % prefix, value='Searches for something on Wikipedia', inline=False)
     embed.add_field(name='%snotify <channel>' % prefix, value='Sets a channel as a contest notification channel (requires admin)', inline=False)
