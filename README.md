@@ -22,6 +22,6 @@ The all-competitive-programming-purpose Discord bot!
  - WCIPEG
 
 ## Icon
-> ![](https://ctl.s6img.com/society6/img/tfIvzDYNWidPtDB5b2s6dK5Q32Q/w_700/prints/~artwork/s6-original-art-uploads/society6/uploads/misc/a0c77d92a01d4ee9a6290e43ee1af763/~~/cute-cup-of-tea-prints.jpg?wait=0&attempt=0)
+> ![](https://res.cloudinary.com/teepublic/image/private/s--x92XN2dB--/t_Resized%20Artwork/c_fit,g_north_west,h_1054,w_1054/co_ffffff,e_outline:53/co_ffffff,e_outline:inner_fill:53/co_bbbbbb,e_outline:3:1000/c_mpad,g_center,h_1260,w_1260/b_rgb:eeeeee/c_limit,f_jpg,h_630,q_90,w_630/v1534336808/production/designs/3024012_0.jpg)
 
-> Icon by peppermintpopuk: [https://society6.com/product/cute-cup-of-tea_print](https://society6.com/product/cut>e-cup-of-tea_print)
+> Icon by peppermintpopuk
