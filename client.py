@@ -16,7 +16,7 @@ replies = ('Practice Bot believes that with enough practice, you can complete an
 with open('data/notification_channels.json', 'r', encoding='utf8', errors='ignore') as f:
     data = json.load(f)
 contest_channels = data['contest_channels']
-operators = ('+', '-', '*', '/', '%', '(', ')', '^')
+operators = ('+', '-', '*', '/', '%', '(', ')', '^', '.')
 input_index = 0
 
 dmoj_problems = None
@@ -40,7 +40,7 @@ async def ping(ctx):
     await ctx.send('Pong! (ponged in %ss)' % str(round(bot.latency, 3)))
 
 @bot.command()
-async def random(ctx, oj=None, points=None):
+async def random(ctx, oj=None, points=None, maximum=None):
     global problems_by_points, dmoj_problems, cf_problems, at_problems
     start = time()
     
@@ -51,6 +51,20 @@ async def random(ctx, oj=None, points=None):
             await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%srandom <online judge> <points>` (dmoj/codeforces/atcoder).' % prefix)
             return
         points = int(points)
+
+    if maximum is not None:
+        if not maximum.isdigit():
+            await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%srandom <online judge> <minimum> <maximum>` (dmoj/codeforces/atcoder).' % prefix)
+            return
+        maximum = int(maximum)
+        possibilities = []
+        for point in problems_by_points[oj].keys():
+            if point >= points and point <= maximum:
+                possibilities.append(point)
+        if len(possibilities) == 0:
+            await ctx.send(ctx.message.author.mention + ' There seems to be a problem with the DMOJ API. Please try again later :shrug:')
+            return
+        points = random.choice(possibilities)
         
     if oj.lower() == 'dmoj':
         if not dmoj_problems:
@@ -369,6 +383,7 @@ async def help(ctx):
     embed.add_field(name='%srandom' % prefix, value='Gets a random problem from DMOJ, Codeforces, or AtCoder', inline=False)
     embed.add_field(name='%srandom <online judge>' % prefix, value='Gets a random problem from a specific online judge (DMOJ, Codeforces, or AtCoder)', inline=False)
     embed.add_field(name='%srandom <online judge> <points>' % prefix, value='Gets a random problem from a specific online judge (DMOJ, Codeforces, or AtCoder) with a specific number of points', inline=False)
+    embed.add_field(name='%srandom <online judge> <minimum> <maximum>' % prefix, value='Gets a random problem from a specific online judge (DMOJ, Codeforces, or AtCoder) with a specific points range', inline=False)
     embed.add_field(name='%swhois <name>' % prefix, value='Searches for a user on 4 online judges (DMOJ, Codeforces, AtCoder, WCIPEG) and GitHub', inline=False)
     embed.add_field(name='%swhatis <query>' % prefix, value='Searches for something on Wikipedia', inline=False)
     embed.add_field(name='%snotify <channel>' % prefix, value='Sets a channel as a contest notification channel (requires admin)', inline=False)
