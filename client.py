@@ -245,7 +245,7 @@ async def unnotify_error(error, ctx):
         await ctx.send(ctx.message.author.mention +' Sorry, you don\'t have permissions to remove a contest notification channel.')
 
 @bot.command()
-async def calc(ctx, expression=None):
+async def calc(ctx, *, expression=None):
     if expression is None:
         await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%scalc <expression>`.' % prefix)
         return
