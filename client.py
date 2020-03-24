@@ -53,7 +53,7 @@ async def random(ctx, oj=None, points=None):
         if not dmoj_problems:
             await ctx.send(ctx.message.author.mention + ' There seems to be a problem with the DMOJ API. Please try again later :shrug:')
             return
-        if not points:
+        if points is None:
             name, prob = rand.choice(list(dmoj_problems.items()))
         elif points in problems_by_points['dmoj']:
             name, prob = rand.choice(list(problems_by_points['dmoj'][points].items()))
@@ -72,7 +72,7 @@ async def random(ctx, oj=None, points=None):
         if not cf_problems:
             await ctx.send(ctx.message.author.mention + ' There seems to be a problem with the Codeforces API. Please try again later :shrug:')
             return
-        if not points:
+        if points is None:
             prob = rand.choice(cf_problems)
         elif points in problems_by_points['cf']:
             prob = rand.choice(problems_by_points['cf'][points])
@@ -93,7 +93,7 @@ async def random(ctx, oj=None, points=None):
         if not at_problems:
             await ctx.send(ctx.message.author.mention + ' There seems to be a problem with the AtCoder API. Please try again later :shrug:')
             return
-        if not points:
+        if points is None:
             prob = rand.choice(at_problems)
         elif points in problems_by_points['at']:
             prob = rand.choice(problems_by_points['at'][points])
@@ -363,7 +363,9 @@ bot.remove_command('help')
 async def help(ctx):
     embed = discord.Embed(title='Practice Bot', description='The all-competitive-programming-purpose Discord bot!', color=0xeee657)
     embed.add_field(name='%shelp' % prefix, value='Sends you a list of my commands (obviously)', inline=False)
-    embed.add_field(name='%srandom <online judge>' % prefix, value='Gets a random problem from DMOJ, Codeforces, or AtCoder', inline=False)
+    embed.add_field(name='%srandom' % prefix, value='Gets a random problem from DMOJ, Codeforces, or AtCoder', inline=False)
+    embed.add_field(name='%srandom <online judge>' % prefix, value='Gets a random problem from a specific online judge (DMOJ, Codeforces, or AtCoder)', inline=False)
+    embed.add_field(name='%srandom <online judge> <points>' % prefix, value='Gets a random problem from a specific online judge (DMOJ, Codeforces, or AtCoder) with a specific number of points', inline=False)
     embed.add_field(name='%swhois <name>' % prefix, value='Searches for a user on 4 online judges (DMOJ, Codeforces, AtCoder, WCIPEG) and GitHub', inline=False)
     embed.add_field(name='%swhatis <query>' % prefix, value='Searches for something on Wikipedia', inline=False)
     embed.add_field(name='%snotify <channel>' % prefix, value='Sets a channel as a contest notification channel (requires admin)', inline=False)
