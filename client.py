@@ -198,7 +198,7 @@ async def whois(ctx, *, name=None):
 @bot.command()
 async def cat(ctx):
     data = get('https://api.thecatapi.com/v1/images/search?x-api-key=' + cat_api)
-    await ctx.send(ctx.message.author.mention + ' :smiley_cat: ' + data['url'])
+    await ctx.send(ctx.message.author.mention + ' :smiley_cat: ' + data[0]['url'])
 
 @bot.command()
 @commands.has_permissions(administrator=True)
