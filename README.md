@@ -1,7 +1,7 @@
 # Practice-Bot
 The all-competitive-programming-purpose Discord bot!
 
-[🍵 Invite to your server!](https://discordapp.com/api/oauth2/authorize?client_id=691416325557452861&permissions=0&scope=bot)
+[🍵 Invite me to your server!](https://discordapp.com/api/oauth2/authorize?client_id=691416325557452861&permissions=0&scope=bot)
 
 ## Commands
  - `!help` Sends you a list of my commands (obviously)
