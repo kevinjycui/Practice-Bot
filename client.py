@@ -249,7 +249,7 @@ async def calc(ctx, *, expression=None):
     if expression is None:
         await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%scalc <expression>`.' % prefix)
         return
-    expression = expression.replace('`', '')
+    expression = expression.replace('`', '').replace(' ', '').strip()
     try:
         if '"' in expression:
             raise SyntaxError
