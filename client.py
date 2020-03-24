@@ -47,6 +47,9 @@ async def random(ctx, oj=None, points=None):
     if oj is None:
         oj = rand.choice(('dmoj', 'cf', 'at'))
     if points is not None:
+        if not points.isdigit():
+            await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%srandom <online judge> <points>` (dmoj/codeforces/atcoder).' % prefix)
+            return
         points = int(points)
         
     if oj.lower() == 'dmoj':
@@ -109,7 +112,7 @@ async def random(ctx, oj=None, points=None):
         await ctx.send(ctx.message.author.mention, embed=embed)
 
     else:
-        await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%srandom <online judge>` (dmoj/codeforces/atcoder).' % prefix)
+        await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%srandom <online judge> <points>` (dmoj/codeforces/atcoder).' % prefix)
 
 @bot.command()
 async def motivation(ctx):
