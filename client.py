@@ -74,6 +74,7 @@ async def random(ctx, oj=None, points=None, maximum=None):
         oj = rand.choice(('dmoj', 'cf', 'at'))
 
     iden = str(ctx.message.author.id)
+    checkExistingUser(ctx.message.author)
     temp_dmoj_problems = {}
     if oj in accounts and 'repeat' in global_users[iden] and not global_users[iden]['repeat']:
         if oj == 'dmoj':
