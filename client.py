@@ -46,8 +46,8 @@ def checkExistingUser(user):
         global_users[str(user.id)] = {}
     else:
         return True
-    with open('data/user.json', 'w') as f:
-        json.dump(global_users)
+    with open('data/user.json', 'w') as json_file:
+        json.dump(global_users, json_file)
     return False
 
 prefix = '!'
