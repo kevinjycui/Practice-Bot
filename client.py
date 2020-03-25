@@ -207,6 +207,28 @@ async def cat(ctx):
     await ctx.send(ctx.message.author.mention + ' :smiley_cat: ' + data[0]['url'])
 
 @bot.command()
+async def tea(ctx, user):
+    if user is None:
+        with open('data/users.json') as f:
+            data = json.load(f)
+        await ctx.send(ctx.message.author.mention + ' You have ' + str(data.get(ctx.message.author.id, 0)) + ' cups of tea.')
+    if not user[2:-1].isdigit():
+        await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%stea <user>`.' % prefix)
+        return
+    iden = int(user[2:-1])
+    for member in ctx.guild.members:
+        if member.id == iden:
+            with open('data/users.json') as f:
+                data = json.load(f)
+            data[iden] = data.get(iden, 0) + 1
+            with open('data/users.json', 'w') as json_file:
+                json.dump(data, json_file)
+            await ctx.send(ctx.message.author.mention + ' sent a cup of tea to ' + member.mention)
+            return
+    await ctx.send(ctx.message.author.mention + ' It seems like that user does not exist.')
+
+
+@bot.command()
 async def run(ctx, lang=None, stdin=None, *, script=None):
     global wait_time
     if lang is None or stdin is None or script is None:
@@ -255,7 +277,7 @@ async def run(ctx, lang=None, stdin=None, *, script=None):
 @commands.has_permissions(administrator=True)
 async def notify(ctx, channel=None):
     global contest_channels
-    if channel is None:
+    if channel is None or not channel[2:-1].isdigit():
         await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%snotify <channel>`.' % prefix)
         return
     iden = int(channel[2:-1])
@@ -426,6 +448,8 @@ async def help(ctx):
     embed.add_field(name='%snotify <channel>' % prefix, value='Sets a channel as a contest notification channel (requires admin)', inline=False)
     embed.add_field(name='%sunnotify <channel>' % prefix, value='Sets a channel to be no longer a contest notification channel (requires admin)', inline=False)
     embed.add_field(name='%smotivation' % prefix, value='Sends you some (emotional) support :smile:', inline=False)
+    embed.add_field(name='%stea <user>' % prefix, value='Sends a user a cup of tea (a pointless point system)', inline=False)
+    embed.add_field(name='%stea' % prefix, value='Checks how many cups of tea you have', inline=False)
     embed.add_field(name='%scat' % prefix, value='Gets a random cat image', inline=False)
     embed.add_field(name='%sping' % prefix, value='Checks my ping to the Discord server', inline=False)
     await ctx.message.author.send(embed=embed)
