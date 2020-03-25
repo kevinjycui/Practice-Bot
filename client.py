@@ -20,6 +20,20 @@ contest_channels = data['contest_channels']
 wait_time = 0
 accounts = ('dmoj',)
 
+wcipeg_begin = '''Jump to:					<a href="#mw-head">navigation</a>, 					<a href="#p-search">search</a>
+				</div>
+				<div id="mw-content-text" lang="en" dir="ltr" class="mw-content-ltr"><p>'''
+
+wcipeg_end = '''</p>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>'''
+
+head_begin = '''<h1 id="firstHeading" class="firstHeading" lang="en">'''
+head_end = '''</h1>
+						<div id="bodyContent" class="mw-body-content">
+									<div id="siteSub">From PEGWiki</div>
+								<div id="contentSub"></div>
+												<div id="jump-to-nav" class="mw-jump">'''
+
 with open('data/users.json', 'r', encoding='utf8', errors='ignore') as f:
     global_users = json.load(f)
     
@@ -201,21 +215,6 @@ def getSummary(name):
     except:
         return None, None
 
-@bot.command()
-async def whatis(ctx, *, name=None):
-    start = time()
-    if name is None:
-        await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%swhatis <thing>`.' % prefix)
-        return
-    page, summary = getSummary(name.replace(' ', '_'))
-    if summary is None:
-        await ctx.send(ctx.message.author.mention + ' Sorry, I couldn\'t find anything on "%s"' % name)
-        return
-    embed = discord.Embed(title=page.title, description=page.url+' (searched in %ss)' % str(round(bot.latency, 3)))
-    embed.timestamp = datetime.utcnow()
-    embed.add_field(name='Summary', value=summary, inline=False)
-    await ctx.send(ctx.message.author.mention + ' Here\'s what I found!', embed=embed)
-
 def valid(url):
     try:
         if urllib.request.urlopen(url).getcode() == 200:
@@ -224,6 +223,40 @@ def valid(url):
             return False
     except:
         return False
+    
+@bot.command()
+async def whatis(ctx, *, name=None):
+    start = time()
+    if name is None:
+        await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%swhatis <thing>`.' % prefix)
+        return
+    if valid('http://wcipeg.com/wiki/%s' % name.replace(' ', '_')):
+        url = 'http://wcipeg.com/wiki/%s' % name.replace(' ', '_')
+        wiki_response = wget(url)
+        scan = True
+        title = wiki_response[wiki_response.index(head_begin) + len(head_begin): wiki_response.index(head_end)]
+        summary = ''
+        for index in range(wiki_response.index(wcipeg_begin) + len(wcipeg_begin), wiki_response.index(wcipeg_end)):
+            if wiki_response[index] == '<':
+                scan = False
+            if scan:
+                summary += wiki_response[index]
+            if wiki_response[index] == '>':
+                scan = True
+        embed = discord.Embed(title=title, description=url + ' (searched in %ss)' % str(round(bot.latency, 3)))
+        embed.timestamp = datetime.utcnow()
+        embed.add_field(name='Summary', value=summary, inline=False)
+        await ctx.send(ctx.message.author.mention + ' Here\'s what I found!', embed=embed)
+    else:
+        page, summary = getSummary(name.replace(' ', '_'))
+        if summary is None:
+            await ctx.send(ctx.message.author.mention + ' Sorry, I couldn\'t find anything on "%s"' % name)
+            return
+        embed = discord.Embed(title=page.title, description=page.url+' (searched in %ss)' % str(round(bot.latency, 3)))
+        embed.timestamp = datetime.utcnow()
+        embed.add_field(name='Summary', value=summary, inline=False)
+        await ctx.send(ctx.message.author.mention + ' Here\'s what I found!', embed=embed)
+
 
 @bot.command()
 async def whois(ctx, *, name=None):
