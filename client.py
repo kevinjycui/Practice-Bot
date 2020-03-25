@@ -10,8 +10,6 @@ import pytz
 import wikipedia
 import urllib
 from sympy.parsing.sympy_parser import parse_expr
-import asyncio
-from concurrent.futures import ThreadPoolExecutor
 import multiprocessing
 
 statuses = ('implementation', 'dynamic programming', 'graph theory', 'data structures', 'trees', 'geometry', 'strings', 'optimization')
@@ -254,30 +252,39 @@ async def unnotify(ctx, channel=None):
 async def unnotify_error(error, ctx):
     if isinstance(error, commands.CheckFailure):
         await ctx.send(ctx.message.author.mention +' Sorry, you don\'t have permissions to remove a contest notification channel.')
+        
+def parse(expression, return_dict):
+    return_dict[expression] = parse_expr(expression)
 
-def parse(expression, solution):
-    solution = parse_expr(expression)
-    return
+def evaluate(expression):
+    manager = multiprocessing.Manager()
+    return_dict = manager.dict()
+    p = multiprocessing.Process(target=parse, args=(expression, return_dict))
+    p.start()
 
-##@bot.command()
-##async def calc(ctx, *, expression):
-####    try:
-##    solution = 0
-##    process = multiprocessing.Process(target=parse, args=(expression, solution))
-##    process.start()
-##    process.join(30)
-##    if process.is_alive():
-##        process.terminate()
-##        process.join()
-##        await ctx.send(ctx.message.author.mention + ' Operation timed out. Perhaps try smaller values?')
-##    elif len(str(solution)) > 2000:
-##        with open('data/solution.txt', 'w+') as f:
-##            f.write(str(solution))
-##        await ctx.send(ctx.message.author.mention + ' That\'s a really long solution, I put it in this file for you. (solved in %ss)' % str(round(bot.latency, 3)), file=discord.File('data/solution.txt', 'solution.txt'))
-##    else:
-##        await ctx.send(ctx.message.author.mention + ' `' + str(solution) + '` (solved in %ss)' % str(round(bot.latency, 3)))
-####    except:
-####        await ctx.send(ctx.message.author.mention + ' There seems to be an error with that expression.')
+    p.join(4)
+
+    if p.is_alive():
+        p.terminate()
+        p.join()
+    else:
+        return return_dict[expression]
+
+@bot.command()
+async def calc(ctx, *, expression):
+    try:
+        solution = evaluate(expression)
+        if solution is None:
+            await ctx.send(ctx.message.author.mention + ' Operation timed out. Perhaps try smaller values?')
+            return
+        elif len(str(solution)) > 2000:
+            with open('data/solution.txt', 'w+') as f:
+                f.write(str(solution))
+            await ctx.send(ctx.message.author.mention + ' That\'s a really long solution, I put it in this file for you. (solved in %ss)' % str(round(bot.latency, 3)), file=discord.File('data/solution.txt', 'solution.txt'))
+        else:
+            await ctx.send(ctx.message.author.mention + ' `' + str(solution) + '` (solved in %ss)' % str(round(bot.latency, 3)))
+    except:
+        await ctx.send(ctx.message.author.mention + ' There seems to be an error with that expression.')
 
 @tasks.loop(minutes=30)
 async def status_change():
