@@ -13,6 +13,7 @@ The all-competitive-programming-purpose Discord bot!
  - `!random <online judge> <minimum> <maximum>` Gets a random problem from a specific online judge (DMOJ, Codeforces, or AtCoder) within a specific point range
  - `!whois <name>` Searches for a user on 4 online judges (DMOJ, Codeforces, AtCoder, WCIPEG) and GitHub
  - `!whatis <query>` Searches for something on Wikipedia
+ - `!run <language> <stdin> <script>` Runs a script in one of 72 languages! (200 calls allowed daily for everyone)
  - `!notify <channel>` Sets a channel as a contest notification channel (requires admin)
  - `!unnotify <channel>` Sets a channel to be no longer a contest notification channel (requires admin)
  - `!motivation` Sends you some (emotional) support :smile:
