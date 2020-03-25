@@ -208,7 +208,6 @@ async def cat(ctx):
 
 @bot.command()
 async def tea(ctx, user):
-    print(user)
     if user is None:
         with open('data/users.json') as f:
             data = json.load(f)
