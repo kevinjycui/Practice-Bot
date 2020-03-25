@@ -318,7 +318,7 @@ async def tea(ctx, user=None):
     for member in ctx.guild.members:
         if member.id == iden:
             checkExistingUser(member)
-            global_users[iden]['tea'] = global_users[iden].get('tea', 0) + 1
+            global_users[str(iden)]['tea'] = global_users[str(iden)].get('tea', 0) + 1
             updateUsers()
             await ctx.send(ctx.message.author.mention + ' sent a cup of :tea: to ' + member.mention)
             return
