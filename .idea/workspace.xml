@@ -15,6 +15,7 @@
     </option>
   </component>
   <component name="ProjectId" id="1ZVEhnWWM6wQAk3zAV65fpmdPXo" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showExcludedFiles" value="true" />
@@ -74,9 +75,9 @@
       <screen x="0" y="0" width="1366" height="728" />
     </state>
     <state x="184" y="6" key="SettingsEditor/0.0.1366.728@0.0.1366.728" timestamp="1584916760804" />
-    <state x="378" y="188" key="com.intellij.ide.util.TipDialog" timestamp="1584916634641">
+    <state x="378" y="188" key="com.intellij.ide.util.TipDialog" timestamp="1585103861177">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state x="378" y="188" key="com.intellij.ide.util.TipDialog/0.0.1366.728@0.0.1366.728" timestamp="1584916634641" />
+    <state x="378" y="188" key="com.intellij.ide.util.TipDialog/0.0.1366.728@0.0.1366.728" timestamp="1585103861177" />
   </component>
 </project>

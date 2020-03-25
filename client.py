@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands, tasks
-from auth import bot_token, cat_api
+from auth import *
 import requests
 import json
 import random as rand
@@ -29,6 +29,13 @@ def get(api_url):
 
     if response.status_code == 200:
         return json.loads(response.content.decode('utf-8'))
+    return None
+
+def post(api_url, data, headers):
+    response = requests.post(api_url, json=data, headers=headers)
+
+    if response.status_code == 200:
+        return response.json()
     return None
 
 prefix = '!'
@@ -201,6 +208,29 @@ async def cat(ctx):
     else:
         data = get('https://api.thecatapi.com/v1/images/search?x-api-key=' + cat_api)
     await ctx.send(ctx.message.author.mention + ' :smiley_cat: ' + data[0]['url'])
+
+@bot.command()
+async def run(ctx, lang=None, stdin=None, *, script=None):
+    if lang is None or stdin is None or script is None:
+        await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%srun <language> "<stdin>" <script>`.' % prefix)
+        return
+    lang = lang.lower()
+    script = script.replace('`', '').strip()
+    data = {
+        'clientId': client_id,
+        'clientSecret': client_secret,
+        'script': script,
+        'stdin': stdin,
+        'language': lang,
+        'versionIndex': 0
+        }
+    headers = {'Content-type':'application/json', 'Accept':'application/json'}
+    response = post('https://api.jdoodle.com/v1/execute', data, headers)
+    if response is None or 'error' in response:
+        await ctx.send(ctx.message.author.mention + ' Compilation failed. Either the compiler is down or the daily limit of compilations has been passed (200)')
+    else:
+        message = '\nStatus: ' + response['statusCode'] + '\nCPU Time: ' + response['cpuTime'] + '\nMemory: ' + response['memory'] + '\n```' + response['output'] + '```'
+        await ctx.send(ctx.message.author.mention + message)
 
 @bot.command()
 @commands.has_permissions(administrator=True)
