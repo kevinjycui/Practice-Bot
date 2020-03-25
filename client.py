@@ -213,6 +213,7 @@ async def cat(ctx):
 
 @bot.command()
 async def run(ctx, lang=None, stdin=None, *, script=None):
+    global wait_time
     if lang is None or stdin is None or script is None:
         await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%srun <language> "<stdin>" <script>`.' % prefix)
         return
