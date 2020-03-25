@@ -15,7 +15,6 @@ The all-competitive-programming-purpose Discord bot!
  - `!whatis <query>` Searches for something on Wikipedia
  - `!notify <channel>` Sets a channel as a contest notification channel (requires admin)
  - `!unnotify <channel>` Sets a channel to be no longer a contest notification channel (requires admin)
- - `!calc <expression>` Evaluates a mathematical expression
  - `!motivation` Sends you some (emotional) support :smile:
  - `!cat>` Gets a random cat image
  - `!ping` Checks my ping to the Discord server
