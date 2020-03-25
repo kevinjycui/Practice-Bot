@@ -33,7 +33,7 @@ def get(api_url):
 
 def post(api_url, data, headers):
     response = requests.post(api_url, json=data, headers=headers)
-    response.json()
+    return response.json()
 
 prefix = '!'
 bot = commands.Bot(command_prefix=prefix)
@@ -214,7 +214,7 @@ async def run(ctx, lang=None, stdin=None, *, script=None):
         return
     headers = {'Content-type':'application/json', 'Accept':'application/json'}
     credit_spent = post('https://api.jdoodle.com/v1/credit-spent', {'clientId': client_id, 'clientSecret': client_secret}, headers)
-    if credit_spent is not None and 'error' not in credit_spent and credit_spent['used'] >= 200:
+    if 'error' not in credit_spent and credit_spent['used'] >= 200:
         await ctx.send(ctx.message.author.mention + ' Sorry, the daily limit of compilations has been surpassed (200). Please wait until 12:00 AM UTC')
         return
     if time() - wait_time < 15:
@@ -232,7 +232,7 @@ async def run(ctx, lang=None, stdin=None, *, script=None):
         'versionIndex': 0
         }
     response = post('https://api.jdoodle.com/v1/execute', data, headers)
-    if response is None:
+    if 'error' in response and response['statusCode'] == 404:
         await ctx.send(ctx.message.author.mention + ' Compilation failed. The compiler may be down.')
     elif 'error' in response:
         await ctx.send(ctx.message.author.mention + ' Request failed. Perhaps the language you\'re using is unavailable.')
