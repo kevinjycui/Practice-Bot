@@ -207,7 +207,7 @@ async def cat(ctx):
     await ctx.send(ctx.message.author.mention + ' :smiley_cat: ' + data[0]['url'])
 
 @bot.command()
-async def tea(ctx, user):
+async def tea(ctx, user=None):
     if user is None:
         with open('data/users.json') as f:
             data = json.load(f)
