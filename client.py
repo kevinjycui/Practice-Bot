@@ -573,6 +573,8 @@ async def help(ctx):
     embed.add_field(name='%srandom <online judge> <minimum> <maximum>' % prefix, value='Gets a random problem from a specific online judge (DMOJ, Codeforces, or AtCoder) within a specific point range', inline=False)
     embed.add_field(name='%slink <account> <username>' % prefix, value='Links an account to me (currently supports DMOJ)', inline=False)
     embed.add_field(name='%stoggleRepeat' % prefix, value='Toggles whether or not you want problems that you have already solved when performing a `%srandom` command (requires at least 1 linked account)' % prefix, inline=False)
+    embed.add_field(name='%sprofile <user>' % prefix, value='See a user\'s linked accounts', inline=False)
+    embed.add_field(name='%sprofile' % prefix, value='See your linked accounts', inline=False)    
     embed.add_field(name='%swhois <name>' % prefix, value='Searches for a user on 4 online judges (DMOJ, Codeforces, AtCoder, WCIPEG) and GitHub', inline=False)
     embed.add_field(name='%swhatis <query>' % prefix, value='Searches for something on Wikipedia', inline=False)
     embed.add_field(name='%srun <language> <stdin> <script>' % prefix, value='Runs a script in one of 72 languages! (200 calls allowed daily for everyone)', inline=False)
