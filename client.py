@@ -40,15 +40,23 @@ def post(api_url, data, headers):
     response = requests.post(api_url, json=data, headers=headers)
     return response.json()
 
+def wget(url):
+    response = requests.get(url)
+    return response.text
+
+def updateUsers():
+    global global_users
+    with open('data/users.json', 'w') as json_file:
+        json.dump(global_users, json_file)
+
 def checkExistingUser(user):
     global global_users
     if str(user.id) not in global_users:
         global_users[str(user.id)] = {}
     else:
         return True
-    with open('data/user.json', 'w') as json_file:
-        json.dump(global_users, json_file)
-    return False
+    updateUsers()
+    return False    
 
 prefix = '!'
 bot = commands.Bot(command_prefix=prefix)
@@ -59,11 +67,33 @@ async def ping(ctx):
 
 @bot.command()
 async def random(ctx, oj=None, points=None, maximum=None):
-    global problems_by_points, dmoj_problems, cf_problems, at_problems
+    global problems_by_points, dmoj_problems, cf_problems, at_problems, global_users
     start = time()
     
     if oj is None:
         oj = rand.choice(('dmoj', 'cf', 'at'))
+
+    iden = str(ctx.message.author.id)
+    temp_dmoj_problems = {}
+    if oj in accounts and 'repeat' in global_users[iden] and not global_users[iden]['repeat']:
+        if oj == 'dmoj':
+            user_response = get('https://dmoj.ca/api/user/info/%s' % global_users[iden]['dmoj'])
+            if user_response is not None:
+                if points is None:
+                    for name, prob in list(dmoj_problems.items()):
+                        if name not in user_response['solved_problems']:
+                            temp_dmoj_problems[name] = prob
+                else:
+                    temp_dmoj_problems['dmoj'] = {}
+                    for point in list(problems_by_points['dmoj']):
+                        temp_dmoj_problems['dmoj'][point] = {}
+                        for name, prob in list(problems_by_points['dmoj'][point].items()):
+                            if name not in user_response['solved_problems']:
+                                temp_dmoj_problems['dmoj'][point][name] = prob
+                if temp_dmoj_problems == {}:
+                    await ctx.send(ctx.message.author.mention + ' Sorry, I couldn\'t find any problems with those parameters. :cry:')
+                    return
+                                
     if points is not None:
         if not points.isdigit():
             await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%srandom <online judge> <points>` (dmoj/codeforces/atcoder).' % prefix)
@@ -88,10 +118,17 @@ async def random(ctx, oj=None, points=None, maximum=None):
         if not dmoj_problems:
             await ctx.send(ctx.message.author.mention + ' There seems to be a problem with the DMOJ API. Please try again later :shrug:')
             return
+        if temp_dmoj_problems != {}:
+            problem_list = temp_dmoj_problems
+        elif points is None:
+            problem_list = dmoj_problems
+        else:
+            problem_list = problems_by_points
+            
         if points is None:
-            name, prob = rand.choice(list(dmoj_problems.items()))
+            name, prob = rand.choice(list(problem_list.items()))
         elif points in problems_by_points['dmoj']:
-            name, prob = rand.choice(list(problems_by_points['dmoj'][points].items()))
+            name, prob = rand.choice(list(problem_list['dmoj'][points].items()))
         else:
             await ctx.send(ctx.message.author.mention + ' Sorry, I couldn\'t find any problems with those parameters. :cry:')
             return
@@ -223,16 +260,15 @@ async def cat(ctx):
 
 @bot.command()
 async def tea(ctx, user=None):
+    global global_users
     if user is None:
         if not checkExistingUser(ctx.message.author):
             await ctx.send(ctx.message.author.mention + ' You have 0 cups of :tea:.')
             return
-        with open('data/users.json') as f:
-            data = json.load(f)
-        if data[str(ctx.message.author.id)].get('tea', 0) == 1:
+        if global_users[str(ctx.message.author.id)].get('tea', 0) == 1:
             await ctx.send(ctx.message.author.mention + ' You have 1 cup of :tea:.')
         else:
-            await ctx.send(ctx.message.author.mention + ' You have ' + str(data[str(ctx.message.author.id)].get('tea', 0)) + ' cups of :tea:.')
+            await ctx.send(ctx.message.author.mention + ' You have ' + str(global_users[str(ctx.message.author.id)].get('tea', 0)) + ' cups of :tea:.')
         return
     if not user[3:-1].isdigit():
         await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%stea <user>`.' % prefix)
@@ -247,11 +283,8 @@ async def tea(ctx, user=None):
     for member in ctx.guild.members:
         if member.id == iden:
             checkExistingUser(member)
-            with open('data/users.json') as f:
-                data = json.load(f)
-            data[iden]['tea'] = data[iden].get('tea', 0) + 1
-            with open('data/users.json', 'w') as json_file:
-                json.dump(data, json_file)
+            global_users[iden]['tea'] = global_users[iden].get('tea', 0) + 1
+            updateUsers()
             await ctx.send(ctx.message.author.mention + ' sent a cup of :tea: to ' + member.mention)
             return
     await ctx.send(ctx.message.author.mention + ' It seems like that user does not exist.')
@@ -269,21 +302,60 @@ async def link(ctx, account=None, username=None):
     checkExistingUser(ctx.message.author)
     iden = str(ctx.message.author.id)
     if 'secret' not in global_users[iden]:
-        global_users[iden]['secret'] = iden + secrets.token_hex()
+        global_users[iden]['secret'] = hex(int(iden)) + secrets.token_hex()
+        updateUsers()
     user_secret = global_users[iden]['secret']
     if account == 'dmoj':
         if 'dmoj' in global_users[iden]:
             await ctx.send(ctx.message.author.mention + ' Your Discord account is already linked to the DMOJ account: ' + global_users[iden]['dmoj'] + '!')
             return
-        response = get('https://dmoj.ca/user/%s' % username)
+        response = wget('https://dmoj.ca/user/%s' % username)
         bio_text = response[response.index('<h4>About</h4>\n') + len('<h4>About</h4>\n'):response.index('\n<h4>Rating History</h4>')]
         if user_secret in bio_text:
             global_users[iden]['dmoj'] = username
+            updateUsers()
             await ctx.send(ctx.message.author.mention + ' Your Discord account has been linked to the DMOJ account: ' + global_users[iden]['dmoj'] + '!')
             return
         else:
-            await ctx.message.author.send('Add the following token to the self-description in your DMOJ profile: `%s` https://dmoj.ca/edit/profile/' % user_secret)
+            await ctx.message.author.send('Add the following token to the self-description in your DMOJ profile and then run the link command again: `%s` \nhttps://dmoj.ca/edit/profile/' % user_secret)
             await ctx.send(ctx.message.author.mention + ' I\'ve sent you a DM with instructions on how to link your DMOJ account.')
+
+@bot.command()
+async def toggleRepeat(ctx):
+    global global_users
+    checkExistingUser(ctx.message.author)
+    iden = str(ctx.message.author.id)
+    for account in accounts:
+        if account in global_users[iden]:
+            global_users[iden]['repeat'] = not global_users[iden].get('repeat', True)
+            updateUsers()
+            await ctx.send(ctx.message.author.mention + ' Repeat setting for command `%srandom` set to %s.' % (prefix, ('ON' if global_users[iden]['repeat'] else 'OFF')))
+            return
+    await ctx.send(ctx.message.author.mention + ' You are not linked to any accounts')
+
+@bot.command()
+async def profile(ctx, user=None):
+    global global_users
+    if user is None:
+        iden = str(ctx.message.author.id)
+    elif user[3:-1].isdigit():
+        iden = user[3:-1]
+    else:
+        await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%sprofile <user>`.' % prefix)
+        return
+    
+    for member in ctx.guild.members:
+        if member.id == int(iden):
+            checkExistingUser(member)
+            embed = discord.Embed(title=member.display_name, description=member.mention)
+            embed.timestamp = datetime.utcnow()
+            embed.add_field(name='Discord ID', value=member.id, inline=False)
+            embed.add_field(name='Joined on', value=member.joined_at.strftime('%B %d, %Y'), inline=False)
+            if 'dmoj' in global_users[iden]:
+                embed.add_field(name='DMOJ', value='https://dmoj.ca/user/%s' % global_users[iden]['dmoj'], inline=False)
+            await ctx.send(ctx.message.author.mention, embed=embed)
+            return
+    await ctx.send(ctx.message.author.mention + ' It seems like that user does not exist.')
 
 @bot.command()
 async def run(ctx, lang=None, stdin=None, *, script=None):
@@ -499,6 +571,8 @@ async def help(ctx):
     embed.add_field(name='%srandom <online judge>' % prefix, value='Gets a random problem from a specific online judge (DMOJ, Codeforces, or AtCoder)', inline=False)
     embed.add_field(name='%srandom <online judge> <points>' % prefix, value='Gets a random problem from a specific online judge (DMOJ, Codeforces, or AtCoder) with a specific number of points', inline=False)
     embed.add_field(name='%srandom <online judge> <minimum> <maximum>' % prefix, value='Gets a random problem from a specific online judge (DMOJ, Codeforces, or AtCoder) within a specific point range', inline=False)
+    embed.add_field(name='%slink <account> <username>' % prefix, value='Links an account to me (currently supports DMOJ)', inline=False)
+    embed.add_field(name='%stoggleRepeat' % prefix, value='Toggles whether or not you want problems that you have already solved when performing a `%srandom` command (requires at least 1 linked account)' % prefix, inline=False)
     embed.add_field(name='%swhois <name>' % prefix, value='Searches for a user on 4 online judges (DMOJ, Codeforces, AtCoder, WCIPEG) and GitHub', inline=False)
     embed.add_field(name='%swhatis <query>' % prefix, value='Searches for something on Wikipedia', inline=False)
     embed.add_field(name='%srun <language> <stdin> <script>' % prefix, value='Runs a script in one of 72 languages! (200 calls allowed daily for everyone)', inline=False)
