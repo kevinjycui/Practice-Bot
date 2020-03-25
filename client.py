@@ -208,14 +208,18 @@ async def cat(ctx):
 
 @bot.command()
 async def tea(ctx, user):
+    print(user)
     if user is None:
         with open('data/users.json') as f:
             data = json.load(f)
         await ctx.send(ctx.message.author.mention + ' You have ' + str(data.get(ctx.message.author.id, 0)) + ' cups of :tea:.')
-    if not user[2:-1].isdigit():
+    if not user[3:-1].isdigit():
         await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%stea <user>`.' % prefix)
         return
-    iden = int(user[2:-1])
+    iden = int(user[3:-1])
+    if iden == ctx.message.author.id:
+        await ctx.send(ctx.message.author.mention + ' Sorry, cannot send :tea: to yourself!')
+        return
     for member in ctx.guild.members:
         if member.id == iden:
             with open('data/users.json') as f:
