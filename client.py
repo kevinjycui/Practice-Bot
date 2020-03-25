@@ -215,6 +215,11 @@ async def run(ctx, lang=None, stdin=None, *, script=None):
     if lang is None or stdin is None or script is None:
         await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%srun <language> "<stdin>" <script>`.' % prefix)
         return
+    headers = {'Content-type':'application/json', 'Accept':'application/json'}
+    credit_spent = post('https://api.jdoodle.com/v1/credit-spent', {'clientId': client_id, 'clientSecret': client_secret}, headers)
+    if credit_spent is not None and 'error' not in credit_spent and credit_spent['used'] >= 200:
+        await ctx.send(ctx.message.author.mention + ' Sorry, the daily limit of compilations has been surpassed (200). Please wait until 12:00 AM UTC')
+        return
     if time() - wait_time < 15:
         await ctx.send(ctx.message.author.mention + ' Queue in process, please wait %d seconds' % (15 - (time() - wait_time)))
         return
@@ -229,18 +234,15 @@ async def run(ctx, lang=None, stdin=None, *, script=None):
         'language': lang,
         'versionIndex': 0
         }
-    headers = {'Content-type':'application/json', 'Accept':'application/json'}
     response = post('https://api.jdoodle.com/v1/execute', data, headers)
     if response is None:
         await ctx.send(ctx.message.author.mention + ' Compilation failed. The compiler may be down.')
     elif 'error' in response:
-        await ctx.send(ctx.message.author.mention + ' Request failed. Perhaps the language you\'re using is unavailable or the daily limit of compilations has been passed (200).')
+        await ctx.send(ctx.message.author.mention + ' Request failed. Perhaps the language you\'re using is unavailable.')
     else:
         message = '\n'
-        if response['cpuTime'] is not None:
-            message += 'CPU Time: `' + str(response['cpuTime']) + 's`\n'
-        if response['memory'] is not None:
-            message += 'Memory: `' + str(response['memory']) + 'KB`'
+        message += 'CPU Time: `' + ((str(response['cpuTime']) + 's') if response['cpuTime'] is not None else 'N/A') + '`\n'
+        message += 'Memory: `' + ((str(response['memory']) + 'KB') if response['memory'] is not None else 'N/A') + '`\n'
         if len(message + '\n```' + response['output'] + '```') > 2000:
             with open('data/solution.txt', 'w+') as f:
                 f.write(response['output'])
