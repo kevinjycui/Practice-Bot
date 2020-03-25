@@ -211,7 +211,7 @@ async def tea(ctx, user):
     if user is None:
         with open('data/users.json') as f:
             data = json.load(f)
-        await ctx.send(ctx.message.author.mention + ' You have ' + str(data.get(ctx.message.author.id, 0)) + ' cups of tea.')
+        await ctx.send(ctx.message.author.mention + ' You have ' + str(data.get(ctx.message.author.id, 0)) + ' cups of :tea:.')
     if not user[2:-1].isdigit():
         await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%stea <user>`.' % prefix)
         return
@@ -223,7 +223,7 @@ async def tea(ctx, user):
             data[iden] = data.get(iden, 0) + 1
             with open('data/users.json', 'w') as json_file:
                 json.dump(data, json_file)
-            await ctx.send(ctx.message.author.mention + ' sent a cup of tea to ' + member.mention)
+            await ctx.send(ctx.message.author.mention + ' sent a cup of :tea: to ' + member.mention)
             return
     await ctx.send(ctx.message.author.mention + ' It seems like that user does not exist.')
 
