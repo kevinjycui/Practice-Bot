@@ -33,10 +33,7 @@ def get(api_url):
 
 def post(api_url, data, headers):
     response = requests.post(api_url, json=data, headers=headers)
-
-    if response.status_code == 200:
-        return response.json()
-    return None
+    response.json()
 
 prefix = '!'
 bot = commands.Bot(command_prefix=prefix)
