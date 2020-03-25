@@ -235,7 +235,12 @@ async def run(ctx, lang=None, stdin=None, *, script=None):
     if response is None or 'error' in response:
         await ctx.send(ctx.message.author.mention + ' Compilation failed. Either the compiler is down or the daily limit of compilations has been passed (200)')
     else:
-        message = '\nCPU Time: `' + str(response['cpuTime']) + 's`\nMemory: `' + str(response['memory']) + 'KB`\n```' + response['output'] + '```'
+        message = '\n'
+        if response['cpuTime'] is not None:
+            message += 'CPU Time: `' + str(response['cpuTime']) + 's`\n'
+        if response['memory'] is not None:
+            message += 'Memory: `' + str(response['memory']) + 'KB`'
+        message += '\n```' + response['output'] + '```'
         await ctx.send(ctx.message.author.mention + message)
 
 @bot.command()
