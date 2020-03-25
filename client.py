@@ -211,7 +211,10 @@ async def tea(ctx, user=None):
     if user is None:
         with open('data/users.json') as f:
             data = json.load(f)
-        await ctx.send(ctx.message.author.mention + ' You have ' + str(data.get(str(ctx.message.author.id), 0)) + ' cups of :tea:.')
+        if data.get(str(ctx.message.author.id), 0) == 1:
+            await ctx.send(ctx.message.author.mention + ' You have 1 cup of :tea:.')
+        else:
+            await ctx.send(ctx.message.author.mention + ' You have ' + str(data.get(str(ctx.message.author.id), 0)) + ' cups of :tea:.')
         return
     if not user[3:-1].isdigit():
         await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%stea <user>`.' % prefix)
