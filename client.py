@@ -219,6 +219,9 @@ async def tea(ctx, user):
     if iden == ctx.message.author.id:
         await ctx.send(ctx.message.author.mention + ' Sorry, cannot send :tea: to yourself!')
         return
+    elif iden == 691416325557452861:
+        await ctx.send(ctx.message.author.mention + ' Thanks for the :tea:!')
+        return
     for member in ctx.guild.members:
         if member.id == iden:
             with open('data/users.json') as f:
