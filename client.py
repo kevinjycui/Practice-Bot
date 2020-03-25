@@ -271,7 +271,7 @@ async def calc(ctx, *, expression):
             await ctx.send(ctx.message.author.mention + ' That\'s a really long solution, I put it in this file for you. (solved in %ss)' % str(round(bot.latency, 3)), file=discord.File('data/solution.txt', 'solution.txt'))
         else:
             await ctx.send(ctx.message.author.mention + ' `' + str(solution) + '` (solved in %ss)' % str(round(bot.latency, 3)))
-    except TypeError:
+    except:
         await ctx.send(ctx.message.author.mention + ' There seems to be an error with that expression.')
 
 @tasks.loop(minutes=30)
