@@ -217,8 +217,8 @@ async def run(ctx, lang=None, stdin=None, *, script=None):
     if lang is None or stdin is None or script is None:
         await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%srun <language> "<stdin>" <script>`.' % prefix)
         return
-    if time() - wait_time < 5:
-        await ctx.send(ctx.message.author.mention + ' Queue in process, please wait %d seconds' % (5 - (time() - wait_time)))
+    if time() - wait_time < 15:
+        await ctx.send(ctx.message.author.mention + ' Queue in process, please wait %d seconds' % (15 - (time() - wait_time)))
         return
     wait_time = time()
     lang = lang.lower()
