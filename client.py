@@ -243,7 +243,7 @@ async def run(ctx, lang=None, stdin=None, *, script=None):
             message += 'Memory: `' + str(response['memory']) + 'KB`'
         if len(message + '\n```' + response['output'] + '```') > 2000:
             with open('data/solution.txt', 'w+') as f:
-            f.write(response['output'])
+                f.write(response['output'])
             await ctx.send(ctx.message.author.mention + message + ' That\'s a really long output, I put it in this file for you. (solved in %ss)' % str(round(bot.latency, 3)), file=discord.File('data/solution.txt', 'solution.txt'))    
         else:
             if len(response['output']) > 0:
