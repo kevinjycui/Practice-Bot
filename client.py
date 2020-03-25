@@ -260,7 +260,7 @@ async def tea(ctx, user=None):
 async def link(ctx, account=None, username=None):
     global global_users
     if account is None or username is None:
-        await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%srun <language> "<stdin>" <script>`.' % prefix)
+        await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%slink <account> <username>`.' % prefix)
         return
     elif account not in accounts:
         await ctx.send(ctx.message.author.mention + ' Sorry, you can currently only link the following account(s): %s' % ', '.join(accounts))
