@@ -128,7 +128,7 @@ async def random(ctx, oj=None, points=None, maximum=None):
             
         if points is None:
             name, prob = rand.choice(list(problem_list.items()))
-        elif points in problem_list['dmoj']:
+        elif points in problem_list['dmoj'] and len(problem_list['dmoj'][points]) > 0:
             name, prob = rand.choice(list(problem_list['dmoj'][points].items()))
         else:
             await ctx.send(ctx.message.author.mention + ' Sorry, I couldn\'t find any problems with those parameters. :cry:')
