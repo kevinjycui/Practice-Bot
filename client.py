@@ -9,6 +9,7 @@ from datetime import datetime
 import pytz
 import wikipedia
 import urllib
+import secrets
 
 statuses = ('implementation', 'dynamic programming', 'graph theory', 'data structures', 'trees', 'geometry', 'strings', 'optimization')
 replies = ('Practice Bot believes that with enough practice, you can complete any goal!', 'Keep practicing! Practice Bot says that every great programmer starts somewhere!', 'Hey now, you\'re an All Star, get your game on, go play (and practice)!',
@@ -17,7 +18,11 @@ with open('data/notification_channels.json', 'r', encoding='utf8', errors='ignor
     data = json.load(f)
 contest_channels = data['contest_channels']
 wait_time = 0
+accounts = ('dmoj',)
 
+with open('data/users.json', 'r', encoding='utf8', errors='ignore') as f:
+    global_users = json.load(f)
+    
 dmoj_problems = None
 cf_problems = None
 at_problems = None
@@ -34,6 +39,16 @@ def get(api_url):
 def post(api_url, data, headers):
     response = requests.post(api_url, json=data, headers=headers)
     return response.json()
+
+def checkExistingUser(user):
+    global global_users
+    if str(user.id) not in global_users:
+        global_users[str(user.id)] = {}
+    else:
+        return True
+    with open('data/user.json', 'w') as f:
+        json.dump(global_users)
+    return False
 
 prefix = '!'
 bot = commands.Bot(command_prefix=prefix)
@@ -209,12 +224,15 @@ async def cat(ctx):
 @bot.command()
 async def tea(ctx, user=None):
     if user is None:
+        if not checkExistingUser(ctx.message.author):
+            await ctx.send(ctx.message.author.mention + ' You have 0 cups of :tea:.')
+            return
         with open('data/users.json') as f:
             data = json.load(f)
-        if data.get(str(ctx.message.author.id), 0) == 1:
+        if data[str(ctx.message.author.id)].get('tea', 0) == 1:
             await ctx.send(ctx.message.author.mention + ' You have 1 cup of :tea:.')
         else:
-            await ctx.send(ctx.message.author.mention + ' You have ' + str(data.get(str(ctx.message.author.id), 0)) + ' cups of :tea:.')
+            await ctx.send(ctx.message.author.mention + ' You have ' + str(data[str(ctx.message.author.id)].get('tea', 0)) + ' cups of :tea:.')
         return
     if not user[3:-1].isdigit():
         await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%stea <user>`.' % prefix)
@@ -223,20 +241,49 @@ async def tea(ctx, user=None):
     if iden == ctx.message.author.id:
         await ctx.send(ctx.message.author.mention + ' Sorry, cannot send :tea: to yourself!')
         return
-    elif iden == 691416325557452861:
+    elif iden == bot.user.id:
         await ctx.send(ctx.message.author.mention + ' Thanks for the :tea:!')
         return
     for member in ctx.guild.members:
         if member.id == iden:
+            checkExistingUser(member)
             with open('data/users.json') as f:
                 data = json.load(f)
-            data[iden] = data.get(iden, 0) + 1
+            data[iden]['tea'] = data[iden].get('tea', 0) + 1
             with open('data/users.json', 'w') as json_file:
                 json.dump(data, json_file)
             await ctx.send(ctx.message.author.mention + ' sent a cup of :tea: to ' + member.mention)
             return
     await ctx.send(ctx.message.author.mention + ' It seems like that user does not exist.')
 
+@bot.command()
+async def link(ctx, account=None, username=None):
+    global global_users
+    if account is None or username is None:
+        await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%srun <language> "<stdin>" <script>`.' % prefix)
+        return
+    elif account not in accounts:
+        await ctx.send(ctx.message.author.mention + ' Sorry, you can currently only link the following account(s): %s' % ', '.join(accounts))
+        return
+    account = account.lower()
+    checkExistingUser(ctx.message.author)
+    iden = str(ctx.message.author.id)
+    if 'secret' not in global_users[iden]:
+        global_users[iden]['secret'] = iden + secrets.token_hex()
+    user_secret = global_users[iden]['secret']
+    if account == 'dmoj':
+        if 'dmoj' in global_users[iden]:
+            await ctx.send(ctx.message.author.mention + ' Your Discord account is already linked to the DMOJ account: ' + global_users[iden]['dmoj'] + '!')
+            return
+        response = get('https://dmoj.ca/user/%s' % username)
+        bio_text = response[response.index('<h4>About</h4>\n') + len('<h4>About</h4>\n'):response.index('\n<h4>Rating History</h4>')]
+        if user_secret in bio_text:
+            global_users[iden]['dmoj'] = username
+            await ctx.send(ctx.message.author.mention + ' Your Discord account has been linked to the DMOJ account: ' + global_users[iden]['dmoj'] + '!')
+            return
+        else:
+            await ctx.message.author.send('Add the following token to the self-description in your DMOJ profile: `%s` https://dmoj.ca/edit/profile/' % user_secret)
+            await ctx.send(ctx.message.author.mention + ' I\'ve sent you a DM with instructions on how to link your DMOJ account.')
 
 @bot.command()
 async def run(ctx, lang=None, stdin=None, *, script=None):
