@@ -16,7 +16,7 @@ The all-competitive-programming-purpose Discord bot!
  - `!profile <user>` See a user's linked accounts
  - `!profile` See your linked accounts    
  - `!whois <name>` Searches for a user on 4 online judges (DMOJ, Codeforces, AtCoder, WCIPEG) and GitHub
- - `!whatis <query>` Searches for something on Wikipedia
+ - `!whatis <query>` Searches for something on WCIPEG Wiki or Wikipedia
  - `!run <language> <stdin> <script>` Runs a script in one of 72 languages! (200 calls allowed daily for everyone)
  - `!notify <channel>` Sets a channel as a contest notification channel (requires admin)
  - `!unnotify <channel>` Sets a channel to be no longer a contest notification channel (requires admin)

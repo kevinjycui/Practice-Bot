@@ -611,7 +611,7 @@ async def help(ctx):
     embed.add_field(name='%sprofile <user>' % prefix, value='See a user\'s linked accounts', inline=False)
     embed.add_field(name='%sprofile' % prefix, value='See your linked accounts', inline=False)    
     embed.add_field(name='%swhois <name>' % prefix, value='Searches for a user on 4 online judges (DMOJ, Codeforces, AtCoder, WCIPEG) and GitHub', inline=False)
-    embed.add_field(name='%swhatis <query>' % prefix, value='Searches for something on Wikipedia', inline=False)
+    embed.add_field(name='%swhatis <query>' % prefix, value='Searches for something on WCIPEG Wiki or Wikipedia', inline=False)
     embed.add_field(name='%srun <language> <stdin> <script>' % prefix, value='Runs a script in one of 72 languages! (200 calls allowed daily for everyone)', inline=False)
     embed.add_field(name='%snotify <channel>' % prefix, value='Sets a channel as a contest notification channel (requires admin)', inline=False)
     embed.add_field(name='%sunnotify <channel>' % prefix, value='Sets a channel to be no longer a contest notification channel (requires admin)', inline=False)
