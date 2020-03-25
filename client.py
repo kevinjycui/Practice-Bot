@@ -93,6 +93,13 @@ async def random(ctx, oj=None, points=None, maximum=None):
                 if temp_dmoj_problems == {}:
                     await ctx.send(ctx.message.author.mention + ' Sorry, I couldn\'t find any problems with those parameters. :cry:')
                     return
+                
+    if temp_dmoj_problems != {}:
+        problem_list = temp_dmoj_problems
+    elif points is None:
+        problem_list = dmoj_problems
+    else:
+        problem_list = problems_by_points
                                 
     if points is not None:
         if not points.isdigit():
@@ -106,7 +113,7 @@ async def random(ctx, oj=None, points=None, maximum=None):
             return
         maximum = int(maximum)
         possibilities = []
-        for point in list(problems_by_points[oj].keys()):
+        for point in list(problem_list[oj].keys()):
             if point >= points and point <= maximum:
                 possibilities.append(point)
         if len(possibilities) == 0:
@@ -118,16 +125,10 @@ async def random(ctx, oj=None, points=None, maximum=None):
         if not dmoj_problems:
             await ctx.send(ctx.message.author.mention + ' There seems to be a problem with the DMOJ API. Please try again later :shrug:')
             return
-        if temp_dmoj_problems != {}:
-            problem_list = temp_dmoj_problems
-        elif points is None:
-            problem_list = dmoj_problems
-        else:
-            problem_list = problems_by_points
             
         if points is None:
             name, prob = rand.choice(list(problem_list.items()))
-        elif points in problems_by_points['dmoj']:
+        elif points in problem_list['dmoj']:
             name, prob = rand.choice(list(problem_list['dmoj'][points].items()))
         else:
             await ctx.send(ctx.message.author.mention + ' Sorry, I couldn\'t find any problems with those parameters. :cry:')
