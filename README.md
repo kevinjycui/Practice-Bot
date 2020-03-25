@@ -21,7 +21,7 @@ The all-competitive-programming-purpose Discord bot!
  - `!notify <channel>` Sets a channel as a contest notification channel (requires admin)
  - `!unnotify <channel>` Sets a channel to be no longer a contest notification channel (requires admin)
  - `!motivation` Sends you some (emotional) support 😊
- - `tea <user>` Sends a user a cup of tea (a pointless point system)
+ - `!tea <user>` Sends a user a cup of tea (a pointless point system)
  - `!tea` Checks how many cups of tea you have
  - `!cat>` Gets a random cat image
  - `!ping` Checks my ping to the Discord server
