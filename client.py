@@ -231,32 +231,34 @@ async def whatis(ctx, *, name=None):
         await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%swhatis <thing>`.' % prefix)
         return
     if valid('http://wcipeg.com/wiki/%s' % name.replace(' ', '_')):
-        url = 'http://wcipeg.com/wiki/%s' % name.replace(' ', '_')
-        wiki_response = wget(url)
-        scan = True
-        title = wiki_response[wiki_response.index(head_begin) + len(head_begin): wiki_response.index(head_end)]
-        summary = ''
-        for index in range(wiki_response.index(wcipeg_begin) + len(wcipeg_begin), wiki_response.index(wcipeg_end)):
-            if wiki_response[index] == '<':
-                scan = False
-            if scan:
-                summary += wiki_response[index]
-            if wiki_response[index] == '>':
-                scan = True
-        embed = discord.Embed(title=title, description=url + ' (searched in %ss)' % str(round(bot.latency, 3)))
-        embed.timestamp = datetime.utcnow()
-        embed.add_field(name='Summary', value=summary, inline=False)
-        await ctx.send(ctx.message.author.mention + ' Here\'s what I found!', embed=embed)
-    else:
-        page, summary = getSummary(name.replace(' ', '_'))
-        if summary is None:
-            await ctx.send(ctx.message.author.mention + ' Sorry, I couldn\'t find anything on "%s"' % name)
+        try:
+            url = 'http://wcipeg.com/wiki/%s' % name.replace(' ', '_')
+            wiki_response = wget(url)
+            scan = True
+            title = wiki_response[wiki_response.index(head_begin) + len(head_begin): wiki_response.index(head_end)]
+            summary = ''
+            for index in range(wiki_response.index(wcipeg_begin) + len(wcipeg_begin), wiki_response.index(wcipeg_end)):
+                if wiki_response[index] == '<':
+                    scan = False
+                if scan:
+                    summary += wiki_response[index]
+                if wiki_response[index] == '>':
+                    scan = True
+            embed = discord.Embed(title=title, description=url + ' (searched in %ss)' % str(round(bot.latency, 3)))
+            embed.timestamp = datetime.utcnow()
+            embed.add_field(name='Summary', value=summary, inline=False)
+            await ctx.send(ctx.message.author.mention + ' Here\'s what I found!', embed=embed)
             return
-        embed = discord.Embed(title=page.title, description=page.url+' (searched in %ss)' % str(round(bot.latency, 3)))
-        embed.timestamp = datetime.utcnow()
-        embed.add_field(name='Summary', value=summary, inline=False)
-        await ctx.send(ctx.message.author.mention + ' Here\'s what I found!', embed=embed)
-
+        except:
+            pass
+    page, summary = getSummary(name.replace(' ', '_'))
+    if summary is None:
+        await ctx.send(ctx.message.author.mention + ' Sorry, I couldn\'t find anything on "%s"' % name)
+        return
+    embed = discord.Embed(title=page.title, description=page.url+' (searched in %ss)' % str(round(bot.latency, 3)))
+    embed.timestamp = datetime.utcnow()
+    embed.add_field(name='Summary', value=summary, inline=False)
+    await ctx.send(ctx.message.author.mention + ' Here\'s what I found!', embed=embed)
 
 @bot.command()
 async def whois(ctx, *, name=None):
