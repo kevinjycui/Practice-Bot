@@ -232,10 +232,10 @@ async def run(ctx, lang=None, stdin=None, *, script=None):
         'versionIndex': 0
         }
     response = post('https://api.jdoodle.com/v1/execute', data, headers)
-    if 'error' in response and response['statusCode'] == 404:
+    if 'error' in response:
         await ctx.send(ctx.message.author.mention + ' Compilation failed. The compiler may be down.')
-    elif 'error' in response:
-        await ctx.send(ctx.message.author.mention + ' Request failed. Perhaps the language you\'re using is unavailable.')
+    elif 'error' in response and response['statusCode'] == 400:
+        await ctx.send(ctx.message.author.mention + ' Invalid request. Perhaps the language you\'re using is unavailable.')
     else:
         message = '\n'
         message += 'CPU Time: `' + ((str(response['cpuTime']) + 's') if response['cpuTime'] is not None else 'N/A') + '`\n'
