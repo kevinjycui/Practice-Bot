@@ -16,8 +16,6 @@ replies = ('Practice Bot believes that with enough practice, you can complete an
 with open('data/notification_channels.json', 'r', encoding='utf8', errors='ignore') as f:
     data = json.load(f)
 contest_channels = data['contest_channels']
-input_index = 0
-
 wait_time = 0
 
 dmoj_problems = None
@@ -233,7 +231,9 @@ async def run(ctx, lang=None, stdin=None, *, script=None):
         }
     headers = {'Content-type':'application/json', 'Accept':'application/json'}
     response = post('https://api.jdoodle.com/v1/execute', data, headers)
-    if response is None or 'error' in response:
+    if response is not None and 'error' in response and response['statusCode'] == 400:
+        await ctx.send(ctx.message.author.mention + ' Request failed. Perhaps the language you\'re using is unavailable?')
+    elif response is None or 'error' in response:
         await ctx.send(ctx.message.author.mention + ' Compilation failed. Either the compiler is down or the daily limit of compilations has been passed (200)')
     else:
         message = '\n'
