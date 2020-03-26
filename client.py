@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands, tasks
+from discord.utils import get
 from auth import *
 import requests
 import json
@@ -410,7 +411,7 @@ async def run(ctx, lang=None, stdin=None, *, script=None):
         return
     wait_time = time()
     lang = lang.lower()
-    script = script.replace('`', '').strip()
+    script = script.replace('`', '')
     data = {
         'clientId': client_id,
         'clientSecret': client_secret,
