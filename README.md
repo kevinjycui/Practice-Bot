@@ -5,6 +5,10 @@ The all-competitive-programming-purpose Discord bot!
 
 [👀 Check me out on TOP.GG](https://top.gg/bot/691416325557452861)
 
+[👀 Check me out on Bots For Discord](https://botsfordiscord.com/bot/691416325557452861)
+
+[👀 Check me out on Discord Bot List](https://discordbotlist.com/bots/691416325557452861/)
+
 ## Commands
  - `$help` Sends you a list of my commands (obviously)
  - `$random` Gets a random problem from DMOJ, Codeforces, or AtCoder
