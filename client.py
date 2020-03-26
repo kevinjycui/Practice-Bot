@@ -90,15 +90,13 @@ async def suggest(ctx, *, content):
     text_subtype = 'plain'
 
     subject = 'Suggestion from user %s (id %d)' % (ctx.message.author.display_name, ctx.message.author.id)
-    destination = 'dev.practice.bot@gmail.com'
+    destination = ['dev.practice.bot@gmail.com']
 
     try:
         msg = MIMEText(content, text_subtype)
         msg['Subject'] = subject
         msg['From'] = email_sender
-        print(msg.as_string())
         conn = SMTP(SMTPserver)
-        print(conn)
         conn.set_debuglevel(False)
         conn.login(email_sender, email_password)
         try:
