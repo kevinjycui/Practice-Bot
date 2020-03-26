@@ -105,10 +105,10 @@ async def suggest(ctx, *, content):
             conn.sendmail(sender, destination, msg.as_string())
         finally:
             conn.quit()
-        ctx.send(ctx.message.author.mention + ' Suggestion sent!')
+        await ctx.send(ctx.message.author.mention + ' Suggestion sent!')
 
     except:
-        ctx.send(ctx.message.author.mention + ' Failed to send that suggestion.')
+        await ctx.send(ctx.message.author.mention + ' Failed to send that suggestion.')
 
 @bot.command()
 async def random(ctx, oj=None, points=None, maximum=None):
