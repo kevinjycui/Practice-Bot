@@ -90,7 +90,7 @@ async def ping(ctx):
 async def suggest(ctx, *, content):
 
     if ctx.message.author.id in suggesters and time() - suggester_times[suggesters.index(ctx.message.author.id)] < 3600:
-        await ctx.send(ctx.message.author.mention + ' Please wait ' + str((3600 - time() + suggester_times[suggesters.index(ctx.message.author.id)])//60) + ' minutes before making another suggestion!')
+        await ctx.send(ctx.message.author.mention + ' Please wait ' + str(int((3600 - time() + suggester_times[suggesters.index(ctx.message.author.id)])//60)) + ' minutes before making another suggestion!')
         return
     
     text_subtype = 'plain'
@@ -417,6 +417,7 @@ async def profile(ctx, user=None):
     global global_users
     if user is None:
         iden = str(ctx.message.author.id)
+    user = user.strip()
     elif user[3:-1].isdigit():
         iden = user[3:-1]
     else:
