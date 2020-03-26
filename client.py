@@ -92,21 +92,21 @@ async def suggest(ctx, *, content):
     sender = 'interface.practice.bot@gmail.com'
     destination = ['dev.practice.bot@gmail.com']
 
-##    try:
-    msg = MIMEText(content, text_subtype)
-    msg['Subject'] = subject
-    msg['From'] = sender
-    conn = SMTP(SMTPserver)
-    conn.set_debuglevel(False)
-    conn.login(USERNAME, PASSWORD)
     try:
-        conn.sendmail(sender, destination, msg.as_string())
-    finally:
-        conn.quit()
-    await ctx.send(ctx.message.author.mention + ' Suggestion sent!\n```From: You\nTo: The Dev\nAt: ' + datetime.now().strftime("%d/%m/%Y %H:%M:%S") + '\n' + content + '```')
+        msg = MIMEText(content, text_subtype)
+        msg['Subject'] = subject
+        msg['From'] = sender
+        conn = SMTP(SMTPserver)
+        conn.set_debuglevel(False)
+        conn.login(USERNAME, PASSWORD)
+        try:
+            conn.sendmail(sender, destination, msg.as_string())
+        finally:
+            conn.quit()
+        await ctx.send(ctx.message.author.mention + ' Suggestion sent!\n```From: You\nTo: The Dev\nAt: ' + datetime.now().strftime("%d/%m/%Y %H:%M:%S") + '\n' + content + '```')
 
-##    except:
-##        await ctx.send(ctx.message.author.mention + ' Failed to send that suggestion.')
+    except:
+        await ctx.send(ctx.message.author.mention + ' Failed to send that suggestion.')
 
 @bot.command()
 async def random(ctx, oj=None, points=None, maximum=None):
