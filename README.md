@@ -24,6 +24,7 @@ The all-competitive-programming-purpose Discord bot!
  - `!tea <user>` Sends a user a cup of tea (a pointless point system)
  - `!tea` Checks how many cups of tea you have
  - `!cat>` Gets a random cat image
+ - `!suggest <suggestion>` Sends me a suggestion
  - `!ping` Checks my ping to the Discord server
   
 ## Tools

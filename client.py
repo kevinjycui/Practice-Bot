@@ -336,6 +336,7 @@ async def tea(ctx, user=None):
         else:
             await ctx.send(ctx.message.author.mention + ' You have ' + str(global_users[str(ctx.message.author.id)].get('tea', 0)) + ' cups of :tea:.')
         return
+    user = user.strip()
     if not user[3:-1].isdigit():
         await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%stea <user>`.' % prefix)
         return
@@ -404,6 +405,7 @@ async def profile(ctx, user=None):
     global global_users
     if user is None:
         iden = str(ctx.message.author.id)
+    user = user.strip()
     elif user[3:-1].isdigit():
         iden = user[3:-1]
     else:
@@ -650,6 +652,7 @@ async def help(ctx):
     embed.add_field(name='%stea <user>' % prefix, value='Sends a user a cup of tea (a pointless point system)', inline=False)
     embed.add_field(name='%stea' % prefix, value='Checks how many cups of tea you have', inline=False)
     embed.add_field(name='%scat' % prefix, value='Gets a random cat image', inline=False)
+    embed.add_field(name='%ssuggest <suggestion>' % prefix, value='Sends me a suggestion', inline=False)
     embed.add_field(name='%sping' % prefix, value='Checks my ping to the Discord server', inline=False)
     await ctx.message.author.send(embed=embed)
     await ctx.send(ctx.message.author.mention + ' I\'ve sent you a list of my commands to your DM!')
