@@ -15,6 +15,8 @@ from smtplib import SMTP_SSL as SMTP
 from email.mime.text import MIMEText
 
 SMTPserver = 'smtp.gmail.com'
+suggesters = []
+suggester_times = []
 
 statuses = ('implementation', 'dynamic programming', 'graph theory', 'data structures', 'trees', 'geometry', 'strings', 'optimization')
 replies = ('Practice Bot believes that with enough practice, you can complete any goal!', 'Keep practicing! Practice Bot says that every great programmer starts somewhere!', 'Hey now, you\'re an All Star, get your game on, go play (and practice)!',
@@ -86,6 +88,11 @@ async def ping(ctx):
 
 @bot.command()
 async def suggest(ctx, *, content):
+
+    if ctx.message.author.id in suggesters and time() - suggester_times[suggesters.index(ctx.message.author.id)] < 3600:
+        await ctx.send(ctx.message.author.mention + ' Please wait ' + str((3600 - time() + suggester_times[suggesters.index(ctx.message.author.id)])//60) + ' minutes before making another suggestion!')
+        return
+    
     text_subtype = 'plain'
 
     subject = 'Suggestion from user %s (id %d)' % (ctx.message.author.display_name, ctx.message.author.id)
@@ -103,7 +110,12 @@ async def suggest(ctx, *, content):
             conn.sendmail(sender, destination, msg.as_string())
         finally:
             conn.quit()
-        await ctx.send(ctx.message.author.mention + ' Suggestion sent!\n```From: You\nTo: The Dev\nAt: ' + datetime.now().strftime("%d/%m/%Y %H:%M:%S") + '\n' + content + '```')
+        if ctx.message.author.id in suggesters:
+            suggester_times[suggesters.index(ctx.message.author.id)] = time()
+        else:
+            suggesters.append(ctx.message.author.id)
+            suggester_times.append(time())
+        await ctx.send(ctx.message.author.mention + ' Suggestion sent!\n```From: You\nTo: The Dev\nAt: ' + datetime.now().strftime('%d/%m/%Y %H:%M:%S') + '\n' + content + '```')
 
     except:
         await ctx.send(ctx.message.author.mention + ' Failed to send that suggestion.')
@@ -405,6 +417,7 @@ async def profile(ctx, user=None):
     global global_users
     if user is None:
         iden = str(ctx.message.author.id)
+    user = user.strip()
     elif user[3:-1].isdigit():
         iden = user[3:-1]
     else:
