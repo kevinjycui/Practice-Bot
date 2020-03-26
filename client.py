@@ -417,7 +417,6 @@ async def profile(ctx, user=None):
     global global_users
     if user is None:
         iden = str(ctx.message.author.id)
-    user = user.strip()
     elif user[3:-1].isdigit():
         iden = user[3:-1]
     else:
