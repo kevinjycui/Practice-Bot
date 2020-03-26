@@ -15,7 +15,6 @@ from smtplib import SMTP_SSL as SMTP
 from email.mime.text import MIMEText
 
 SMTPserver = 'smtp.gmail.com'
-email_sender = 'interface.practice.bot@gmail.com'
 
 statuses = ('implementation', 'dynamic programming', 'graph theory', 'data structures', 'trees', 'geometry', 'strings', 'optimization')
 replies = ('Practice Bot believes that with enough practice, you can complete any goal!', 'Keep practicing! Practice Bot says that every great programmer starts somewhere!', 'Hey now, you\'re an All Star, get your game on, go play (and practice)!',
@@ -90,23 +89,24 @@ async def suggest(ctx, *, content):
     text_subtype = 'plain'
 
     subject = 'Suggestion from user %s (id %d)' % (ctx.message.author.display_name, ctx.message.author.id)
+    sender = 'interface.practice.bot@gmail.com'
     destination = ['dev.practice.bot@gmail.com']
 
+##    try:
+    msg = MIMEText(content, text_subtype)
+    msg['Subject'] = subject
+    msg['From'] = sender
+    conn = SMTP(SMTPserver)
+    conn.set_debuglevel(False)
+    conn.login(USERNAME, PASSWORD)
     try:
-        msg = MIMEText(content, text_subtype)
-        msg['Subject'] = subject
-        msg['From'] = email_sender
-        conn = SMTP(SMTPserver)
-        conn.set_debuglevel(False)
-        conn.login(email_sender, email_password)
-        try:
-            conn.sendmail(sender, destination, msg.as_string())
-        finally:
-            conn.quit()
-        await ctx.send(ctx.message.author.mention + ' Suggestion sent!')
+        conn.sendmail(sender, destination, msg.as_string())
+    finally:
+        conn.quit()
+    await ctx.send(ctx.message.author.mention + ' Suggestion sent!\n```From: You\nTo: The Dev\nAt: ' + datetime.now().strftime("%d/%m/%Y %H:%M:%S") + '\n' + content + '```')
 
-    except:
-        await ctx.send(ctx.message.author.mention + ' Failed to send that suggestion.')
+##    except:
+##        await ctx.send(ctx.message.author.mention + ' Failed to send that suggestion.')
 
 @bot.command()
 async def random(ctx, oj=None, points=None, maximum=None):
