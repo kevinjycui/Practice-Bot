@@ -721,6 +721,12 @@ async def help(ctx):
     await ctx.send(ctx.message.author.mention + ' I\'ve sent you a list of my commands to your DM!')
 
 @bot.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.CommandNotFound):
+        return
+    raise error
+
+@bot.event
 async def on_ready():
     print('Logged in as')
     print(bot.user.name)
