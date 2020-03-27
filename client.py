@@ -79,7 +79,7 @@ def checkExistingUser(user):
     updateUsers()
     return False    
 
-prefix = '!'
+prefix = '$'
 bot = commands.Bot(command_prefix=prefix)
 
 @bot.command()
