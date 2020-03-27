@@ -408,7 +408,7 @@ async def link(ctx, account=None, username=None):
             await ctx.send(ctx.message.author.mention + ' Your Discord account has been linked to the DMOJ account: ' + global_users[iden]['dmoj'] + '!')
             return
         else:
-            await ctx.message.author.send('Add the following token to the self-description in your DMOJ profile and then run the link command again: `%s` \nhttps://dmoj.ca/edit/profile/' % user_secret)
+            await ctx.message.author.send('Add the following token to the self-description in your DMOJ profile and then run the link command again (you can delete the token from your DMOJ profile afterwards): `%s` \nhttps://dmoj.ca/edit/profile/' % user_secret)
             await ctx.send(ctx.message.author.mention + ' I\'ve sent you a DM with instructions on how to link your DMOJ account.')
 
 @bot.command()
