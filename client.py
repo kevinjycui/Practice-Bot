@@ -49,14 +49,14 @@ at_problems = None
 
 problems_by_points = {'dmoj':{}, 'cf':{}, 'at':{}}
 
-ratings = {(None,): ('Unrated', discord.Colour.default()),
-           range(0, 999): ('Newbie', discord.Colour(int('999999', 16))),
-           range(1000, 1199): ('Amateur', discord.Colour(int('4bff4b', 16))),
-           range(1200, 1499): ('Expert', discord.Colour(int('5597ff', 16))),
-           range(1500, 1799): ('Candidate Master', discord.Colour(int('ff2bff', 16))),
-           range(1800, 2199): ('Master', discord.Colour(int('ffb100', 16))),
+ratings = {range(3000, 4000): ('Target', discord.Colour(int('ee0000', 16))),
            range(2200, 2999): ('Grandmaster', discord.Colour(int('ee0000', 16))),
-           range(3000, 4000): ('Target', discord.Colour(int('ee0000', 16))),
+           range(1800, 2199): ('Master', discord.Colour(int('ffb100', 16))),
+           range(1500, 1799): ('Candidate Master', discord.Colour(int('ff2bff', 16))),
+           range(1200, 1499): ('Expert', discord.Colour(int('5597ff', 16))),
+           range(1000, 1199): ('Amateur', discord.Colour(int('4bff4b', 16))),
+           range(0, 999): ('Newbie', discord.Colour(int('999999', 16))),
+           (None,): ('Unrated', discord.Colour.default()),
            }
 
 def get(api_url):
