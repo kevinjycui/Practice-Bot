@@ -3,6 +3,8 @@ The all-competitive-programming-purpose Discord bot!
 
 [🍵 Invite me to your server!](https://discordapp.com/api/oauth2/authorize?client_id=691416325557452861&permissions=268470272&scope=bot)
 
+[☕ Invite me to your server (without automatic DMOJ-based ranked roles)!](https://discordapp.com/api/oauth2/authorize?client_id=691416325557452861&permissions=34816&scope=bot)
+
 [👀 Check me out on TOP.GG](https://top.gg/bot/691416325557452861)
 
 [👀 Check me out on Bots For Discord](https://botsfordiscord.com/bot/691416325557452861)
