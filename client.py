@@ -49,14 +49,14 @@ at_problems = None
 
 problems_by_points = {'dmoj':{}, 'cf':{}, 'at':{}}
 
-ratings = {None: ('Unrated', discord.Colour.default()),
-           range(0, 999): ('Newbie', discord.Colour(int('999', 16))),
-           range(1000, 1199): ('Amateur', discord.Colour(int('00a900', 16))),
-           range(1200, 1499): ('Expert', discord.Colour(int('0000ff', 16))),
-           range(1500, 1799): ('Candidate Master', discord.Colour(int('800080', 16))),
+ratings = {(None,): ('Unrated', discord.Colour.default()),
+           range(0, 999): ('Newbie', discord.Colour(int('999999', 16))),
+           range(1000, 1199): ('Amateur', discord.Colour(int('4bff4b', 16))),
+           range(1200, 1499): ('Expert', discord.Colour(int('5597ff', 16))),
+           range(1500, 1799): ('Candidate Master', discord.Colour(int('ff2bff', 16))),
            range(1800, 2199): ('Master', discord.Colour(int('ffb100', 16))),
-           range(2200, 2999): ('Grandmaster', discord.Colour(int('e00', 16))),
-           range(3000, 4000): ('Target', discord.Colour(int('e00', 16))),
+           range(2200, 2999): ('Grandmaster', discord.Colour(int('ee0000', 16))),
+           range(3000, 4000): ('Target', discord.Colour(int('ee0000', 16))),
            }
 
 def get(api_url):
@@ -348,7 +348,7 @@ async def cat(ctx):
     await ctx.send(ctx.message.author.mention + ' :smiley_cat: ' + data[0]['url'])
 
 @bot.command()
-@bot.guild_only()
+@commands.guild_only()
 async def tea(ctx, user=None):
     global global_users
     if user is None:
@@ -425,7 +425,7 @@ async def toggleRepeat(ctx):
     await ctx.send(ctx.message.author.mention + ' You are not linked to any accounts')
 
 @bot.command()
-@bot.guild_only()
+@commands.guild_only()
 async def profile(ctx, user=None):
     global global_users
     if user is None:
@@ -496,9 +496,17 @@ async def run(ctx, lang=None, stdin=None, *, script=None):
 
 @bot.command()
 @commands.has_permissions(administrator=True)
+@commands.guild_only()
 async def notify(ctx, channel=None):
     global contest_channels
-    if channel is None or not channel[2:-1].isdigit():
+    if channel is None:
+        clist = 'Contest notification channels in this server:\n'
+        for text_channel in ctx.message.guild.text_channels:
+            if text_channel.id in contest_channels:
+                clist += text_channel.mention + '\n'
+        await ctx.send(clist)
+        return
+    if not channel[2:-1].isdigit():
         await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%snotify <channel>`.' % prefix)
         return
     iden = int(channel[2:-1])
@@ -521,6 +529,7 @@ async def notify_error(error, ctx):
 
 @bot.command()
 @commands.has_permissions(administrator=True)
+@commands.guild_only()
 async def unnotify(ctx, channel=None):
     global contest_channels
     if channel is None:
@@ -551,31 +560,35 @@ async def status_change():
 async def status_change_before():
     await bot.wait_until_ready()
 
-def roleName(role):
-    return role.name
-
 @tasks.loop(minutes=20)
 async def update_ranks():
     global global_users
     for guild in bot.guilds:
         names = []
-        for role in guild.roles:
-            names.append(role.name)
-        for role in list(ratings.values()):
-            if role[0] not in names:
-                await guild.create_role(name=role[0], colour=role[1])
-        for member in guild.members:
-            iden = str(member.id)
-            if iden in global_users and 'dmoj' in global_users[iden]:
-                user_info = get('https://dmoj.ca/api/user/info/%s' % global_users[iden]['dmoj'])
-                if user_info is not None:
-                    current_rating = user_info['contests']['current_rating']
-                    for rating, role in list(ratings.items()):
-                        role = discord.utils.get(guild.roles, name=role.name)
-                        if current_rating in rating and role not in member.roles:
-                            await member.add_roles(role)
-                        elif current_rating not in rating and role in member.roles:
-                            await member.remove_roles(role)
+        try:
+            for role in guild.roles:
+                names.append(role.name)
+            for role in list(ratings.values()):
+                if role[0] not in names:
+                    await guild.create_role(name=role[0], colour=role[1])
+            for member in guild.members:
+                iden = str(member.id)
+                if iden in global_users and 'dmoj' in global_users[iden]:
+                    user_info = get('https://dmoj.ca/api/user/info/%s' % global_users[iden]['dmoj'])
+                    if user_info is not None:
+                        current_rating = user_info['contests']['current_rating']
+                        for rating, role in list(ratings.items()):
+                            role = discord.utils.get(guild.roles, name=role[0])
+                            if current_rating in rating and role not in member.roles:
+                                await member.add_roles(role)
+                            elif current_rating not in rating and role in member.roles:
+                                await member.remove_roles(role)
+        except Exception as e:
+            pass
+        
+@update_ranks.before_loop
+async def update_ranks_before():
+    await bot.wait_until_ready()
 
 @tasks.loop(hours=3)
 async def refresh_problems():
@@ -717,4 +730,5 @@ async def on_ready():
 status_change.start()
 refresh_problems.start()
 check_contests.start()
+update_ranks.start()
 bot.run(bot_token)
