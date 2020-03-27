@@ -22,6 +22,7 @@ The all-competitive-programming-purpose Discord bot!
  - `$whois <name>` Searches for a user on 4 online judges (DMOJ, Codeforces, AtCoder, WCIPEG) and GitHub
  - `$whatis <query>` Searches for something on WCIPEG Wiki or Wikipedia
  - `$run <language> <stdin> <script>` Runs a script in one of 72 languages! (200 calls allowed daily for everyone)
+ - `$notify` Lists contest notifications in a server (requires admin)
  - `$notify <channel>` Sets a channel as a contest notification channel (requires admin)
  - `$unnotify <channel>` Sets a channel to be no longer a contest notification channel (requires admin)
  - `$motivation` Sends you some (emotional) support 😊
