@@ -583,7 +583,7 @@ async def update_ranks():
                                 await member.add_roles(role)
                             elif current_rating not in rating and role in member.roles:
                                 await member.remove_roles(role)
-        except Exception as e:
+        except:
             pass
         
 @update_ranks.before_loop
