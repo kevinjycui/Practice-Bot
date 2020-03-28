@@ -1,4 +1,4 @@
-# Practice-Bot
+# Practioi-Bot
 The all-competitive-programming-purpose Discord bot!
 
 [🍵 Invite me to your server!](https://discordapp.com/api/oauth2/authorize?client_id=691416325557452861&permissions=268470272&scope=bot)
