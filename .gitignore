@@ -3,3 +3,6 @@ auth.py.**
 
 data/users.json
 
+.env
+.env.test
+env/

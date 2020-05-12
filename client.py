@@ -12,6 +12,8 @@ import urllib
 import secrets
 from smtplib import SMTP_SSL as SMTP
 from email.mime.text import MIMEText
+from dmoj.session import Session, InvalidSessionException
+from dmoj.language import Language
 
 SMTPserver = 'smtp.gmail.com'
 suggesters = []
@@ -24,7 +26,7 @@ with open('data/notification_channels.json', 'r', encoding='utf8', errors='ignor
     data = json.load(f)
 contest_channels = data['contest_channels']
 wait_time = 0
-accounts = ('dmoj',)
+accounts = ('dmoj', 'codeforces', 'cf')
 
 wcipeg_begin = '''Jump to:					<a href="#mw-head">navigation</a>, 					<a href="#p-search">search</a>
 				</div>
@@ -39,6 +41,20 @@ head_end = '''</h1>
 									<div id="siteSub">From PEGWiki</div>
 								<div id="contentSub"></div>
 												<div id="jump-to-nav" class="mw-jump">'''
+cf_head_locater = '''<tr class="first-row">
+    <th style="width:6em;">#</th>
+    <th>When</th>
+    <th style="text-align:center;">Who</th>
+    <th>Problem</th>
+    <th>Lang</th>
+    <th>Verdict</th>
+        <th style="width: 1em;">Time</th>
+        <th style="width: 1em;">Memory</th>
+</tr>
+
+
+<tr data-submission-id="'''
+
 
 with open('data/users.json', 'r', encoding='utf8', errors='ignore') as f:
     global_users = json.load(f)
@@ -48,6 +64,8 @@ cf_problems = None
 at_problems = None
 
 problems_by_points = {'dmoj':{}, 'cf':{}, 'at':{}}
+
+sessions = {}
 
 ratings = {range(3000, 4000): ('Target', discord.Colour(int('ee0000', 16))),
            range(2200, 2999): ('Grandmaster', discord.Colour(int('ee0000', 16))),
@@ -387,7 +405,7 @@ async def link(ctx, account=None, username=None):
         await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%slink <account> <username>`.' % prefix)
         return
     elif account not in accounts:
-        await ctx.send(ctx.message.author.mention + ' Sorry, you can currently only link the following account(s): %s' % ', '.join(accounts))
+        await ctx.send(ctx.message.author.mention + ' Sorry, you can currently only link the following account(s): DMOJ, Codeforces')
         return
     account = account.lower()
     checkExistingUser(ctx.message.author)
@@ -410,6 +428,12 @@ async def link(ctx, account=None, username=None):
         else:
             await ctx.message.author.send('Add the following token to the self-description in your DMOJ profile and then run the link command again (you can delete the token from your DMOJ profile afterwards): `%s` \nhttps://dmoj.ca/edit/profile/' % user_secret)
             await ctx.send(ctx.message.author.mention + ' I\'ve sent you a DM with instructions on how to link your DMOJ account.')
+    elif account == 'cf' or account == 'codeforces':
+        if 'cf' in global_users[iden]:
+            await ctx.send(ctx.message.author.mention + ' Your Discord account is already linked to the Codeforces account: ' + global_users[iden]['cf'] + '!')
+            return
+        response = wget('https://codeforces.com/profile/%s' % username)
+        sub_text = response[response.index(cf_head_locater)+1: response.index(cf_head_locater)+9]
 
 @bot.command()
 async def toggleRepeat(ctx):
@@ -493,6 +517,42 @@ async def run(ctx, lang=None, stdin=None, *, script=None):
             else:
                 message += '\n```\n```'
             await ctx.send(ctx.message.author.mention + message)
+
+@bot.command()
+async def login(ctx, token=None):
+    global sessions
+    if ctx.guild is not None:
+        await ctx.send(ctx.message.author.mention + ' Please do not post your DMOJ API token on a server! Login command should be used in DMs only!')
+    else:
+        try:
+            sessions[ctx.message.author.id] = Session(token)
+            await ctx.send('Successfully logged in with submission permissions as %s! (Note that for security reasons, you will be automatically logged out after the cache resets. You may delete the message containing your token now)' % sessions[ctx.message.author.id])
+        except InvalidSessionException:
+            await ctx.send('Token invalid, failed to log in (your DMOJ API token can be found by going to https://dmoj.ca/edit/profile/ and selecting the __Regenerate__ option next to API Token). Note: The login command will ONLY WORK IN DIRECT MESSAGE. Please do not share this token with anyone else.')
+
+language = Language()
+
+@bot.command()
+async def submit(ctx, problem=None, lang=None, *, source=None):
+    global sessions
+    if ctx.message.author.id not in sessions.keys():
+        await ctx.send(ctx.message.author.mention + ' You are not logged in to a DMOJ account with submission permissions. Please use command `%slogin <token>` (your DMOJ API token can be found by going to https://dmoj.ca/edit/profile/ and selecting the __Regenerate__ option next to API Token). Note: The login command will ONLY WORK IN DIRECT MESSAGE. Please do not share this token with anyone else.' % prefix)
+        return
+    userSession = sessions[ctx.message.author.id]
+    if not language.languageExists(lang):
+        await ctx.send(ctx.message.author.mention + ' That language is not available. The available languages are as followed: ```%s```' % ', '.join(language.getLanguages()))
+        return
+    try:
+        id = userSession.submit(problem, language.getId(lang), source)
+        response = userSession.getTestcaseStatus(id)
+        responseText = str(response)
+        if len(responseText) > 1950:
+            responseText = responseText[1950:] + '\n(Result cut off to fit message length limit)'
+        await ctx.send(ctx.message.author.mention + ' ' + responseText + '\nTrack your submission here: https://dmoj.ca/submission/' + str(id))
+    except InvalidSessionException:
+        await ctx.send(ctx.message.author.mention + ' Failed to connect, or problem not available.')
+    except:
+        await ctx.send(ctx.message.author.mention + ' Failed to connect, or problem not available.')
 
 @bot.command()
 @commands.has_permissions(administrator=True)
@@ -709,6 +769,8 @@ async def help(ctx):
     embed.add_field(name='%swhois <name>' % prefix, value='Searches for a user on 4 online judges (DMOJ, Codeforces, AtCoder, WCIPEG) and GitHub', inline=False)
     embed.add_field(name='%swhatis <query>' % prefix, value='Searches for something on WCIPEG Wiki or Wikipedia', inline=False)
     embed.add_field(name='%srun <language> <stdin> <script>' % prefix, value='Runs a script in one of 72 languages! (200 calls allowed daily for everyone)', inline=False)
+    embed.add_field(name='%slogin <token>' % prefix, value='FOR DIRECT MESSAGING ONLY, logs you in using your DMOJ API token for problem submission', inline=False)
+    embed.add_field(name='%ssubmit <problem-code> <language> <script>' % prefix, value='Submits to a problem on DMOJ (requires login)', inline=False)
     embed.add_field(name='%snotify' % prefix, value='Lists contest notifications in a server (requires admin)', inline=False)
     embed.add_field(name='%snotify <channel>' % prefix, value='Sets a channel as a contest notification channel (requires admin)', inline=False)
     embed.add_field(name='%sunnotify <channel>' % prefix, value='Sets a channel to be no longer a contest notification channel (requires admin)', inline=False)
