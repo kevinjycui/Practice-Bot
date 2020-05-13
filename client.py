@@ -543,6 +543,9 @@ async def submit(ctx, problem=None, lang=None, *, source=None):
         await ctx.send(ctx.message.author.mention + ' That language is not available. The available languages are as followed: ```%s```' % ', '.join(language.getLanguages()))
         return
     try:
+        if source is None and len(ctx.message.attachments) > 0:
+            f = requests.get(ctx.message.attachments[0].url)
+            source = f.content
         id = userSession.submit(problem, language.getId(lang), source)
         response = userSession.getTestcaseStatus(id)
         responseText = str(response)
