@@ -19,7 +19,7 @@ The all-competitive-programming-purpose Discord bot!
  - `$suggest <suggestion>` Sends me a suggestion
  - `$ping` Checks my ping to the Discord server
 ### Online Judge (DMOJ, Codeforces, AtCoder, WCIPEG integration)
-- `$login dmoj <token>` FOR DIRECT MESSAGING ONLY, logs you in using your DMOJ API token for problem submission
+ - `$login dmoj <token>` FOR DIRECT MESSAGING ONLY, logs you in using your DMOJ API token for problem submission
  - `$submit <problem-code> <language> <script>` Submits to a problem on DMOJ (requires login)
  - `$submit ^ <language> <script>` Submits to the last DMOJ problem you got using the random command (requires login)
  - `$random` Gets a random problem from DMOJ, Codeforces, or AtCoder
