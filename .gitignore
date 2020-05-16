@@ -6,3 +6,5 @@ data/users.json
 .env
 .env.test
 env/
+
+practicebot.pem
