@@ -14,6 +14,7 @@ from smtplib import SMTP_SSL as SMTP
 from email.mime.text import MIMEText
 from dmoj.session import Session, InvalidSessionException
 from dmoj.language import Language
+import utils.dblapi as dblapi
 
 SMTPserver = 'smtp.gmail.com'
 suggesters = []
@@ -41,20 +42,6 @@ head_end = '''</h1>
 									<div id="siteSub">From PEGWiki</div>
 								<div id="contentSub"></div>
 												<div id="jump-to-nav" class="mw-jump">'''
-cf_head_locater = '''<tr class="first-row">
-    <th style="width:6em;">#</th>
-    <th>When</th>
-    <th style="text-align:center;">Who</th>
-    <th>Problem</th>
-    <th>Lang</th>
-    <th>Verdict</th>
-        <th style="width: 1em;">Time</th>
-        <th style="width: 1em;">Memory</th>
-</tr>
-
-
-<tr data-submission-id="'''
-
 
 with open('data/users.json', 'r', encoding='utf8', errors='ignore') as f:
     global_users = json.load(f)
@@ -399,43 +386,6 @@ async def tea(ctx, user=None):
     await ctx.send(ctx.message.author.mention + ' It seems like that user does not exist.')
 
 @bot.command()
-async def link(ctx, account=None, username=None):
-    global global_users
-    if account is None or username is None:
-        await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%slink <account> <username>`.' % prefix)
-        return
-    elif account not in accounts:
-        await ctx.send(ctx.message.author.mention + ' Sorry, you can currently only link the following account(s): DMOJ, Codeforces')
-        return
-    account = account.lower()
-    checkExistingUser(ctx.message.author)
-    iden = str(ctx.message.author.id)
-    if 'secret' not in global_users[iden]:
-        global_users[iden]['secret'] = hex(int(iden)) + secrets.token_hex()
-        updateUsers()
-    user_secret = global_users[iden]['secret']
-    if account == 'dmoj':
-        if 'dmoj' in global_users[iden]:
-            await ctx.send(ctx.message.author.mention + ' Your Discord account is already linked to the DMOJ account: ' + global_users[iden]['dmoj'] + '!')
-            return
-        response = wget('https://dmoj.ca/user/%s' % username)
-        bio_text = response[response.index('<h4>About</h4>\n') + len('<h4>About</h4>\n'):response.index('\n<h4>Rating History</h4>')]
-        if user_secret in bio_text:
-            global_users[iden]['dmoj'] = username
-            updateUsers()
-            await ctx.send(ctx.message.author.mention + ' Your Discord account has been linked to the DMOJ account: ' + global_users[iden]['dmoj'] + '!')
-            return
-        else:
-            await ctx.message.author.send('Add the following token to the self-description in your DMOJ profile and then run the link command again (you can delete the token from your DMOJ profile afterwards): `%s` \nhttps://dmoj.ca/edit/profile/' % user_secret)
-            await ctx.send(ctx.message.author.mention + ' I\'ve sent you a DM with instructions on how to link your DMOJ account.')
-    elif account == 'cf' or account == 'codeforces':
-        if 'cf' in global_users[iden]:
-            await ctx.send(ctx.message.author.mention + ' Your Discord account is already linked to the Codeforces account: ' + global_users[iden]['cf'] + '!')
-            return
-        response = wget('https://codeforces.com/profile/%s' % username)
-        sub_text = response[response.index(cf_head_locater)+1: response.index(cf_head_locater)+9]
-
-@bot.command()
 async def toggleRepeat(ctx):
     global global_users
     checkExistingUser(ctx.message.author)
@@ -519,16 +469,26 @@ async def run(ctx, lang=None, stdin=None, *, script=None):
             await ctx.send(ctx.message.author.mention + message)
 
 @bot.command()
-async def login(ctx, token=None):
-    global sessions
+async def login(ctx, site=None, token=None):
+    global sessions, global_users
     if ctx.guild is not None:
         await ctx.send(ctx.message.author.mention + ' Please do not post your DMOJ API token on a server! Login command should be used in DMs only!')
     else:
-        try:
-            sessions[ctx.message.author.id] = Session(token)
-            await ctx.send('Successfully logged in with submission permissions as %s! (Note that for security reasons, you will be automatically logged out after the cache resets. You may delete the message containing your token now)' % sessions[ctx.message.author.id])
-        except InvalidSessionException:
-            await ctx.send('Token invalid, failed to log in (your DMOJ API token can be found by going to https://dmoj.ca/edit/profile/ and selecting the __Regenerate__ option next to API Token). Note: The login command will ONLY WORK IN DIRECT MESSAGE. Please do not share this token with anyone else.')
+        if site is None or token is None:
+            await ctx.send('Invalid query. Please use format `%slogin <site> <token>`.' % prefix)
+            return
+        checkExistingUser(ctx.message.author)
+        if site.lower() == 'dmoj':
+            iden = str(ctx.message.author.id)
+            try:
+                sessions[ctx.message.author.id] = Session(token)
+                global_users[iden]['dmoj'] = str(sessions[ctx.message.author.id])
+                updateUsers()
+                await ctx.send('Successfully logged in with submission permissions as %s! (Note that for security reasons, you will be automatically logged out after the cache resets. You may delete the message containing your token now)' % sessions[ctx.message.author.id])
+            except InvalidSessionException:
+                await ctx.send('Token invalid, failed to log in (your DMOJ API token can be found by going to https://dmoj.ca/edit/profile/ and selecting the __Regenerate__ option next to API Token). Note: The login command will ONLY WORK IN DIRECT MESSAGE. Please do not share this token with anyone else.')
+        elif site.lower() in ('cf', 'codeforces', 'atcoder'):
+            await ctx.send('Sorry, logins to that site is not available yet')
 
 language = Language()
 
@@ -536,7 +496,7 @@ language = Language()
 async def submit(ctx, problem=None, lang=None, *, source=None):
     global sessions
     if ctx.message.author.id not in sessions.keys():
-        await ctx.send(ctx.message.author.mention + ' You are not logged in to a DMOJ account with submission permissions. Please use command `%slogin <token>` (your DMOJ API token can be found by going to https://dmoj.ca/edit/profile/ and selecting the __Regenerate__ option next to API Token). Note: The login command will ONLY WORK IN DIRECT MESSAGE. Please do not share this token with anyone else.' % prefix)
+        await ctx.send(ctx.message.author.mention + ' You are not logged in to a DMOJ account with submission permissions (this could happen if you last logged in a long time ago). Please use command `%slogin dmoj <token>` (your DMOJ API token can be found by going to https://dmoj.ca/edit/profile/ and selecting the __Regenerate__ option next to API Token). Note: The login command will ONLY WORK IN DIRECT MESSAGE. Please do not share this token with anyone else.' % prefix)
         return
     userSession = sessions[ctx.message.author.id]
     if not language.languageExists(lang):
@@ -761,19 +721,18 @@ bot.remove_command('help')
 async def help(ctx):
     embed = discord.Embed(title='Practice Bot', description='The all-competitive-programming-purpose Discord bot!', color=0xeee657)
     embed.add_field(name='%shelp' % prefix, value='Sends you a list of my commands (obviously)', inline=False)
+    embed.add_field(name='%slogin dmoj <token>' % prefix, value='FOR DIRECT MESSAGING ONLY, logs you in using your DMOJ API token for problem submission', inline=False)
+    embed.add_field(name='%ssubmit <problem-code> <language> <script>' % prefix, value='Submits to a problem on DMOJ (requires login)', inline=False)
     embed.add_field(name='%srandom' % prefix, value='Gets a random problem from DMOJ, Codeforces, or AtCoder', inline=False)
     embed.add_field(name='%srandom <online judge>' % prefix, value='Gets a random problem from a specific online judge (DMOJ, Codeforces, or AtCoder)', inline=False)
     embed.add_field(name='%srandom <online judge> <points>' % prefix, value='Gets a random problem from a specific online judge (DMOJ, Codeforces, or AtCoder) with a specific number of points', inline=False)
     embed.add_field(name='%srandom <online judge> <minimum> <maximum>' % prefix, value='Gets a random problem from a specific online judge (DMOJ, Codeforces, or AtCoder) within a specific point range', inline=False)
-    embed.add_field(name='%slink <account> <username>' % prefix, value='Links an account to me (currently supports DMOJ)', inline=False)
     embed.add_field(name='%stoggleRepeat' % prefix, value='Toggles whether or not you want problems that you have already solved when performing a `%srandom` command (requires at least 1 linked account)' % prefix, inline=False)
     embed.add_field(name='%sprofile <user>' % prefix, value='See a user\'s linked accounts', inline=False)
     embed.add_field(name='%sprofile' % prefix, value='See your linked accounts', inline=False)    
     embed.add_field(name='%swhois <name>' % prefix, value='Searches for a user on 4 online judges (DMOJ, Codeforces, AtCoder, WCIPEG) and GitHub', inline=False)
     embed.add_field(name='%swhatis <query>' % prefix, value='Searches for something on WCIPEG Wiki or Wikipedia', inline=False)
     embed.add_field(name='%srun <language> <stdin> <script>' % prefix, value='Runs a script in one of 72 languages! (200 calls allowed daily for everyone)', inline=False)
-    embed.add_field(name='%slogin <token>' % prefix, value='FOR DIRECT MESSAGING ONLY, logs you in using your DMOJ API token for problem submission', inline=False)
-    embed.add_field(name='%ssubmit <problem-code> <language> <script>' % prefix, value='Submits to a problem on DMOJ (requires login)', inline=False)
     embed.add_field(name='%snotify' % prefix, value='Lists contest notifications in a server (requires admin)', inline=False)
     embed.add_field(name='%snotify <channel>' % prefix, value='Sets a channel as a contest notification channel (requires admin)', inline=False)
     embed.add_field(name='%sunnotify <channel>' % prefix, value='Sets a channel to be no longer a contest notification channel (requires admin)', inline=False)
@@ -803,4 +762,5 @@ status_change.start()
 refresh_problems.start()
 check_contests.start()
 update_ranks.start()
+dblapi.setup(bot, dbl_token)
 bot.run(bot_token)

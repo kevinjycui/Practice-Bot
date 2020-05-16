@@ -14,7 +14,11 @@ The all-competitive-programming-purpose Discord bot!
 [👀 Check me out on Discord Bot List](https://discordbotlist.com/bots/691416325557452861/)
 
 ## Commands
+### General
  - `$help` Sends you a list of my commands (obviously)
+ - `$suggest <suggestion>` Sends me a suggestion
+ - `$ping` Checks my ping to the Discord server
+### Online Judge (DMOJ, Codeforces, AtCoder, WCIPEG integration)
  - `$random` Gets a random problem from DMOJ, Codeforces, or AtCoder
  - `$random <online judge>` Gets a random problem from a specific online judge (DMOJ, Codeforces, or AtCoder)
  - `$random <online judge> <points>` Gets a random problem from a specific online judge (DMOJ, Codeforces, or AtCoder) with a specific number of points
@@ -24,19 +28,19 @@ The all-competitive-programming-purpose Discord bot!
  - `$profile <user>` See a user's linked accounts
  - `$profile` See your linked accounts
  - `$whois <name>` Searches for a user on 4 online judges (DMOJ, Codeforces, AtCoder, WCIPEG) and GitHub
- - `$whatis <query>` Searches for something on WCIPEG Wiki or Wikipedia
- - `$run <language> <stdin> <script>` Runs a script in one of 72 languages! (200 calls allowed daily for everyone)
 - `$login <token>` FOR DIRECT MESSAGING ONLY, logs you in using your DMOJ API token for problem submission
  - `$submit <problem-code> <language> <script>` Submits to a problem on DMOJ (requires login)
  - `$notify` Lists contest notifications in a server (requires admin)
  - `$notify <channel>` Sets a channel as a contest notification channel (requires admin)
  - `$unnotify <channel>` Sets a channel to be no longer a contest notification channel (requires admin)
+ ### Programming
+ - `$run <language> <stdin> <script>` Runs a script in one of 72 languages! (200 calls allowed daily for everyone)
+ - `$whatis <query>` Searches for something on WCIPEG Wiki or Wikipedia
+ ### Fun
  - `$motivation` Sends you some (emotional) support 😊
  - `$tea <user>` Sends a user a cup of tea (a pointless point system)
  - `$tea` Checks how many cups of tea you have
  - `$cat>` Gets a random cat image
- - `$suggest <suggestion>` Sends me a suggestion
- - `$ping` Checks my ping to the Discord server
   
 ## Tools
  - discord.py
