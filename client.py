@@ -205,6 +205,7 @@ async def random(ctx, oj=None, points=None, maximum=None):
         else:
             await ctx.send(ctx.message.author.mention + ' Sorry, I couldn\'t find any problems with those parameters. :cry:')
             return
+        global_users[iden]['last_dmoj_problem'] = name
         url = 'https://dmoj.ca/problem/' + name
         embed = discord.Embed(title=prob['name'], description=url +' (searched in %ss)' % str(round(bot.latency, 3)))
         embed.timestamp = datetime.utcnow()
@@ -494,7 +495,7 @@ language = Language()
 
 @bot.command()
 async def submit(ctx, problem=None, lang=None, *, source=None):
-    global sessions
+    global sessions, global_users
     if ctx.message.author.id not in sessions.keys():
         await ctx.send(ctx.message.author.mention + ' You are not logged in to a DMOJ account with submission permissions (this could happen if you last logged in a long time ago). Please use command `%slogin dmoj <token>` (your DMOJ API token can be found by going to https://dmoj.ca/edit/profile/ and selecting the __Regenerate__ option next to API Token). Note: The login command will ONLY WORK IN DIRECT MESSAGE. Please do not share this token with anyone else.' % prefix)
         return
@@ -506,6 +507,10 @@ async def submit(ctx, problem=None, lang=None, *, source=None):
         if source is None and len(ctx.message.attachments) > 0:
             f = requests.get(ctx.message.attachments[0].url)
             source = f.content
+        iden = str(ctx.message.author.id)
+        checkExistingUser(ctx.message.author)
+        if problem == '^' and 'last_dmoj_problem' in global_users[iden]:
+            problem = global_users[iden]['last_dmoj_problem']
         id = userSession.submit(problem, language.getId(lang), source)
         response = userSession.getTestcaseStatus(id)
         responseText = str(response)
@@ -723,6 +728,7 @@ async def help(ctx):
     embed.add_field(name='%shelp' % prefix, value='Sends you a list of my commands (obviously)', inline=False)
     embed.add_field(name='%slogin dmoj <token>' % prefix, value='FOR DIRECT MESSAGING ONLY, logs you in using your DMOJ API token for problem submission', inline=False)
     embed.add_field(name='%ssubmit <problem-code> <language> <script>' % prefix, value='Submits to a problem on DMOJ (requires login)', inline=False)
+    embed.add_field(name='%ssubmit ^ <language> <script>' % prefix, value='Submits to thge last DMOJ problem you got using the random command (requires login)', inline=False)
     embed.add_field(name='%srandom' % prefix, value='Gets a random problem from DMOJ, Codeforces, or AtCoder', inline=False)
     embed.add_field(name='%srandom <online judge>' % prefix, value='Gets a random problem from a specific online judge (DMOJ, Codeforces, or AtCoder)', inline=False)
     embed.add_field(name='%srandom <online judge> <points>' % prefix, value='Gets a random problem from a specific online judge (DMOJ, Codeforces, or AtCoder) with a specific number of points', inline=False)

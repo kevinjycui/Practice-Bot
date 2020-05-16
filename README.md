@@ -19,6 +19,9 @@ The all-competitive-programming-purpose Discord bot!
  - `$suggest <suggestion>` Sends me a suggestion
  - `$ping` Checks my ping to the Discord server
 ### Online Judge (DMOJ, Codeforces, AtCoder, WCIPEG integration)
+- `$login <token>` FOR DIRECT MESSAGING ONLY, logs you in using your DMOJ API token for problem submission
+ - `$submit <problem-code> <language> <script>` Submits to a problem on DMOJ (requires login)
+ - `$submit ^ <language> <script>` Submits to thge last DMOJ problem you got using the random command (requires login)
  - `$random` Gets a random problem from DMOJ, Codeforces, or AtCoder
  - `$random <online judge>` Gets a random problem from a specific online judge (DMOJ, Codeforces, or AtCoder)
  - `$random <online judge> <points>` Gets a random problem from a specific online judge (DMOJ, Codeforces, or AtCoder) with a specific number of points
@@ -28,8 +31,6 @@ The all-competitive-programming-purpose Discord bot!
  - `$profile <user>` See a user's linked accounts
  - `$profile` See your linked accounts
  - `$whois <name>` Searches for a user on 4 online judges (DMOJ, Codeforces, AtCoder, WCIPEG) and GitHub
-- `$login <token>` FOR DIRECT MESSAGING ONLY, logs you in using your DMOJ API token for problem submission
- - `$submit <problem-code> <language> <script>` Submits to a problem on DMOJ (requires login)
  - `$notify` Lists contest notifications in a server (requires admin)
  - `$notify <channel>` Sets a channel as a contest notification channel (requires admin)
  - `$unnotify <channel>` Sets a channel to be no longer a contest notification channel (requires admin)
