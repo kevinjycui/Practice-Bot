@@ -21,7 +21,7 @@ The all-competitive-programming-purpose Discord bot!
 ### Online Judge (DMOJ, Codeforces, AtCoder, WCIPEG integration)
  - `$login dmoj <token>` FOR DIRECT MESSAGING ONLY, logs you in using your DMOJ API token for problem submission
  - `$submit <problem-code> <language> <script>` Submits to a problem on DMOJ (requires login)
- - `$submit ^ <language> <script>` Submits to the last DMOJ problem you got using the random command (requires login)
+ - `$submit ^ <language> <script>` Submits to the last DMOJ problem you got using the `$random` command (requires login)
  - `$random` Gets a random problem from DMOJ, Codeforces, or AtCoder
  - `$random <online judge>` Gets a random problem from a specific online judge (DMOJ, Codeforces, or AtCoder)
  - `$random <online judge> <points>` Gets a random problem from a specific online judge (DMOJ, Codeforces, or AtCoder) with a specific number of points
@@ -40,7 +40,7 @@ The all-competitive-programming-purpose Discord bot!
  - `$motivation` Sends you some (emotional) support 😊
  - `$tea <user>` Sends a user a cup of tea (a pointless point system)
  - `$tea` Checks how many cups of tea you have
- - `$cat>` Gets a random cat image
+ - `$cat` Gets a random cat image
   
 ## Tools
  - discord.py

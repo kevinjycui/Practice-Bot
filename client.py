@@ -728,7 +728,7 @@ async def help(ctx):
     embed.add_field(name='%shelp' % prefix, value='Sends you a list of my commands (obviously)', inline=False)
     embed.add_field(name='%slogin dmoj <token>' % prefix, value='FOR DIRECT MESSAGING ONLY, logs you in using your DMOJ API token for problem submission', inline=False)
     embed.add_field(name='%ssubmit <problem-code> <language> <script>' % prefix, value='Submits to a problem on DMOJ (requires login)', inline=False)
-    embed.add_field(name='%ssubmit ^ <language> <script>' % prefix, value='Submits to the last DMOJ problem you got using the random command (requires login)', inline=False)
+    embed.add_field(name='%ssubmit ^ <language> <script>' % prefix, value='Submits to the last DMOJ problem you got using the `%srandom` command (requires login)' % prefix, inline=False)
     embed.add_field(name='%srandom' % prefix, value='Gets a random problem from DMOJ, Codeforces, or AtCoder', inline=False)
     embed.add_field(name='%srandom <online judge>' % prefix, value='Gets a random problem from a specific online judge (DMOJ, Codeforces, or AtCoder)', inline=False)
     embed.add_field(name='%srandom <online judge> <points>' % prefix, value='Gets a random problem from a specific online judge (DMOJ, Codeforces, or AtCoder) with a specific number of points', inline=False)
