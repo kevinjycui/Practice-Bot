@@ -27,7 +27,14 @@ The all-competitive-programming-purpose Discord bot!
  - [kenkoooo/AtCoderProblems](https://github.com/kenkoooo/AtCoderProblems)
  - [WCIPEG](https://wcipeg.com/main)
 
- ![](screenshots/dmoj_logo.png) ![](screenshots/codeforces_logo.png) ![](screenshots/atcoder_logo.png) ![](screenshots/wcipeg_logo.png)
+ ![](screenshots/dmoj_logo.png) 
+ 
+ ![](screenshots/codeforces_logo.png) 
+ 
+ ![](screenshots/atcoder_logo.png) 
+ 
+ ![](screenshots/wcipeg_logo.png)
+
  *Not affiliated with DMOJ, Codeforces, AtCoder, or WCIPEG. Sites are only used as tools for this bot.
 
 ## Icon
