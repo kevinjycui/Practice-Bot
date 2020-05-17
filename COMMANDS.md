@@ -26,3 +26,38 @@
  - `$tea <user>` Sends a user a cup of tea (a pointless point system)
  - `$tea` Checks how many cups of tea you have
  - `$cat` Gets a random cat image
+
+ ## Quick Start
+ Hello! Thank you for inviting Practice Bot to your server! To begin, send Practice Bot a direct message.
+ 
+ ![Step 1](screenshots/step1.PNG)
+
+Go to [https://dmoj.ca/edit/profile/](https://dmoj.ca/edit/profile/) and find the **API Token**. Hit Generate or Regenerate to get your token. This way, you can log in to Practice Bot and connect your DMOJ account to Discord. Do not share this token with anyone! For your security, Practice Bot will NOT save your token, and it may be lost when the bot's cache is reset. However, once you log in once, your Discord is linked to your DMOJ account, and you will only need to log in again to submit problems.
+
+Using your API token, login to Practice Bot through a direct message. You can delete this message once you've logged in for your security.
+
+![Step 2](screenshots/step2.PNG)
+
+Now, go back to the server and try out the random command. This will get you any problem from DMOJ, Codeforces, or AtCoder!
+
+![Step 3](screenshots/step3.PNG)
+
+Use parameters to filter for certain types of problems!
+
+![Step 4](screenshots/step4.PNG)
+
+If you logged in, you can use the toggleRepeat command to get only problems that you have not completed (DMOJ only).
+
+![Step 5](screenshots/step5.PNG)
+
+Try submitting to a problem (DMOJ only).
+
+![Step 6](screenshots/step6.PNG)
+
+You can use ^ as the problem code to get the last \[DMOJ\] problem that you got using the random command.
+
+If your code is too long to fit in a Discord message, upload the file directly instead!
+
+![Step 7](screenshots/step7.PNG)
+
+That's all the basics to Practice Bot! Check out the commands for a list of everything you can do. Have fun practicing!

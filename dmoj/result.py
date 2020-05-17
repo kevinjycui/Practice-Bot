@@ -21,4 +21,4 @@ class Result:
             statusEmoji = self.statusEmojis[self.status]
         else:
             statusEmoji = self.gradingEmoji
-        return '**' + self.problemName + '**\n' + statusEmoji + ' ' + self.status +'\n' + self.time + ', ' + self.memory + '\n' + ('Complete!' if self.done else 'Pending...') + ',\n' + '\n'.join(map(str, self.cases))
+        return '**' + self.problemName + '**\n' + statusEmoji + ' ' + self.status +'\n' + self.time + ', ' + self.memory + '\n' + ('Complete!' if self.done else 'Pending...') + '\n' + '\n'.join(map(str, self.cases))
