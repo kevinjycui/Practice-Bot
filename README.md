@@ -6,6 +6,7 @@ The all-competitive-programming-purpose Discord bot!
 [🍵 Invite me to your server!](https://discordapp.com/api/oauth2/authorize?client_id=691416325557452861&permissions=268470272&scope=bot)
 
 [☕ Invite me to your server! (without automatic DMOJ-based ranked roles)](https://discordapp.com/api/oauth2/authorize?client_id=691416325557452861&permissions=34816&scope=bot)
+> Note: Do not give Practice Bot the `Manage Roles` permission if you want to keep automatic DMOJ-based ranked roles off
 
 ---
 

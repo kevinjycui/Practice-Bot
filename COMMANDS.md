@@ -36,7 +36,7 @@ Go to [https://dmoj.ca/edit/profile/](https://dmoj.ca/edit/profile/) and find th
 
 ![Token](screenshots/apitoken.PNG)
 
-For your security, Practice Bot will NOT save your token, and it may be lost when the bot's cache is reset. However, once you log in once, your Discord is linked to your DMOJ account, and you will only need to log in again to submit problems. Besides submitting to problems on DMOJ, logging in allows you to find problems that you haven't solved yet, automatically assigns you a role based on your DMOJ ranks, and allows others to easily find your DMOJ account.
+For your security, Practice Bot will NOT save your token, and it may be lost when the bot's cache is reset. However, once you log in once, your Discord is linked to your DMOJ account, and you will only need to log in again to submit problems. Besides submitting to problems on DMOJ, logging in allows you to find problems that you haven't solved yet, automatically assigns you a role based on your DMOJ rating, and allows others to easily find your DMOJ account.
 
 Using your API token, login to Practice Bot **through a direct message**. You can delete this message once you've logged in for your security.
 
