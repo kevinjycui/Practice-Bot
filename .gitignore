@@ -7,4 +7,5 @@ data/users.json
 .env.test
 env/
 
+*.bat
 practicebot.pem
