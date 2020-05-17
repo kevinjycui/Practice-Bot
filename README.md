@@ -21,11 +21,14 @@ The all-competitive-programming-purpose Discord bot!
   
 ## Tools
  - discord.py
- - DMOJ API
- - Codeforces API
- - nomikura/atcoder-api
- - kenkoooo/AtCoderProblems
- - WCIPEG
+ - [DMOJ API](https://dmoj.ca/api/)
+ - [Codeforces API](https://codeforces.com/apiHelp)
+ - [nomikura/atcoder-api](https://github.com/nomikura/atcoder-api)
+ - [kenkoooo/AtCoderProblems](https://github.com/kenkoooo/AtCoderProblems)
+ - [WCIPEG](https://wcipeg.com/main)
+
+ ![](dmoj_logo.png) ![](codeforces_logo.png) ![](atcoder_logo.png) ![](wcipeg_logo.png)
+ *Not affiliated with DMOJ, Codeforces, AtCoder, or WCIPEG. Sites are only used as tools for this bot.
 
 ## Icon
 > ![](tea_icon.png)
