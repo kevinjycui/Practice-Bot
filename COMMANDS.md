@@ -27,14 +27,18 @@
  - `$tea` Checks how many cups of tea you have
  - `$cat` Gets a random cat image
 
- ## Quick Start
- Hello! Thank you for inviting Practice Bot to your server! To begin, send Practice Bot a direct message.
+## Quick Start
+Hello! Thank you for inviting Practice Bot to your server! To begin, let's link your Discord account to your DMOJ account.
  
- ![Step 1](screenshots/step1.PNG)
+![Step 1](screenshots/step1.PNG)
 
-Go to [https://dmoj.ca/edit/profile/](https://dmoj.ca/edit/profile/) and find the **API Token**. Hit Generate or Regenerate to get your token. This way, you can log in to Practice Bot and connect your DMOJ account to Discord. Do not share this token with anyone! For your security, Practice Bot will NOT save your token, and it may be lost when the bot's cache is reset. However, once you log in once, your Discord is linked to your DMOJ account, and you will only need to log in again to submit problems. Besides submitting to problems on DMOJ, logging in allows you to find problems that you haven't solved yet, automatically assigns you a role based on your DMOJ ranks, and allows others to easily find your DMOJ account.
+Go to [https://dmoj.ca/edit/profile/](https://dmoj.ca/edit/profile/) and find the **API Token**. Hit Generate or Regenerate to get your token. This way, you can log in to Practice Bot and connect your DMOJ account to Discord. Do not share this token with anyone! 
 
-Using your API token, login to Practice Bot through a direct message. You can delete this message once you've logged in for your security.
+![Token](screenshots/apitoken.PNG)
+
+For your security, Practice Bot will NOT save your token, and it may be lost when the bot's cache is reset. However, once you log in once, your Discord is linked to your DMOJ account, and you will only need to log in again to submit problems. Besides submitting to problems on DMOJ, logging in allows you to find problems that you haven't solved yet, automatically assigns you a role based on your DMOJ ranks, and allows others to easily find your DMOJ account.
+
+Using your API token, login to Practice Bot **through a direct message**. You can delete this message once you've logged in for your security.
 
 ![Step 2](screenshots/step2.PNG)
 
