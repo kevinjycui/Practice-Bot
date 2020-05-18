@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands, tasks
-from auth import *
+from auth import bot_token, dev_token, cat_api, client_id, client_secret, USERNAME, PASSWORD, dbl_token
 import requests
 import json
 import random as rand
@@ -15,6 +15,7 @@ from email.mime.text import MIMEText
 from dmoj.session import Session, InvalidSessionException
 from dmoj.language import Language
 import utils.dblapi as dblapi
+import bs4 as bs
 
 SMTPserver = 'smtp.gmail.com'
 suggesters = []
@@ -49,8 +50,9 @@ with open('data/users.json', 'r', encoding='utf8', errors='ignore') as f:
 dmoj_problems = None
 cf_problems = None
 at_problems = None
+peg_problems = {}
 
-problems_by_points = {'dmoj':{}, 'cf':{}, 'at':{}}
+problems_by_points = {'dmoj':{}, 'cf':{}, 'at':{}, 'peg':{}}
 
 sessions = {}
 
@@ -138,11 +140,11 @@ async def suggest(ctx, *, content):
 
 @bot.command()
 async def random(ctx, oj=None, points=None, maximum=None):
-    global problems_by_points, dmoj_problems, cf_problems, at_problems, global_users
+    global problems_by_points, dmoj_problems, cf_problems, at_problems, peg_problems, global_users
     start = time()
     
     if oj is None:
-        oj = rand.choice(('dmoj', 'cf', 'at'))
+        oj = rand.choice(('dmoj', 'cf', 'at', 'peg'))
 
     iden = str(ctx.message.author.id)
     checkExistingUser(ctx.message.author)
@@ -175,16 +177,22 @@ async def random(ctx, oj=None, points=None, maximum=None):
                                 
     if points is not None:
         if not points.isdigit():
-            await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%srandom <online judge> <points>` (dmoj/codeforces/atcoder).' % prefix)
+            await ctx.send(ctx.message.author.mention + ' Invalid query. Make sure your points is a positive integer.')
             return
         points = int(points)
 
     if maximum is not None:
         if not maximum.isdigit():
-            await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%srandom <online judge> <minimum> <maximum>` (dmoj/codeforces/atcoder).' % prefix)
+            await ctx.send(ctx.message.author.mention + ' Invalid query. Make sure your points is a positive integer.')
             return
         maximum = int(maximum)
         possibilities = []
+        if oj.lower() == 'codeforces':
+            oj = 'cf'
+        elif oj.lower() == 'atcoder':
+            oj = 'at'
+        elif oj.lower() == 'wcipeg':
+            oj = 'peg'
         for point in list(problem_list[oj].keys()):
             if point >= points and point <= maximum:
                 possibilities.append(point)
@@ -254,8 +262,27 @@ async def random(ctx, oj=None, points=None, maximum=None):
         embed.add_field(name='Solver Count', value=prob['solver_count'], inline=False)
         await ctx.send(ctx.message.author.mention, embed=embed)
 
+    elif oj.lower() == 'wcipeg' or oj.lower() == 'peg':
+        if not peg_problems:
+            await ctx.send(ctx.message.author.mention + ' There seems to be a problem with WCIPEG. Please try again later :shrug:')
+            return
+        if points is None:
+            prob = rand.choice(list(peg_problems.values()))
+        elif points in problems_by_points['peg']:
+            prob = rand.choice(list(problems_by_points['peg'][points]))
+        else:
+            await ctx.send(ctx.message.author.mention + ' Sorry, I couldn\'t find any problems with those parameters. :cry:')
+            return
+        embed = discord.Embed(title=prob['name'], description=prob['url'] +' (searched in %ss)' % str(round(bot.latency, 3)))
+        embed.timestamp = datetime.utcnow()
+        embed.add_field(name='Points', value=prob['points'], inline=False)
+        embed.add_field(name='Users', value=prob['users'], inline=False)
+        embed.add_field(name='AC Rate', value=prob['ac_rate'], inline=False)
+        embed.add_field(name='Date Added', value=prob['date'], inline=False)
+        await ctx.send(ctx.message.author.mention, embed=embed)
+
     else:
-        await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%srandom <online judge> <points>` (dmoj/codeforces/atcoder).' % prefix)
+        await ctx.send(ctx.message.author.mention + ' Invalid query. The online judge must be one of the following: DMOJ (dmoj), Codeforces (codeforces/cf), AtCoder (atcoder/at), WCIPEG (wcipeg/peg).')
 
 @bot.command()
 async def motivation(ctx):
@@ -620,7 +647,7 @@ async def update_ranks_before():
 
 @tasks.loop(hours=3)
 async def refresh_problems():
-    global dmoj_problems, cf_problems, at_problems
+    global dmoj_problems, cf_problems, at_problems, peg_problems
     problems = get('https://dmoj.ca/api/problem/list')
     if problems is not None:
         dmoj_problems = problems
@@ -648,6 +675,30 @@ async def refresh_problems():
                 if details['point'] not in problems_by_points['at']:
                     problems_by_points['at'][details['point']] = []
                 problems_by_points['at'][details['point']].append(details)
+    problems = requests.get('https://wcipeg.com/problems/show%3D999999')
+    if problems.status_code == 200:
+        soup = bs.BeautifulSoup(problems.text, 'lxml')
+        table = soup.find('table', attrs={'class' : 'nicetable stripes'}).findAll('tr')
+        for prob in range(1, len(table)):
+            values = table[prob].findAll('td')
+            name = values[0].find('a').contents[0]
+            url = 'https://wcipeg.com/problem/' + values[1].contents[0]
+            points = values[2].contents[0]
+            p_users = values[3].find('a').contents[0]
+            ac_rate = values[4].contents[0]
+            date = values[5].contents[0]
+            peg_data = {
+                'name': name,
+                'url': url,
+                'points': points,
+                'users': p_users,
+                'ac_rate': ac_rate,
+                'date': date
+            }
+            peg_problems[name] = peg_data
+            if points not in problems_by_points['peg']:
+                problems_by_points['peg'][points] = []
+            problems_by_points['peg'][points].append(peg_data)
 
 @refresh_problems.before_loop
 async def refresh_problems_before():
@@ -743,5 +794,6 @@ status_change.start()
 refresh_problems.start()
 check_contests.start()
 update_ranks.start()
-dblapi.setup(bot, dbl_token)
+if bot_token != dev_token:
+    dblapi.setup(bot, dbl_token)
 bot.run(bot_token)

@@ -7,10 +7,10 @@
  - `$login dmoj <token>` FOR DIRECT MESSAGING ONLY, logs you in using your DMOJ API token for problem submission
  - `$submit <problem-code> <language> <script>` Submits to a problem on DMOJ (requires login)
  - `$submit ^ <language> <script>` Submits to the last DMOJ problem you got using the `$random` command (requires login)
- - `$random` Gets a random problem from DMOJ, Codeforces, or AtCoder
- - `$random <online judge>` Gets a random problem from a specific online judge (DMOJ, Codeforces, or AtCoder)
- - `$random <online judge> <points>` Gets a random problem from a specific online judge (DMOJ, Codeforces, or AtCoder) with a specific number of points
- - `$random <online judge> <minimum> <maximum>` Gets a random problem from a specific online judge (DMOJ, Codeforces, or AtCoder) within a specific point range
+ - `$random` Gets a random problem from DMOJ, Codeforces, AtCoder, or WCIPEG
+ - `$random <online judge>` Gets a random problem from a specific online judge (DMOJ, Codeforces, AtCoder, or WCIPEG)
+ - `$random <online judge> <points>` Gets a random problem from a specific online judge (DMOJ, Codeforces, AtCoder, or WCIPEG) with a specific number of points
+ - `$random <online judge> <minimum> <maximum>` Gets a random problem from a specific online judge (DMOJ, Codeforces, AtCoder, or WCIPEG) within a specific point range
  - `$toggleRepeat` Toggles whether or not you want problems that you have already solved when performing a `$random` command (requires at least 1 linked account)
  - `$profile <user>` See a user's linked accounts
  - `$profile` See your linked accounts
