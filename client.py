@@ -276,6 +276,7 @@ async def random(ctx, oj=None, points=None, maximum=None):
         embed = discord.Embed(title=prob['name'], description=prob['url'] +' (searched in %ss)' % str(round(bot.latency, 3)))
         embed.timestamp = datetime.utcnow()
         embed.add_field(name='Points', value=prob['points'], inline=False)
+        embed.add_field(name='Partials', value=('Yes' if prob['partial'] else 'No'), inline=False)
         embed.add_field(name='Users', value=prob['users'], inline=False)
         embed.add_field(name='AC Rate', value=prob['ac_rate'], inline=False)
         embed.add_field(name='Date Added', value=prob['date'], inline=False)
@@ -683,13 +684,16 @@ async def refresh_problems():
             values = table[prob].findAll('td')
             name = values[0].find('a').contents[0]
             url = 'https://wcipeg.com/problem/' + values[1].contents[0]
-            points = values[2].contents[0]
+            points_value = values[2].contents[0]
+            partial = 'p' in points_value
+            points = int(points_value.replace('p', ''))
             p_users = values[3].find('a').contents[0]
             ac_rate = values[4].contents[0]
             date = values[5].contents[0]
             peg_data = {
                 'name': name,
                 'url': url,
+                'partial': partial,
                 'points': points,
                 'users': p_users,
                 'ac_rate': ac_rate,
