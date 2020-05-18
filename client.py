@@ -28,7 +28,7 @@ with open('data/notification_channels.json', 'r', encoding='utf8', errors='ignor
     data = json.load(f)
 contest_channels = data['contest_channels']
 wait_time = 0
-accounts = ('dmoj', 'codeforces', 'cf')
+accounts = ('dmoj',)
 
 wcipeg_begin = '''Jump to:					<a href="#mw-head">navigation</a>, 					<a href="#p-search">search</a>
 				</div>
@@ -108,7 +108,7 @@ async def ping(ctx):
 async def suggest(ctx, *, content):
 
     if ctx.message.author.id in suggesters and time() - suggester_times[suggesters.index(ctx.message.author.id)] < 3600:
-        await ctx.send(ctx.message.author.mention + ' Please wait ' + str(int((3600 - time() + suggester_times[suggesters.index(ctx.message.author.id)])//60)) + ' minutes before making another suggestion!')
+        await ctx.send(ctx.message.author.mention + ' Please wait %d minutes before making another suggestion!' % int((3600 - time() + suggester_times[suggesters.index(ctx.message.author.id)])//60))
         return
     
     text_subtype = 'plain'
@@ -217,6 +217,7 @@ async def random(ctx, oj=None, points=None, maximum=None):
         url = 'https://dmoj.ca/problem/' + name
         embed = discord.Embed(title=prob['name'], description=url +' (searched in %ss)' % str(round(bot.latency, 3)))
         embed.timestamp = datetime.utcnow()
+        embed.set_thumbnail(url='assets/dmoj-thumbnail.png')
         embed.add_field(name='Points', value=prob['points'], inline=False)
         embed.add_field(name='Partials', value=('Yes' if prob['partial'] else 'No'), inline=False)
         embed.add_field(name='Group', value=prob['group'], inline=False)
@@ -236,6 +237,7 @@ async def random(ctx, oj=None, points=None, maximum=None):
         url = 'https://codeforces.com/problemset/problem/' + str(prob['contestId']) + '/' + str(prob['index'])
         embed = discord.Embed(title=prob['name'], description=url +' (searched in %ss)' % str(round(bot.latency, 3)))
         embed.timestamp = datetime.utcnow()
+        embed.set_thumbnail(url='assets/cf-thumbnail.png')
         embed.add_field(name='Type', value=prob['type'], inline=False)
         if 'points' in prob.keys():
             embed.add_field(name='Points', value=prob['points'], inline=False)
@@ -257,6 +259,7 @@ async def random(ctx, oj=None, points=None, maximum=None):
         url = 'https://atcoder.jp/contests/' + prob['contest_id'] + '/tasks/' + prob['id']
         embed = discord.Embed(title=prob['title'], description=url +' (searched in %ss)' % str(round(bot.latency, 3)))
         embed.timestamp = datetime.utcnow()
+        embed.set_thumbnail(url='assets/at-thumbnail.png')
         if prob['point']:
             embed.add_field(name='Points', value=prob['point'], inline=False)
         embed.add_field(name='Solver Count', value=prob['solver_count'], inline=False)
@@ -275,6 +278,7 @@ async def random(ctx, oj=None, points=None, maximum=None):
             return
         embed = discord.Embed(title=prob['name'], description=prob['url'] +' (searched in %ss)' % str(round(bot.latency, 3)))
         embed.timestamp = datetime.utcnow()
+        embed.set_thumbnail(url='assets/peg-thumbnail.png')
         embed.add_field(name='Points', value=prob['points'], inline=False)
         embed.add_field(name='Partials', value=('Yes' if prob['partial'] else 'No'), inline=False)
         embed.add_field(name='Users', value=prob['users'], inline=False)
