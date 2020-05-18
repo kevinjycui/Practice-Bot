@@ -38,4 +38,4 @@ The all-competitive-programming-purpose Discord bot!
  *Not affiliated with DMOJ, Codeforces, AtCoder, or WCIPEG. Sites are only used as tools for this bot.
 
 ## Icon
-> ![](tea_icon.png)
+> ![](logo.png)
