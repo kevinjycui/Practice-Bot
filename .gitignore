@@ -1,6 +1,9 @@
 auth.py
 auth.py.**
 
+__pycache__/
+*/__pycache__/
+
 data/users.json
 
 .env
@@ -9,3 +12,5 @@ env/
 
 *.bat
 practicebot.pem
+
+.idea/
