@@ -5,6 +5,7 @@ __pycache__/
 */__pycache__/
 
 data/*
+!somefolder/.gitkeep 
 
 .env
 .env.test
