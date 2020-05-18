@@ -15,7 +15,7 @@
  - `$profile <user>` See a user's linked accounts
  - `$profile` See your linked accounts
  - `$whois <name>` Searches for a user on 4 online judges (DMOJ, Codeforces, AtCoder, WCIPEG) and GitHub
- - `$notify` Lists contest notifications in a server (requires admin)
+ - `$notify` Lists contest notification channels in a server (requires admin)
  - `$notify <channel>` Sets a channel as a contest notification channel (requires admin)
  - `$unnotify <channel>` Sets a channel to be no longer a contest notification channel (requires admin)
  ### Programming
@@ -42,7 +42,7 @@ Using your API token, login to Practice Bot **through a direct message**. You ca
 
 ![Step 2](screenshots/step2.PNG)
 
-Now, go back to the server and try out the random command. This will get you any problem from DMOJ, Codeforces, or AtCoder!
+Now, go back to the server and try out the random command. This will get you any problem from DMOJ, Codeforces, AtCoder, or WCIPEG!
 
 ![Step 3](screenshots/step3.PNG)
 
