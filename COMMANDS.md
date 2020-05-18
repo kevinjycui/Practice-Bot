@@ -42,7 +42,7 @@ Using your API token, login to Practice Bot **through a direct message**. You ca
 
 ![Step 2](screenshots/step2.PNG)
 
-Now, go back to the server and try out the random command. This will get you any problem from DMOJ, Codeforces, or AtCoder!
+Now, go back to the server and try out the random command. This will get you any problem from DMOJ, Codeforces, AtCoder, or WCIPEG!
 
 ![Step 3](screenshots/step3.PNG)
 
