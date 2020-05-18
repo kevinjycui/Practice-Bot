@@ -15,7 +15,7 @@
  - `$profile <user>` See a user's linked accounts
  - `$profile` See your linked accounts
  - `$whois <name>` Searches for a user on 4 online judges (DMOJ, Codeforces, AtCoder, WCIPEG) and GitHub
- - `$notify` Lists contest notifications in a server (requires admin)
+ - `$notify` Lists contest notification channels in a server (requires admin)
  - `$notify <channel>` Sets a channel as a contest notification channel (requires admin)
  - `$unnotify <channel>` Sets a channel to be no longer a contest notification channel (requires admin)
  ### Programming
