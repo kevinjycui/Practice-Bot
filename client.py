@@ -725,6 +725,7 @@ async def check_contests():
                 url = 'https://dmoj.ca/contest/' + name
                 embed = discord.Embed(title=(':trophy: %s' % details['name']), description=url)
                 embed.timestamp = datetime.utcnow()
+                embed.set_thumbnail(url='https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/dmoj-thumbnail.png')
                 embed.add_field(name='Start Time', value=datetime.strptime(details['start_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z').strftime('%B %d, %Y %H:%M:%S%z'), inline=False)
                 embed.add_field(name='End Time', value=datetime.strptime(details['end_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z').strftime('%B %d, %Y %H:%M:%S%z'), inline=False)
                 if details['time_limit']:
@@ -748,6 +749,8 @@ async def check_contests():
             if details['phase'] != 'FINISHED':
                 url = 'https://codeforces.com/contest/' + str(details['id'])
                 embed = discord.Embed(title=(':trophy: %s' % details['name']), description=url)
+                embed.timestamp = datetime.utcnow()
+                embed.set_thumbnail(url='https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/cf-thumbnail.png')
                 embed.add_field(name='Type', value=details['type'], inline=False)
                 embed.add_field(name='Start Time', value=datetime.utcfromtimestamp(details['startTimeSeconds']).strftime('%Y-%m-%d %H:%M:%S'), inline=False)
                 embed.add_field(name='Time Limit', value='%s:%s:%s' % (str(details['durationSeconds']//(24*3600)).zfill(2), str(details['durationSeconds']%(24*3600)//3600).zfill(2), str(details['durationSeconds']%3600//60).zfill(2)), inline=False)
@@ -766,6 +769,8 @@ async def check_contests():
             if details['startTimeSeconds'] > time():
                 url = 'https://atcoder.jp/contests/' + details['id']
                 embed = discord.Embed(title=(':trophy: %s' % details['title'].replace('\n', '').replace('\t', '').replace('◉', '')), description=url)
+                embed.timestamp = datetime.utcnow()
+                embed.set_thumbnail(url='https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/at-thumbnail.png')
                 embed.add_field(name='Start Time', value=datetime.utcfromtimestamp(details['startTimeSeconds']).strftime('%Y-%m-%d %H:%M:%S'), inline=False)
                 embed.add_field(name='Time Limit', value='%s:%s:%s' % (str(details['durationSeconds']//(24*3600)).zfill(2), str(details['durationSeconds']%(24*3600)//3600).zfill(2), str(details['durationSeconds']%3600//60).zfill(2)), inline=False)
                 embed.add_field(name='Rated Range', value=details['ratedRange'], inline=False)
