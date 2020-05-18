@@ -4,7 +4,7 @@ auth.py.**
 __pycache__/
 */__pycache__/
 
-data/users.json
+data/*
 
 .env
 .env.test
