@@ -85,7 +85,7 @@ bot = commands.Bot(command_prefix=prefix,
 async def ping(ctx):
     await ctx.send('Pong! (ponged in %ss)' % str(round(bot.latency, 3)))
     
-@bot.command(name='manual set')
+@bot.command()
 @commands.is_owner()
 async def manual_set(ctx, site, iden, name):
     global global_users
