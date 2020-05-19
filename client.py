@@ -637,7 +637,7 @@ async def refresh_problems_before():
 async def check_contests():
     contests = json_get('https://dmoj.ca/api/contest/list')
     if contests is not None:
-        with open('data/dmoj_contests.json', 'r', encoding='utf8', errors='ignore') as f:
+        with open('data/dmoj_contests.json', 'r+', encoding='utf8', errors='ignore') as f:
             prev_contests = json.load(f)
         for contest in range(max(len(prev_contests), len(contests)-5), len(contests)):
             name, details = list(contests.items())[contest]
@@ -658,16 +658,16 @@ async def check_contests():
                 for channel_id in contest_channels:
                     ctx = bot.get_channel(channel_id)
                     await ctx.send(embed=embed)
-        with open('data/dmoj_contests.json', 'w') as json_file:
+        with open('data/dmoj_contests.json', 'w+') as json_file:
             json.dump(contests, json_file)
 
     contests = json_get('https://codeforces.com/api/contest.list')
     if contests is not None and contests['status'] == 'OK':
-        with open('data/cf_contests.json', 'r', encoding='utf8', errors='ignore') as f:
+        with open('data/cf_contests.json', 'r+', encoding='utf8', errors='ignore') as f:
             prev_contests = json.load(f)
-        for contest in range(min(5, len(contests['result'])-len(prev_contests['result']))):
+        for contest in range(min(5, len(contests.get('result', []))-len(prev_contests['result']))):
             details = contests['result'][contest]
-            if details['phase'] != 'FINISHED' and details not in prev_contests:
+            if details['phase'] != 'FINISHED' and details not in prev_contests['result']:
                 url = 'https://codeforces.com/contest/' + str(details['id'])
                 embed = discord.Embed(title=(':trophy: %s' % details['name']), description=url)
                 embed.timestamp = datetime.utcnow()
@@ -678,12 +678,12 @@ async def check_contests():
                 for channel_id in contest_channels:
                     ctx = bot.get_channel(channel_id)
                     await ctx.send(embed=embed)
-        with open('data/cf_contests.json', 'w') as json_file:
+        with open('data/cf_contests.json', 'w+') as json_file:
             json.dump(contests, json_file)
 
     contests = json_get('https://atcoder-api.appspot.com/contests')
     if contests is not None:
-        with open('data/at_contests.json', 'r', encoding='utf8', errors='ignore') as f:
+        with open('data/at_contests.json', 'r+', encoding='utf8', errors='ignore') as f:
             prev_contests = json.load(f)
         for contest in range(max(len(prev_contests), len(contests)-5), len(contests)):
             details = contests[contest]
@@ -698,7 +698,7 @@ async def check_contests():
                 for channel_id in contest_channels:
                     ctx = bot.get_channel(channel_id)
                     await ctx.send(embed=embed)
-        with open('data/at_contests.json', 'w') as json_file:
+        with open('data/at_contests.json', 'w+') as json_file:
             json.dump(contests, json_file)
             
 @check_contests.before_loop
