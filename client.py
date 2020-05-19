@@ -84,14 +84,6 @@ bot = commands.Bot(command_prefix=prefix,
 @bot.command()
 async def ping(ctx):
     await ctx.send('Pong! (ponged in %ss)' % str(round(bot.latency, 3)))
-
-@bot.command()
-@commands.is_owner()
-async def console(ctx):
-    guild_names = []
-    for guild in bot.guilds:
-        guild_names.append(guild.name)
-    await ctx.send('\n'.join(guild_names))
     
 @bot.command(name='manual set')
 @commands.is_owner()
