@@ -86,6 +86,24 @@ async def ping(ctx):
     await ctx.send('Pong! (ponged in %ss)' % str(round(bot.latency, 3)))
 
 @bot.command()
+@commands.is_owner()
+async def console(ctx):
+    guild_names = []
+    for guild in bot.guilds:
+        guild_names.append(guild.name)
+    ctx.send('\n'.join(guild_names))
+    
+@bot.command(name='manual set')
+@commands.is_owner()
+async def manual_set(ctx, site, iden, name):
+    global global_users
+    if iden not in global_users:
+        global_users[iden] = {}
+    global_users[iden]['dmoj'] = name
+    updateUsers()
+    ctx.send('Added %s as %s to %s' % (iden, name, site))
+
+@bot.command()
 async def suggest(ctx, *, content):
 
     if ctx.message.author.id in suggesters and time() - suggester_times[suggesters.index(ctx.message.author.id)] < 3600:
