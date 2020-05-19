@@ -91,7 +91,7 @@ async def console(ctx):
     guild_names = []
     for guild in bot.guilds:
         guild_names.append(guild.name)
-    ctx.send('\n'.join(guild_names))
+    await ctx.send('\n'.join(guild_names))
     
 @bot.command(name='manual set')
 @commands.is_owner()
@@ -101,7 +101,7 @@ async def manual_set(ctx, site, iden, name):
         global_users[iden] = {}
     global_users[iden]['dmoj'] = name
     updateUsers()
-    ctx.send('Added %s as %s to %s' % (iden, name, site))
+    await ctx.send('Added %s as %s to %s' % (iden, name, site))
 
 @bot.command()
 async def suggest(ctx, *, content):
