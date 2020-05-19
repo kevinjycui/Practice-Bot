@@ -91,7 +91,7 @@ async def manual_set(ctx, site, iden, name):
     global global_users
     if iden not in global_users:
         global_users[iden] = {}
-    global_users[iden]['dmoj'] = name
+    global_users[iden][site] = name
     updateUsers()
     await ctx.send('Added %s as %s to %s' % (iden, name, site))
 
