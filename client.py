@@ -641,7 +641,7 @@ async def check_contests():
             prev_contests = json.load(f)
         for contest in range(max(len(prev_contests), len(contests)-5), len(contests)):
             name, details = list(contests.items())[contest]
-            if datetime.strptime(details['start_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z') > datetime.now(pytz.utc):
+            if name not in prev_contests.keys() and datetime.strptime(details['start_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z') > datetime.now(pytz.utc):
                 spec = json_get('https://dmoj.ca/api/contest/info/' + name)
                 url = 'https://dmoj.ca/contest/' + name
                 embed = discord.Embed(title=(':trophy: %s' % details['name']), description=url)
@@ -667,7 +667,7 @@ async def check_contests():
             prev_contests = json.load(f)
         for contest in range(min(5, len(contests['result'])-len(prev_contests['result']))):
             details = contests['result'][contest]
-            if details['phase'] != 'FINISHED':
+            if details['phase'] != 'FINISHED' and details not in prev_contests:
                 url = 'https://codeforces.com/contest/' + str(details['id'])
                 embed = discord.Embed(title=(':trophy: %s' % details['name']), description=url)
                 embed.timestamp = datetime.utcnow()
@@ -687,7 +687,7 @@ async def check_contests():
             prev_contests = json.load(f)
         for contest in range(max(len(prev_contests), len(contests)-5), len(contests)):
             details = contests[contest]
-            if details['startTimeSeconds'] > time():
+            if details not in prev_contests and details['startTimeSeconds'] > time():
                 url = 'https://atcoder.jp/contests/' + details['id']
                 embed = discord.Embed(title=(':trophy: %s' % details['title'].replace('\n', '').replace('\t', '').replace('◉', '')), description=url)
                 embed.timestamp = datetime.utcnow()
