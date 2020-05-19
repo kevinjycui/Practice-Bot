@@ -155,7 +155,7 @@ async def random(ctx, oj=None, points=None, maximum=None):
         possibilities = []
         if oj.lower() == 'codeforces':
             oj = 'cf'
-        elif oj.lower() == 'atcoder':
+        elif oj.lower() == 'atcoder' or oj.lower() == 'ac':
             oj = 'at'
         elif oj.lower() == 'wcipeg':
             oj = 'peg'
@@ -211,7 +211,7 @@ async def random(ctx, oj=None, points=None, maximum=None):
         embed.add_field(name='Tags', value='||'+', '.join(prob['tags'])+'||', inline=False)
         await ctx.send(ctx.message.author.mention, embed=embed)
 
-    elif oj.lower() == 'atcoder' or oj.lower() == 'at':
+    elif oj.lower() == 'atcoder' or oj.lower() == 'at' or oj.lower() == 'ac':
         if not at_problems:
             await ctx.send(ctx.message.author.mention + ' There seems to be a problem with the AtCoder API. Please try again later :shrug:')
             return
