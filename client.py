@@ -7,17 +7,16 @@ import random as rand
 from time import time
 from datetime import datetime
 import pytz
-import wikipedia
 import urllib
 import secrets
-from smtplib import SMTP_SSL as SMTP
-from email.mime.text import MIMEText
 from dmoj.session import Session, InvalidSessionException
 from dmoj.language import Language
 import utils.dblapi as dblapi
+import utils.wiki as wiki
+import utils.email as email
+import utils.scraper as scraper
 import bs4 as bs
 
-SMTPserver = 'smtp.gmail.com'
 suggesters = []
 suggester_times = []
 
@@ -29,20 +28,6 @@ with open('data/notification_channels.json', 'r', encoding='utf8', errors='ignor
 contest_channels = data['contest_channels']
 wait_time = 0
 accounts = ('dmoj',)
-
-wcipeg_begin = '''Jump to:					<a href="#mw-head">navigation</a>, 					<a href="#p-search">search</a>
-				</div>
-				<div id="mw-content-text" lang="en" dir="ltr" class="mw-content-ltr"><p>'''
-
-wcipeg_end = '''</p>
-<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>'''
-
-head_begin = '''<h1 id="firstHeading" class="firstHeading" lang="en">'''
-head_end = '''</h1>
-						<div id="bodyContent" class="mw-body-content">
-									<div id="siteSub">From PEGWiki</div>
-								<div id="contentSub"></div>
-												<div id="jump-to-nav" class="mw-jump">'''
 
 with open('data/users.json', 'r', encoding='utf8', errors='ignore') as f:
     global_users = json.load(f)
@@ -66,7 +51,7 @@ ratings = {range(3000, 4000): ('Target', discord.Colour(int('ee0000', 16))),
            (None,): ('Unrated', discord.Colour.default()),
            }
 
-def get(api_url):
+def json_get(api_url):
     response = requests.get(api_url)
 
     if response.status_code == 200:
@@ -76,10 +61,6 @@ def get(api_url):
 def post(api_url, data, headers):
     response = requests.post(api_url, json=data, headers=headers)
     return response.json()
-
-def wget(url):
-    response = requests.get(url)
-    return response.text
 
 def updateUsers():
     global global_users
@@ -110,24 +91,9 @@ async def suggest(ctx, *, content):
     if ctx.message.author.id in suggesters and time() - suggester_times[suggesters.index(ctx.message.author.id)] < 3600:
         await ctx.send(ctx.message.author.mention + ' Please wait %d minutes before making another suggestion!' % int((3600 - time() + suggester_times[suggesters.index(ctx.message.author.id)])//60))
         return
-    
-    text_subtype = 'plain'
-
-    subject = 'Suggestion from user %s (id %d)' % (ctx.message.author.display_name, ctx.message.author.id)
-    sender = 'interface.practice.bot@gmail.com'
-    destination = ['dev.practice.bot@gmail.com']
 
     try:
-        msg = MIMEText(content, text_subtype)
-        msg['Subject'] = subject
-        msg['From'] = sender
-        conn = SMTP(SMTPserver)
-        conn.set_debuglevel(False)
-        conn.login(USERNAME, PASSWORD)
-        try:
-            conn.sendmail(sender, destination, msg.as_string())
-        finally:
-            conn.quit()
+        email.send(ctx.message.author, content)
         if ctx.message.author.id in suggesters:
             suggester_times[suggesters.index(ctx.message.author.id)] = time()
         else:
@@ -151,7 +117,7 @@ async def random(ctx, oj=None, points=None, maximum=None):
     temp_dmoj_problems = {}
     if oj in accounts and 'repeat' in global_users[iden] and not global_users[iden]['repeat']:
         if oj == 'dmoj':
-            user_response = get('https://dmoj.ca/api/user/info/%s' % global_users[iden]['dmoj'])
+            user_response = json_get('https://dmoj.ca/api/user/info/%s' % global_users[iden]['dmoj'])
             if user_response is not None:
                 if points is None:
                     for name, prob in list(dmoj_problems.items()):
@@ -292,27 +258,6 @@ async def random(ctx, oj=None, points=None, maximum=None):
 @bot.command()
 async def motivation(ctx):
     await ctx.send(ctx.message.author.mention + ' ' + rand.choice(replies))
-
-def getSummary(name):
-    try:
-        if urllib.request.urlopen('https://en.wikipedia.org/wiki/'+name).getcode() != 404:
-            return wikipedia.page(name), wikipedia.summary(name, sentences=5)
-    except wikipedia.DisambiguationError as e:
-        if len(e.options) > 0:
-            return getSummary(e.options[0].replace(' ', '_'))
-        else:
-            return None, None
-    except:
-        return None, None
-
-def valid(url):
-    try:
-        if urllib.request.urlopen(url).getcode() == 200:
-            return True
-        else:
-            return False
-    except:
-        return False
     
 @bot.command()
 async def whatis(ctx, *, name=None):
@@ -320,28 +265,15 @@ async def whatis(ctx, *, name=None):
     if name is None:
         await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%swhatis <thing>`.' % prefix)
         return
-    if valid('http://wcipeg.com/wiki/%s' % name.replace(' ', '_')):
-        try:
-            url = 'http://wcipeg.com/wiki/%s' % name.replace(' ', '_')
-            wiki_response = wget(url)
-            scan = True
-            title = wiki_response[wiki_response.index(head_begin) + len(head_begin): wiki_response.index(head_end)]
-            summary = ''
-            for index in range(wiki_response.index(wcipeg_begin) + len(wcipeg_begin), wiki_response.index(wcipeg_end)):
-                if wiki_response[index] == '<':
-                    scan = False
-                if scan:
-                    summary += wiki_response[index]
-                if wiki_response[index] == '>':
-                    scan = True
-            embed = discord.Embed(title=title, description=url + ' (searched in %ss)' % str(round(bot.latency, 3)))
-            embed.timestamp = datetime.utcnow()
-            embed.add_field(name='Summary', value=summary, inline=False)
-            await ctx.send(ctx.message.author.mention + ' Here\'s what I found!', embed=embed)
-            return
-        except:
-            pass
-    page, summary = getSummary(name.replace(' ', '_'))
+    peg_res = scraper.wcipegScrape(name)
+    if peg_res is not None:
+        title, summary, url = peg_res
+        embed = discord.Embed(title=title, description=url + ' (searched in %ss)' % str(round(bot.latency, 3)))
+        embed.timestamp = datetime.utcnow()
+        embed.add_field(name='Summary', value=summary, inline=False)
+        await ctx.send(ctx.message.author.mention + ' Here\'s what I found!', embed=embed)
+        return
+    page, summary = wiki.getSummary(name.replace(' ', '_'))
     if summary is None:
         await ctx.send(ctx.message.author.mention + ' Sorry, I couldn\'t find anything on "%s"' % name)
         return
@@ -356,18 +288,7 @@ async def whois(ctx, *, name=None):
     if name is None:
         await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%swhois <name>`.' % prefix)
         return
-    accounts = {}
-    if valid('https://dmoj.ca/api/user/info/%s' % name):
-        accounts['DMOJ'] = 'https://dmoj.ca/user/%s' % name
-    cf_data = get('https://codeforces.com/api/user.info?handles=%s' % name)
-    if cf_data is not None and cf_data['status'] == 'OK':
-        accounts['Codeforces'] = 'https://codeforces.com/profile/%s' % name
-    if valid('https://atcoder.jp/users/%s' % name):
-        accounts['AtCoder'] = 'https://atcoder.jp/users/%s' % name
-    if valid('https://wcipeg.com/user/%s' % name):
-        accounts['WCIPEG'] = 'https://wcipeg.com/user/%s' % name
-    if valid('https://github.com/%s' % name):
-        accounts['GitHub'] = 'https://github.com/%s' % name
+    accounts = scraper.accountScrape(name)
     if len(accounts) == 0:
         await ctx.send(ctx.message.author.mention + ' Sorry, found 0 results for %s' % name)
         return
@@ -382,7 +303,7 @@ async def cat(ctx):
     if rand.randint(0, 100) == 0:
         data = [{'url':'https://media.discordapp.net/attachments/511001840071213067/660303090444140545/539233495000809475.png'}]
     else:
-        data = get('https://api.thecatapi.com/v1/images/search?x-api-key=' + cat_api)
+        data = json_get('https://api.thecatapi.com/v1/images/search?x-api-key=' + cat_api)
     await ctx.send(ctx.message.author.mention + ' :smiley_cat: ' + data[0]['url'])
 
 @bot.command()
@@ -634,7 +555,7 @@ async def update_ranks():
             for member in guild.members:
                 iden = str(member.id)
                 if iden in global_users and 'dmoj' in global_users[iden]:
-                    user_info = get('https://dmoj.ca/api/user/info/%s' % global_users[iden]['dmoj'])
+                    user_info = json_get('https://dmoj.ca/api/user/info/%s' % global_users[iden]['dmoj'])
                     if user_info is not None:
                         current_rating = user_info['contests']['current_rating']
                         for rating, role in list(ratings.items()):
@@ -653,7 +574,7 @@ async def update_ranks_before():
 @tasks.loop(hours=3)
 async def refresh_problems():
     global dmoj_problems, cf_problems, at_problems, peg_problems
-    problems = get('https://dmoj.ca/api/problem/list')
+    problems = json_get('https://dmoj.ca/api/problem/list')
     if problems is not None:
         dmoj_problems = problems
         problems_by_points['dmoj'] = {}
@@ -661,7 +582,7 @@ async def refresh_problems():
             if details['points'] not in problems_by_points['dmoj']:
                 problems_by_points['dmoj'][details['points']] = {}
             problems_by_points['dmoj'][details['points']][name] = details
-    cf_data = get('https://codeforces.com/api/problemset.problems')
+    cf_data = json_get('https://codeforces.com/api/problemset.problems')
     if cf_data is not None:
         try:
             cf_problems = cf_data['result']['problems']
@@ -672,7 +593,7 @@ async def refresh_problems():
                     problems_by_points['cf'][details['points']].append(details)
         except KeyError:
             pass
-    problems = get('https://kenkoooo.com/atcoder/resources/merged-problems.json')
+    problems = json_get('https://kenkoooo.com/atcoder/resources/merged-problems.json')
     if problems is not None:
         at_problems = problems
         for details in problems:
@@ -714,14 +635,14 @@ async def refresh_problems_before():
 
 @tasks.loop(minutes=5)
 async def check_contests():
-    contests = get('https://dmoj.ca/api/contest/list')
+    contests = json_get('https://dmoj.ca/api/contest/list')
     if contests is not None:
         with open('data/dmoj_contests.json', 'r', encoding='utf8', errors='ignore') as f:
             prev_contests = json.load(f)
         for contest in range(max(len(prev_contests), len(contests)-5), len(contests)):
             name, details = list(contests.items())[contest]
             if datetime.strptime(details['start_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z') > datetime.now(pytz.utc):
-                spec = get('https://dmoj.ca/api/contest/info/' + name)
+                spec = json_get('https://dmoj.ca/api/contest/info/' + name)
                 url = 'https://dmoj.ca/contest/' + name
                 embed = discord.Embed(title=(':trophy: %s' % details['name']), description=url)
                 embed.timestamp = datetime.utcnow()
@@ -740,7 +661,7 @@ async def check_contests():
         with open('data/dmoj_contests.json', 'w') as json_file:
             json.dump(contests, json_file)
 
-    contests = get('https://codeforces.com/api/contest.list')
+    contests = json_get('https://codeforces.com/api/contest.list')
     if contests is not None and contests['status'] == 'OK':
         with open('data/cf_contests.json', 'r', encoding='utf8', errors='ignore') as f:
             prev_contests = json.load(f)
@@ -760,7 +681,7 @@ async def check_contests():
         with open('data/cf_contests.json', 'w') as json_file:
             json.dump(contests, json_file)
 
-    contests = get('https://atcoder-api.appspot.com/contests')
+    contests = json_get('https://atcoder-api.appspot.com/contests')
     if contests is not None:
         with open('data/at_contests.json', 'r', encoding='utf8', errors='ignore') as f:
             prev_contests = json.load(f)
