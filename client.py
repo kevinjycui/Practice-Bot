@@ -561,7 +561,7 @@ async def update_ranks():
                 names.append(role.name)
             for role in list(ratings.values()):
                 if role[0] not in names:
-                    await guild.create_role(name=role[0], colour=role[1])
+                    await guild.create_role(name=role[0], colour=role[1], mentionable=False)
             for member in guild.members:
                 iden = str(member.id)
                 if iden in global_users and 'dmoj' in global_users[iden]:
