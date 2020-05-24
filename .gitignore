@@ -13,6 +13,7 @@ backup/
 env/
 
 *.bat
+*.sh
 practicebot.pem
 
 .idea/
