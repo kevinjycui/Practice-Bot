@@ -736,7 +736,7 @@ async def on_ready():
 
 status_change.start()
 refresh_problems.start()
-check_contests.start()
+# check_contests.start()
 update_ranks.start()
 if bot_token != dev_token:
     dblapi.setup(bot, dbl_token)
