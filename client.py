@@ -20,6 +20,8 @@ import bs4 as bs
 suggesters = []
 suggester_times = []
 
+rank_times = {}
+
 statuses = ('implementation', 'dynamic programming', 'graph theory', 'data structures', 'trees', 'geometry', 'strings', 'optimization')
 replies = ('Practice Bot believes that with enough practice, you can complete any goal!', 'Keep practicing! Practice Bot says that every great programmer starts somewhere!', 'Hey now, you\'re an All Star, get your game on, go play (and practice)!',
            'Stuck on a problem? Every logical problem has a solution. You just have to keep practicing!', ':heart:')
@@ -94,6 +96,11 @@ async def manual_set(ctx, site, iden, name):
     global_users[iden][site] = name
     updateUsers()
     await ctx.send('Added %s as %s to %s' % (iden, name, site))
+
+@bot.command()
+@commands.is_owner()
+async def override(ctx, *, cmd):
+    await ctx.send(eval(cmd))
 
 @bot.command()
 async def suggest(ctx, *, content):
@@ -551,35 +558,45 @@ async def status_change():
 async def status_change_before():
     await bot.wait_until_ready()
 
-@tasks.loop(minutes=20)
-async def update_ranks():
-    global global_users
+@bot.command()
+async def updateRank(ctx):
+    global global_users, rank_times
+    checkExistingUser(ctx.message.author)
+    iden = str(ctx.message.author.id)
+    if 'dmoj' not in global_users[iden]:
+        await ctx.send(ctx.message.author.mention + ' It seems that you have not logged in to DMOJ through this bot. Use `%shelp` to see the steps required to login.' % prefix)
+        return
+    lapsed = time() - rank_times.get(iden, 0)
+    if lapsed < 24*60*60:
+        wait = 24*60*60 - lapsed
+        await ctx.send(ctx.message.author.mention + ' Please wait %d hours and %d minutes before requesting to update ranks again.' % (wait//(60*60), wait%(60*60)//60))
+        return
+    user_info = json_get('https://dmoj.ca/api/user/info/%s' % global_users[iden]['dmoj'])
+    current_rating = user_info['contests']['current_rating']
+    for rating, role in list(ratings.items()):
+        if current_rating in rating:
+            rating_name = role[0]
     for guild in bot.guilds:
-        names = []
         try:
+            names = []
             for role in guild.roles:
                 names.append(role.name)
             for role in list(ratings.values()):
                 if role[0] not in names:
                     await guild.create_role(name=role[0], colour=role[1], mentionable=False)
             for member in guild.members:
-                iden = str(member.id)
-                if iden in global_users and 'dmoj' in global_users[iden]:
-                    user_info = json_get('https://dmoj.ca/api/user/info/%s' % global_users[iden]['dmoj'])
-                    if user_info is not None:
-                        current_rating = user_info['contests']['current_rating']
-                        for rating, role in list(ratings.items()):
-                            role = discord.utils.get(guild.roles, name=role[0])
-                            if current_rating in rating and role not in member.roles:
-                                await member.add_roles(role)
-                            elif current_rating not in rating and role in member.roles:
-                                await member.remove_roles(role)
+                if iden == str(member.id):
+                    for rating, role in list(ratings.items()):
+                        role = discord.utils.get(guild.roles, name=role[0])
+                        if current_rating in rating and role not in member.roles:
+                            await member.add_roles(role)
+                        elif current_rating not in rating and role in member.roles:
+                            await member.remove_roles(role)
+                    break
         except:
             pass
-        
-@update_ranks.before_loop
-async def update_ranks_before():
-    await bot.wait_until_ready()
+    rank_times[iden] = time()
+    await ctx.send(ctx.message.author.mention + ' Successfully updated your DMOJ rank to **%s**!' % rating_name)
 
 @tasks.loop(hours=3)
 async def refresh_problems():
@@ -741,7 +758,6 @@ async def on_ready():
 status_change.start()
 refresh_problems.start()
 # check_contests.start()
-# update_ranks.start()
 if bot_token != dev_token:
     dblapi.setup(bot, dbl_token)
 bot.run(bot_token)

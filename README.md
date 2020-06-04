@@ -1,14 +1,14 @@
 # Practice-Bot
 The all-competitive-programming-purpose Discord bot!
 
-Discord to DMOJ/Codeforces/AtCoder/WCIPEG integration. Handles problems, contests, submitting, and ratings. Everything for your competitive programming server needs!
+Discord to DMOJ/Codeforces/AtCoder/WCIPEG integration. Handles problems, accounts, ratings, contests, and submitting. Everything for your competitive programming server needs!
 
 [![Discord Bots](https://top.gg/api/widget/status/691416325557452861.svg)](https://top.gg/bot/691416325557452861)
 
 [🍵 Invite me to your server!](https://discordapp.com/api/oauth2/authorize?client_id=691416325557452861&permissions=268470272&scope=bot)
 
-[☕ Invite me to your server! (without automatic DMOJ-based ranked roles)](https://discordapp.com/api/oauth2/authorize?client_id=691416325557452861&permissions=34816&scope=bot)
-> Note: Do not give Practice Bot the `Manage Roles` permission if you want to keep automatic DMOJ-based ranked roles off
+<!-- [☕ Invite me to your server! (without automatic DMOJ-based ranked roles)](https://discordapp.com/api/oauth2/authorize?client_id=691416325557452861&permissions=34816&scope=bot)
+> Note: Do not give Practice Bot the `Manage Roles` permission if you want to keep automatic DMOJ-based ranked roles off -->
 
 ---
 

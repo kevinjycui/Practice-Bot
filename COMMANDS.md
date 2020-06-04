@@ -12,12 +12,13 @@
  - `$random <online judge> <points>` Gets a random problem from a specific online judge (DMOJ, Codeforces, AtCoder, or WCIPEG) with a specific number of points
  - `$random <online judge> <minimum> <maximum>` Gets a random problem from a specific online judge (DMOJ, Codeforces, AtCoder, or WCIPEG) within a specific point range
  - `$toggleRepeat` Toggles whether or not you want problems that you have already solved when performing a `$random` command (requires at least 1 linked account)
+ - `$updateRank` Gives you a role corresponding to your DMOJ rank across all servers (requires login)
  - `$profile <user>` See a user's linked accounts
  - `$profile` See your linked accounts
  - `$whois <name>` Searches for a user on 4 online judges (DMOJ, Codeforces, AtCoder, WCIPEG) and GitHub
- - `$notify` Lists contest notification channels in a server (requires admin)
+ <!-- - `$notify` Lists contest notification channels in a server (requires admin)
  - `$notify <channel>` Sets a channel as a contest notification channel (requires admin)
- - `$unnotify <channel>` Sets a channel to be no longer a contest notification channel (requires admin)
+ - `$unnotify <channel>` Sets a channel to be no longer a contest notification channel (requires admin) -->
  ### Programming
  - `$run <language> <stdin> <script>` Runs a script in one of 72 languages! (200 calls allowed daily for everyone)
  - `$whatis <query>` Searches for something on WCIPEG Wiki or Wikipedia
