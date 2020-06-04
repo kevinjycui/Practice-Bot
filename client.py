@@ -661,7 +661,7 @@ async def refresh_problems_before():
     await bot.wait_until_ready()
 
 @tasks.loop(minutes=5)
-async def check_contests():
+async def refresh_contests():
     contests = json_get('https://dmoj.ca/api/contest/list')
     if contests is not None:
         with open('data/dmoj_contests.json', 'r+', encoding='utf8', errors='ignore') as f:
@@ -757,7 +757,7 @@ async def on_ready():
 
 status_change.start()
 refresh_problems.start()
-# check_contests.start()
+refresh_contests.start()
 if bot_token != dev_token:
     dblapi.setup(bot, dbl_token)
 bot.run(bot_token)
