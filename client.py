@@ -723,7 +723,11 @@ async def help(ctx):
 
 @bot.event
 async def on_command_error(ctx, error):
-    if isinstance(error, commands.CommandNotFound) or isinstance(error, commands.errors.MissingRequiredArgument):
+    if any(
+        isinstance(error, CommonError) for CommonError in (
+            commands.CommandNotFound, 
+            commands.errors.MissingRequiredArgument)
+    ):
         return
     raise error
 
@@ -734,16 +738,10 @@ async def on_ready():
     print(bot.user.id)
     print('------')
 
-try:
-    status_change.start()
-    refresh_problems.start()
-    check_contests.start()
-    update_ranks.start()
-    if bot_token != dev_token:
-        dblapi.setup(bot, dbl_token)
-    bot.run(bot_token)
-except KeyboardInterrupt:
-    status_change.close()
-    refresh_problems.close()
-    check_contests.close()
-    update_ranks.close()
+status_change.start()
+refresh_problems.start()
+# check_contests.start()
+# update_ranks.start()
+if bot_token != dev_token:
+    dblapi.setup(bot, dbl_token)
+bot.run(bot_token)
