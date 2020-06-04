@@ -757,7 +757,7 @@ async def on_ready():
 
 status_change.start()
 refresh_problems.start()
-refresh_contests.start()
+# refresh_contests.start()
 if bot_token != dev_token:
     dblapi.setup(bot, dbl_token)
 bot.run(bot_token)
