@@ -728,7 +728,7 @@ async def refresh_contests():
         with open('data/at_contests.json', 'w+') as json_file:
             json.dump(contests, json_file)
             
-@check_contests.before_loop
+@refresh_contests.before_loop
 async def check_contests_before():
     await bot.wait_until_ready()
 
