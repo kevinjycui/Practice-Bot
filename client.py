@@ -41,6 +41,9 @@ peg_problems = {}
 
 problems_by_points = {'dmoj':{}, 'cf':{}, 'at':{}, 'peg':{}}
 
+all_contests = []
+fetch_time = 0
+
 sessions = {}
 
 ratings = {range(3000, 4000): ('Target', discord.Colour(int('ee0000', 16))),
@@ -493,6 +496,16 @@ async def submit(ctx, problem=None, lang=None, *, source=None):
         await ctx.send(ctx.message.author.mention + ' Failed to connect, or problem not available.')
 
 @bot.command()
+async def contests(ctx, number=1):
+    rand.shuffle(all_contests)
+    if len(all_contests) == 0:
+        await ctx.send(ctx.message.author.mention + ' Sorry, there are not upcoming contests currently available.')
+        return
+    await ctx.send(ctx.message.author.mention + ' Sending %d random upcoming contest(s). Last fetched, %d minutes ago' % (min(number, len(all_contests)), (time()-fetch_time)//60))
+    for i in range(min(number, len(all_contests))):
+        await ctx.send(embed=all_contests[i])
+
+@bot.command()
 @commands.has_permissions(administrator=True)
 @commands.guild_only()
 async def notify(ctx, channel=None):
@@ -662,13 +675,13 @@ async def refresh_problems_before():
 
 @tasks.loop(minutes=5)
 async def refresh_contests():
+    global all_contests, fetch_time
+    all_contests = []
     contests = json_get('https://dmoj.ca/api/contest/list')
     if contests is not None:
-        with open('data/dmoj_contests.json', 'r+', encoding='utf8', errors='ignore') as f:
-            prev_contests = json.load(f)
-        for contest in range(max(len(prev_contests), len(contests)-5), len(contests)):
+        for contest in range(len(contests)):
             name, details = list(contests.items())[contest]
-            if name not in prev_contests.keys() and datetime.strptime(details['start_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z') > datetime.now(pytz.utc):
+            if datetime.strptime(details['start_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z') > datetime.now(pytz.utc):
                 spec = json_get('https://dmoj.ca/api/contest/info/' + name)
                 url = 'https://dmoj.ca/contest/' + name
                 embed = discord.Embed(title=(':trophy: %s' % details['name']), description=url)
@@ -682,19 +695,13 @@ async def refresh_contests():
                     embed.add_field(name='Labels', value=', '.join(details['labels']), inline=False)
                 embed.add_field(name='Rated', value='Yes' if spec['is_rated'] else 'No', inline=False)
                 embed.add_field(name='Format', value=spec['format']['name'], inline=False)
-                for channel_id in contest_channels:
-                    ctx = bot.get_channel(channel_id)
-                    await ctx.send(embed=embed)
-        with open('data/dmoj_contests.json', 'w+') as json_file:
-            json.dump(contests, json_file)
+                all_contests.append(embed)
 
     contests = json_get('https://codeforces.com/api/contest.list')
     if contests is not None and contests['status'] == 'OK':
-        with open('data/cf_contests.json', 'r+', encoding='utf8', errors='ignore') as f:
-            prev_contests = json.load(f)
-        for contest in range(min(5, len(contests.get('result', []))-len(prev_contests['result']))):
+        for contest in range(len(contests.get('result', []))):
             details = contests['result'][contest]
-            if details['phase'] != 'FINISHED' and details not in prev_contests['result']:
+            if details['phase'] == 'BEFORE':
                 url = 'https://codeforces.com/contest/' + str(details['id'])
                 embed = discord.Embed(title=(':trophy: %s' % details['name']), description=url)
                 embed.timestamp = datetime.utcnow()
@@ -702,19 +709,13 @@ async def refresh_contests():
                 embed.add_field(name='Type', value=details['type'], inline=False)
                 embed.add_field(name='Start Time', value=datetime.utcfromtimestamp(details['startTimeSeconds']).strftime('%Y-%m-%d %H:%M:%S'), inline=False)
                 embed.add_field(name='Time Limit', value='%s:%s:%s' % (str(details['durationSeconds']//(24*3600)).zfill(2), str(details['durationSeconds']%(24*3600)//3600).zfill(2), str(details['durationSeconds']%3600//60).zfill(2)), inline=False)
-                for channel_id in contest_channels:
-                    ctx = bot.get_channel(channel_id)
-                    await ctx.send(embed=embed)
-        with open('data/cf_contests.json', 'w+') as json_file:
-            json.dump(contests, json_file)
+                all_contests.append(embed)
 
     contests = json_get('https://atcoder-api.appspot.com/contests')
     if contests is not None:
-        with open('data/at_contests.json', 'r+', encoding='utf8', errors='ignore') as f:
-            prev_contests = json.load(f)
-        for contest in range(max(len(prev_contests), len(contests)-5), len(contests)):
+        for contest in range(len(contests)):
             details = contests[contest]
-            if details not in prev_contests and details['startTimeSeconds'] > time():
+            if details['startTimeSeconds'] > time():
                 url = 'https://atcoder.jp/contests/' + details['id']
                 embed = discord.Embed(title=(':trophy: %s' % details['title'].replace('\n', '').replace('\t', '').replace('◉', '')), description=url)
                 embed.timestamp = datetime.utcnow()
@@ -722,11 +723,8 @@ async def refresh_contests():
                 embed.add_field(name='Start Time', value=datetime.utcfromtimestamp(details['startTimeSeconds']).strftime('%Y-%m-%d %H:%M:%S'), inline=False)
                 embed.add_field(name='Time Limit', value='%s:%s:%s' % (str(details['durationSeconds']//(24*3600)).zfill(2), str(details['durationSeconds']%(24*3600)//3600).zfill(2), str(details['durationSeconds']%3600//60).zfill(2)), inline=False)
                 embed.add_field(name='Rated Range', value=details['ratedRange'], inline=False)
-                for channel_id in contest_channels:
-                    ctx = bot.get_channel(channel_id)
-                    await ctx.send(embed=embed)
-        with open('data/at_contests.json', 'w+') as json_file:
-            json.dump(contests, json_file)
+                all_contests.append(embed)
+    fetch_time = time()
             
 @refresh_contests.before_loop
 async def check_contests_before():
@@ -757,7 +755,7 @@ async def on_ready():
 
 status_change.start()
 refresh_problems.start()
-# refresh_contests.start()
+refresh_contests.start()
 if bot_token != dev_token:
     dblapi.setup(bot, dbl_token)
 bot.run(bot_token)
