@@ -734,10 +734,16 @@ async def on_ready():
     print(bot.user.id)
     print('------')
 
-status_change.start()
-refresh_problems.start()
-# check_contests.start()
-update_ranks.start()
-if bot_token != dev_token:
-    dblapi.setup(bot, dbl_token)
-bot.run(bot_token)
+try:
+    status_change.start()
+    refresh_problems.start()
+    check_contests.start()
+    update_ranks.start()
+    if bot_token != dev_token:
+        dblapi.setup(bot, dbl_token)
+    bot.run(bot_token)
+except KeyboardInterrupt:
+    status_change.close()
+    refresh_problems.close()
+    check_contests.close()
+    update_ranks.close()
