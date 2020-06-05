@@ -89,21 +89,6 @@ bot = commands.Bot(command_prefix=prefix,
 @bot.command()
 async def ping(ctx):
     await ctx.send('Pong! (ponged in %ss)' % str(round(bot.latency, 3)))
-    
-@bot.command()
-@commands.is_owner()
-async def manual_set(ctx, site, iden, name):
-    global global_users
-    if iden not in global_users:
-        global_users[iden] = {}
-    global_users[iden][site] = name
-    updateUsers()
-    await ctx.send('Added %s as %s to %s' % (iden, name, site))
-
-@bot.command()
-@commands.is_owner()
-async def override(ctx, *, cmd):
-    await ctx.send(eval(cmd))
 
 @bot.command()
 async def suggest(ctx, *, content):
@@ -509,6 +494,8 @@ async def contests(ctx, number=1):
 @commands.has_permissions(administrator=True)
 @commands.guild_only()
 async def notify(ctx, channel=None):
+    await ctx.send(ctx.message.author.mention + ' Contest notification channels have been discontinued due to problems with spam. To see upcoming contests, use the command `%scontests <number of contests>`.' % prefix)
+    return
     global contest_channels
     if channel is None:
         clist = 'Contest notification channels in this server:\n'
@@ -542,6 +529,8 @@ async def notify_error(error, ctx):
 @commands.has_permissions(administrator=True)
 @commands.guild_only()
 async def unnotify(ctx, channel=None):
+    await ctx.send(ctx.message.author.mention + ' Contest notification channels have been discontinued due to problems with spam. To see upcoming contests, use the command `%scontests <number of contests>`.' % prefix)
+    return
     global contest_channels
     if channel is None:
         await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%sunnotify <channel>`.' % prefix)
