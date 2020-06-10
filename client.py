@@ -237,6 +237,7 @@ async def random(ctx, oj=None, points=None, maximum=None):
         await ctx.send(ctx.message.author.mention, embed=embed)
 
     elif oj.lower() == 'wcipeg' or oj.lower() == 'peg':
+        await ctx.send(ctx.message.author.mention + ' Notice: Starting from July 31, 2020 support for WCIPEG may be discontinued as **PEG Judge will shut down at the end of July**\nhttps://wcipeg.com/announcement/9383')
         if not peg_problems:
             await ctx.send(ctx.message.author.mention + ' There seems to be a problem with WCIPEG. Please try again later :shrug:')
             return
