@@ -4,6 +4,9 @@
  - `$suggest <suggestion>` Sends me a suggestion
  - `$ping` Checks my ping to the Discord server
 ### Online Judge (DMOJ, Codeforces, AtCoder, WCIPEG integration)
+
+Notice: Starting from July 31, 2020 support for WCIPEG may be discontinued as [PEG Judge will shut down at the end of July](https://wcipeg.com/announcement/9383)
+
  - `$login dmoj <token>` FOR DIRECT MESSAGING ONLY, logs you in using your DMOJ API token for problem submission
  - `$submit <problem-code> <language> <script>` Submits to a problem on DMOJ (requires login)
  - `$submit ^ <language> <script>` Submits to the last DMOJ problem you got using the `$random` command (requires login)
