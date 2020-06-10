@@ -731,7 +731,9 @@ async def on_command_error(ctx, error):
     if any(
         isinstance(error, CommonError) for CommonError in (
             commands.CommandNotFound, 
-            commands.errors.MissingRequiredArgument)
+            commands.errors.MissingRequiredArgument,
+            commands.errors.NoPrivateMessage
+        )
     ):
         return
     raise error
