@@ -25,9 +25,7 @@ rank_times = {}
 statuses = ('implementation', 'dynamic programming', 'graph theory', 'data structures', 'trees', 'geometry', 'strings', 'optimization')
 replies = ('Practice Bot believes that with enough practice, you can complete any goal!', 'Keep practicing! Practice Bot says that every great programmer starts somewhere!', 'Hey now, you\'re an All Star, get your game on, go play (and practice)!',
            'Stuck on a problem? Every logical problem has a solution. You just have to keep practicing!', ':heart:')
-with open('data/notification_channels.json', 'r', encoding='utf8', errors='ignore') as f:
-    data = json.load(f)
-contest_channels = data['contest_channels']
+
 wait_time = 0
 accounts = ('dmoj',)
 
@@ -497,62 +495,13 @@ async def contests(ctx, number=1):
 async def notify(ctx, channel=None):
     await ctx.send(ctx.message.author.mention + ' Contest notification channels have been discontinued due to problems with spam. To see upcoming contests, use the command `%scontests <number of contests>`.' % prefix)
     return
-    global contest_channels
-    if channel is None:
-        clist = 'Contest notification channels in this server:\n'
-        for text_channel in ctx.message.guild.text_channels:
-            if text_channel.id in contest_channels:
-                clist += text_channel.mention + '\n'
-        await ctx.send(clist)
-        return
-    if not channel[2:-1].isdigit():
-        await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%snotify <channel>`.' % prefix)
-        return
-    iden = int(channel[2:-1])
-    if iden in contest_channels:
-        await ctx.send(ctx.message.author.mention + ' That channel is already a contest notification channel.')
-        return
-    for chan in ctx.guild.text_channels:
-        if chan.id == iden:
-            contest_channels.append(iden)
-            with open('data/notification_channels.json', 'w') as json_file:
-                json.dump({'contest_channels':contest_channels}, json_file)
-            await ctx.send(chan.mention + ' set to a contest notification channel.')
-            return
-    await ctx.send(ctx.message.author.mention + ' It seems like that channel does not exist.')
-
-@notify.error
-async def notify_error(error, ctx):
-    if isinstance(error, commands.CheckFailure):
-        await ctx.send(ctx.message.author.mention +' Sorry, you don\'t have permissions to set a contest notification channel.')
 
 @bot.command()
 @commands.has_permissions(administrator=True)
 @commands.guild_only()
 async def unnotify(ctx, channel=None):
     await ctx.send(ctx.message.author.mention + ' Contest notification channels have been discontinued due to problems with spam. To see upcoming contests, use the command `%scontests <number of contests>`.' % prefix)
-    return
-    global contest_channels
-    if channel is None:
-        await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%sunnotify <channel>`.' % prefix)
-        return
-    iden = int(channel[2:-1])
-    if iden in contest_channels:
-        for chan in ctx.guild.text_channels:
-            if chan.id == iden:
-                contest_channels.remove(iden)
-                with open('data/notification_channels.json', 'w') as json_file:
-                    json.dump({'contest_channels':contest_channels}, json_file)
-                await ctx.send(chan.mention + ' is no longer a contest notification channel.')
-                return
-    else:
-        await ctx.send('That channel either does not exist or is not a contest notification channel.')
-       
-@unnotify.error
-async def unnotify_error(error, ctx):
-    if isinstance(error, commands.CheckFailure):
-        await ctx.send(ctx.message.author.mention +' Sorry, you don\'t have permissions to remove a contest notification channel.')
-        
+
 @tasks.loop(minutes=30)
 async def status_change():
     await bot.change_presence(activity=discord.Game(name='with %s' % rand.choice(statuses)))
