@@ -20,6 +20,14 @@ Discord to DMOJ/Codeforces/AtCoder/WCIPEG integration. Handles problems, account
 
 ## Commands
 [Full list of commands here](COMMANDS.md)
+
+## Online Judges
+| | Random Problems | Random Contests | Rating Roles | Account Link | Submission |
+|---|---|---|---|---|---|
+| DMOJ | ✔ | ✔ | ✔ | ✔ | ✔ |
+| Codeforces | ✔ | ✔ | ❌ | ❌ | ❌ |
+| AtCoder | ✔ | ✔ | ❌ | ❌ | ❌ |
+| WCIPEG | ✔ | ❌ | ❌ | ❌ | ❌ |
   
 ## Tools
  - discord.py
@@ -28,13 +36,6 @@ Discord to DMOJ/Codeforces/AtCoder/WCIPEG integration. Handles problems, account
  - [nomikura/atcoder-api](https://github.com/nomikura/atcoder-api)
  - [kenkoooo/AtCoderProblems](https://github.com/kenkoooo/AtCoderProb✔ems)
  - [WCIPEG](https://wcipeg.com/main)
- 
-  | | Random Problems | Random Contests | Rating Roles | Account Link | Submission |
-  |---|---|---|---|---|---|
-  | DMOJ | ✔ | ✔ | ✔ | ✔ | ✔ |
-  | Codeforces | ✔ | ✔ | ❌ | ❌ | ❌ |
-  | AtCoder | ✔ | ✔ | ❌ | ❌ | ❌ |
-  | WCIPEG | ✔ | ❌ | ❌ | ❌ | ❌ |
 
  ![](screenshots/dmoj_logo.png) 
  
