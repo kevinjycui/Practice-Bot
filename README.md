@@ -26,8 +26,15 @@ Discord to DMOJ/Codeforces/AtCoder/WCIPEG integration. Handles problems, account
  - [DMOJ API](https://dmoj.ca/api/)
  - [Codeforces API](https://codeforces.com/apiHelp)
  - [nomikura/atcoder-api](https://github.com/nomikura/atcoder-api)
- - [kenkoooo/AtCoderProblems](https://github.com/kenkoooo/AtCoderProblems)
+ - [kenkoooo/AtCoderProblems](https://github.com/kenkoooo/AtCoderProb✔ems)
  - [WCIPEG](https://wcipeg.com/main)
+ 
+  | | Random Problems | Random Contests | Rating Roles | Account Link | Submission |
+  |---|---|---|---|---|---|
+  | DMOJ | ✔ | ✔ | ✔ | ✔ | ✔ |
+  | Codeforces | ✔ | ✔ | ❌ | ❌ | ❌ |
+  | AtCoder | ✔ | ✔ | ❌ | ❌ | ❌ |
+  | WCIPEG | ✔ | ❌ | ❌ | ❌ | ❌ |
 
  ![](screenshots/dmoj_logo.png) 
  
