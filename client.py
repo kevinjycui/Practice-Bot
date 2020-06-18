@@ -504,7 +504,7 @@ async def unnotify(ctx, channel=None):
 
 @tasks.loop(minutes=30)
 async def status_change():
-    await bot.change_presence(activity=discord.Game(name='with %s' % rand.choice(statuses)))
+    await bot.change_presence(activity=discord.Game(name='with %s | %shelp' % (rand.choice(statuses), prefix)))
 
 @status_change.before_loop
 async def status_change_before():
