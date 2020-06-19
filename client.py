@@ -15,8 +15,8 @@ import utils.dblapi as dblapi
 import utils.wiki as wiki
 import utils.email as email
 import utils.scraper as scraper
-from utils.random_problem import RandomProblem, accounts, NoSuchOJException, InvalidParametersException, OnlineJudgeHTTPException, InvalidQueryException
-from utils.random_contests import RandomContests, Contest, NoContestsAvailableException
+from utils.problem_streamer import RandomProblem, accounts, NoSuchOJException, InvalidParametersException, OnlineJudgeHTTPException, InvalidQueryException
+from utils.contest_streamer import RandomContests, Contest, NoContestsAvailableException
 import bs4 as bs
 
 
