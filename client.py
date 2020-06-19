@@ -16,6 +16,7 @@ import utils.wiki as wiki
 import utils.email as email
 import utils.scraper as scraper
 from utils.random_problem import RandomProblem, accounts, NoSuchOJException, InvalidParametersException, OnlineJudgeHTTPException, InvalidQueryException
+from utils.random_contests import RandomContests, Contest, NoContestsAvailableException
 import bs4 as bs
 
 
@@ -34,24 +35,50 @@ with open('data/daily.json', 'r', encoding='utf8', errors='ignore') as f:
     daily_problems = json.load(f)
 
 problemUser = RandomProblem()
+contestUser = RandomContests()
+
+with open('data/contests.json', 'r', encoding='utf8', errors='ignore') as f:
+    prev_contest_data = json.load(f)
+    contest_cache = []
+    for data in prev_contest_data:
+        contest_cache.append(Contest(data))
 
 with open('data/users.json', 'r', encoding='utf8', errors='ignore') as f:
     problemUser.global_users = json.load(f)
 
-all_contests = []
-fetch_time = 0
+with open('data/subscriptions.json', 'r', encoding='utf8', errors='ignore') as f:
+    subscribed_channels = list(map(int, json.load(f)))
+
+def update_contest_cache():
+    global contest_cache
+    with open('data/contests.json', 'w') as json_file:
+        prev_contest_data = []
+        for contest in contest_cache:
+            prev_contest_data.append(contest.asdict())
+        json.dump(prev_contest_data, json_file)
+
+def update_users():
+    global problemUser
+    with open('data/users.json', 'w') as json_file:
+        json.dump(problemUser.global_users, json_file)
+
+def update_subscribed_channels():
+    global subscribed_channels
+    with open('data/subscriptions.json', 'w') as json_file:
+        json.dump(subscribed_channels, json_file)
 
 sessions = {}
 
-ratings = {range(3000, 4000): ('Target', discord.Colour(int('ee0000', 16))),
-           range(2200, 2999): ('Grandmaster', discord.Colour(int('ee0000', 16))),
-           range(1800, 2199): ('Master', discord.Colour(int('ffb100', 16))),
-           range(1500, 1799): ('Candidate Master', discord.Colour(int('993399', 16))),
-           range(1200, 1499): ('Expert', discord.Colour(int('5597ff', 16))),
-           range(1000, 1199): ('Amateur', discord.Colour(int('4bff4b', 16))),
-           range(0, 999): ('Newbie', discord.Colour(int('999999', 16))),
-           (None,): ('Unrated', discord.Colour.default()),
-           }
+ratings = {
+    range(3000, 4000): ('Target', discord.Colour(int('ee0000', 16))),
+    range(2200, 2999): ('Grandmaster', discord.Colour(int('ee0000', 16))),
+    range(1800, 2199): ('Master', discord.Colour(int('ffb100', 16))),
+    range(1500, 1799): ('Candidate Master', discord.Colour(int('993399', 16))),
+    range(1200, 1499): ('Expert', discord.Colour(int('5597ff', 16))),
+    range(1000, 1199): ('Amateur', discord.Colour(int('4bff4b', 16))),
+    range(0, 999): ('Newbie', discord.Colour(int('999999', 16))),
+    (None,): ('Unrated', discord.Colour.default()),
+}
 
 def json_get(api_url):
     response = requests.get(api_url)
@@ -64,18 +91,13 @@ def post(api_url, data, headers):
     response = requests.post(api_url, json=data, headers=headers)
     return response.json()
 
-def updateUsers():
-    global problemUser
-    with open('data/users.json', 'w') as json_file:
-        json.dump(problemUser.global_users, json_file)
-
 def checkExistingUser(user):
     global problemUser
     if str(user.id) not in problemUser.global_users:
         problemUser.global_users[str(user.id)] = {}
     else:
         return True
-    updateUsers()
+    update_users()
     return False    
 
 prefix = '$'
@@ -205,7 +227,7 @@ async def tea(ctx, user=None):
         if member.id == iden:
             checkExistingUser(member)
             problemUser.global_users[str(iden)]['tea'] = problemUser.global_users[str(iden)].get('tea', 0) + 1
-            updateUsers()
+            update_users()
             await ctx.send(ctx.message.author.mention + ' sent a cup of :tea: to ' + member.mention)
             return
     await ctx.send(ctx.message.author.mention + ' It seems like that user does not exist.')
@@ -218,35 +240,24 @@ async def toggleRepeat(ctx):
     for account in accounts:
         if account in problemUser.global_users[iden]:
             problemUser.global_users[iden]['repeat'] = not problemUser.global_users[iden].get('repeat', True)
-            updateUsers()
+            update_users()
             await ctx.send(ctx.message.author.mention + ' Repeat setting for command `%srandom` set to %s.' % (prefix, ('ON' if problemUser.global_users[iden]['repeat'] else 'OFF')))
             return
     await ctx.send(ctx.message.author.mention + ' You are not linked to any accounts')
 
 @bot.command()
 @commands.guild_only()
-async def profile(ctx, user=None):
+async def profile(ctx, user: discord.User=None):
     global problemUser
     if user is None:
-        iden = str(ctx.message.author.id)
-    elif user[3:-1].isdigit():
-        iden = user[3:-1]
-    else:
-        await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%sprofile <user>`.' % prefix)
-        return
-    
-    for member in ctx.guild.members:
-        if member.id == int(iden):
-            checkExistingUser(member)
-            embed = discord.Embed(title=member.display_name, description=member.mention)
-            embed.timestamp = datetime.utcnow()
-            embed.add_field(name='Discord ID', value=member.id, inline=False)
-            embed.add_field(name='Joined on', value=member.joined_at.strftime('%B %d, %Y'), inline=False)
-            if 'dmoj' in problemUser.global_users[iden]:
-                embed.add_field(name='DMOJ', value='https://dmoj.ca/user/%s' % problemUser.global_users[iden]['dmoj'], inline=False)
-            await ctx.send(ctx.message.author.mention, embed=embed)
-            return
-    await ctx.send(ctx.message.author.mention + ' It seems like that user does not exist.')
+        user = ctx.message.author
+    checkExistingUser(user)
+    embed = discord.Embed(title=user.display_name, description=user.mention)
+    embed.timestamp = datetime.utcnow()
+    embed.add_field(name='Discord ID', value=user.id, inline=False)
+    if 'dmoj' in problemUser.global_users[str(user.id)]:
+        embed.add_field(name='DMOJ', value='https://dmoj.ca/user/%s' % problemUser.global_users[str(user.id)].get('dmoj', 'This user has no connected DMOJ account'), inline=False)
+    await ctx.send(ctx.message.author.mention, embed=embed)
 
 @bot.command()
 async def run(ctx, lang=None, stdin=None, *, script=None):
@@ -308,7 +319,7 @@ async def login(ctx, site=None, token=None):
             try:
                 sessions[ctx.message.author.id] = Session(token)
                 problemUser.global_users[iden]['dmoj'] = str(sessions[ctx.message.author.id])
-                updateUsers()
+                update_users()
                 await ctx.send('Successfully logged in with submission permissions as %s! (Note that for security reasons, you will be automatically logged out after the cache resets. You may delete the message containing your token now)' % sessions[ctx.message.author.id])
             except InvalidSessionException:
                 await ctx.send('Token invalid, failed to log in (your DMOJ API token can be found by going to https://dmoj.ca/edit/profile/ and selecting the __Regenerate__ option next to API Token). Note: The login command will ONLY WORK IN DIRECT MESSAGE. Please do not share this token with anyone else.')
@@ -347,27 +358,56 @@ async def submit(ctx, problem=None, lang=None, *, source=None):
         await ctx.send(ctx.message.author.mention + ' Failed to connect, or problem not available.')
 
 @bot.command()
-async def contests(ctx, number=1):
-    rand.shuffle(all_contests)
-    if len(all_contests) == 0:
+async def contests(ctx, numstr='1'):
+    global contestUser
+    if numstr == 'all':
+        number = len(contestUser.all_contest_embeds)
+    else:
+        number = int(numstr)
+    try:
+        contestList = contestUser.get_random_contests(number)
+        await ctx.send(ctx.message.author.mention + ' Sending %d random upcoming contest(s). Last fetched, %d minutes ago' % (len(contestList), (time()-contestUser.fetch_time)//60))
+        for contest in contestList:
+            await ctx.send(embed=contest)
+    except NoContestsAvailableException:
         await ctx.send(ctx.message.author.mention + ' Sorry, there are not upcoming contests currently available.')
+
+@bot.command()
+@commands.has_permissions(manage_channels=True)
+@commands.guild_only()
+async def sub(ctx, channel: discord.TextChannel):
+    global subscribed_channels
+    if channel.id in subscribed_channels:
+        await ctx.send(ctx.message.author.mention + ' That channel is already subscribed to contest notifications.')
         return
-    await ctx.send(ctx.message.author.mention + ' Sending %d random upcoming contest(s). Last fetched, %d minutes ago' % (min(number, len(all_contests)), (time()-fetch_time)//60))
-    for i in range(min(number, len(all_contests))):
-        await ctx.send(embed=all_contests[i])
+    subscribed_channels.append(channel.id)
+    update_subscribed_channels()
+    await ctx.send(channel.mention + ' subscribed to contest notifications.')
 
 @bot.command()
-@commands.has_permissions(administrator=True)
 @commands.guild_only()
-async def notify(ctx, channel=None):
-    await ctx.send(ctx.message.author.mention + ' Contest notification channels have been discontinued due to problems with spam. To see upcoming contests, use the command `%scontests <number of contests>`.' % prefix)
-    return
+async def subd(ctx):
+    global subscribed_channels
+    clist = ctx.message.author.mention + ' Contest notification channels in this server:\n'
+    for text_channel in ctx.message.guild.text_channels:
+        if text_channel.id in subscribed_channels:
+            clist += text_channel.mention + '\n'
+    if clist == ctx.message.author.mention + ' Contest notification channels in this server:\n':
+        await ctx.send(ctx.message.author.mention + ' There are no channels subscribed to contest notifications in this server :slight_frown:')
+    else:
+        await ctx.send(clist)
 
 @bot.command()
-@commands.has_permissions(administrator=True)
+@commands.has_permissions(manage_channels=True)
 @commands.guild_only()
-async def unnotify(ctx, channel=None):
-    await ctx.send(ctx.message.author.mention + ' Contest notification channels have been discontinued due to problems with spam. To see upcoming contests, use the command `%scontests <number of contests>`.' % prefix)
+async def unsub(ctx, channel: discord.TextChannel):
+    global subscribed_channels
+    if int(channel.id) not in subscribed_channels:
+        await ctx.send(ctx.message.author.mention + ' That channel is already not subscribed to contest notifications.')
+        return
+    subscribed_channels.remove(channel.id)
+    update_subscribed_channels()
+    await ctx.send(channel.mention + ' is no longer a contest notification channel.')
 
 @tasks.loop(minutes=30)
 async def status_change():
@@ -455,57 +495,42 @@ async def refresh_peg_problems_before():
 
 @tasks.loop(minutes=5)
 async def refresh_contests():
-    global all_contests, fetch_time
-    all_contests = []
-    contests = json_get('https://dmoj.ca/api/contest/list')
-    if contests is not None:
-        for contest in range(len(contests)):
-            name, details = list(contests.items())[contest]
-            if datetime.strptime(details['start_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z') > datetime.now(pytz.utc):
-                spec = json_get('https://dmoj.ca/api/contest/info/' + name)
-                url = 'https://dmoj.ca/contest/' + name
-                embed = discord.Embed(title=(':trophy: %s' % details['name']), description=url)
-                embed.timestamp = datetime.utcnow()
-                embed.set_thumbnail(url='https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/dmoj-thumbnail.png')
-                embed.add_field(name='Start Time', value=datetime.strptime(details['start_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z').strftime('%B %d, %Y %H:%M:%S%z'), inline=False)
-                embed.add_field(name='End Time', value=datetime.strptime(details['end_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z').strftime('%B %d, %Y %H:%M:%S%z'), inline=False)
-                if details['time_limit']:
-                    embed.add_field(name='Time Limit', value=details['time_limit'], inline=False)
-                if len(details['labels']) > 0:
-                    embed.add_field(name='Labels', value=', '.join(details['labels']), inline=False)
-                embed.add_field(name='Rated', value='Yes' if spec['is_rated'] else 'No', inline=False)
-                embed.add_field(name='Format', value=spec['format']['name'], inline=False)
-                all_contests.append(embed)
+    global contestUser, contest_cache
 
-    contests = json_get('https://codeforces.com/api/contest.list')
-    if contests is not None and contests['status'] == 'OK':
-        for contest in range(len(contests.get('result', []))):
-            details = contests['result'][contest]
-            if details['phase'] == 'BEFORE':
-                url = 'https://codeforces.com/contest/' + str(details['id'])
-                embed = discord.Embed(title=(':trophy: %s' % details['name']), description=url)
-                embed.timestamp = datetime.utcnow()
-                embed.set_thumbnail(url='https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/cf-thumbnail.png')
-                embed.add_field(name='Type', value=details['type'], inline=False)
-                embed.add_field(name='Start Time', value=datetime.utcfromtimestamp(details['startTimeSeconds']).strftime('%Y-%m-%d %H:%M:%S'), inline=False)
-                embed.add_field(name='Time Limit', value='%s:%s:%s' % (str(details['durationSeconds']//(24*3600)).zfill(2), str(details['durationSeconds']%(24*3600)//3600).zfill(2), str(details['durationSeconds']%3600//60).zfill(2)), inline=False)
-                all_contests.append(embed)
+    try:
+        contestUser.reset_contest('dmoj')
+        contestUser.parse_dmoj_contests(json_get('https://dmoj.ca/api/contest/list'))
+    except:
+        pass
 
-    contests = json_get('https://atcoder-api.appspot.com/contests')
-    if contests is not None:
-        for contest in range(len(contests)):
-            details = contests[contest]
-            if details['startTimeSeconds'] > time():
-                url = 'https://atcoder.jp/contests/' + details['id']
-                embed = discord.Embed(title=(':trophy: %s' % details['title'].replace('\n', '').replace('\t', '').replace('◉', '')), description=url)
-                embed.timestamp = datetime.utcnow()
-                embed.set_thumbnail(url='https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/at-thumbnail.png')
-                embed.add_field(name='Start Time', value=datetime.utcfromtimestamp(details['startTimeSeconds']).strftime('%Y-%m-%d %H:%M:%S'), inline=False)
-                embed.add_field(name='Time Limit', value='%s:%s:%s' % (str(details['durationSeconds']//(24*3600)).zfill(2), str(details['durationSeconds']%(24*3600)//3600).zfill(2), str(details['durationSeconds']%3600//60).zfill(2)), inline=False)
-                embed.add_field(name='Rated Range', value=details['ratedRange'], inline=False)
-                all_contests.append(embed)
-    fetch_time = time()
-            
+    try:
+        contestUser.reset_contest('cf')
+        contestUser.parse_cf_contests(json_get('https://codeforces.com/api/contest.list'))
+    except:
+        pass
+
+    try:
+        contestUser.reset_contest('atcoder')
+        contestUser.parse_atcoder_contests(json_get('https://atcoder-api.appspot.com/contests'))
+    except:
+        pass
+
+    contestUser.set_time()
+    contestUser.generate_stream()
+
+    new_contests = list(set(contestUser.contest_objects).difference(set(contest_cache)))
+
+    for channel_id in subscribed_channels:
+        try:
+            channel = bot.get_channel(channel_id)
+            for contest in new_contests:
+                await channel.send(embed=contestUser.embed_contest(contest.asdict()))
+        except:
+            pass
+
+    contest_cache = list(set(contestUser.contest_objects).union(set(contest_cache)))
+    update_contest_cache()
+
 @refresh_contests.before_loop
 async def check_contests_before():
     await bot.wait_until_ready()
@@ -522,7 +547,8 @@ async def on_command_error(ctx, error):
         isinstance(error, CommonError) for CommonError in (
             commands.CommandNotFound, 
             commands.errors.MissingRequiredArgument,
-            commands.errors.NoPrivateMessage
+            commands.errors.NoPrivateMessage,
+            commands.errors.BadArgument
         )
     ):
         return

@@ -1,4 +1,7 @@
 ## Commands
+
+*When using a command with parameters, do not include the triangle <> brackets. e.g. if you wanted to get a random problem from DMOJ, you would do* `$random dmoj` *rather than* `$random <dmoj>`
+
 ### General
  - `$help` Sends you a list of my commands (obviously)
  - `$suggest <suggestion>` Sends me a suggestion
@@ -7,7 +10,12 @@
 
 Notice: Starting from July 31, 2020 support for WCIPEG may be discontinued as [PEG Judge will shut down at the end of July](https://wcipeg.com/announcement/9383)
 
+#### Account
  - `$login dmoj <token>` FOR DIRECT MESSAGING ONLY, logs you in using your DMOJ API token for problem submission
+ - `$profile <user>` See a user's linked accounts
+ - `$profile` See your linked accounts
+ - `$whois <name>` Searches for a user on 4 online judges (DMOJ, Codeforces, AtCoder, WCIPEG) and GitHub
+#### Problems
  - `$submit <problem-code> <language> <script>` Submits to a problem on DMOJ (requires login)
  - `$submit ^ <language> <script>` Submits to the last DMOJ problem you got using the `$random` command (requires login)
  - `$random` Gets a random problem from DMOJ, Codeforces, AtCoder, or WCIPEG
@@ -15,15 +23,15 @@ Notice: Starting from July 31, 2020 support for WCIPEG may be discontinued as [P
  - `$random <online judge> <points>` Gets a random problem from a specific online judge (DMOJ, Codeforces, AtCoder, or WCIPEG) with a specific number of points
  - `$random <online judge> <minimum> <maximum>` Gets a random problem from a specific online judge (DMOJ, Codeforces, AtCoder, or WCIPEG) within a specific point range
  - `$toggleRepeat` Toggles whether or not you want problems that you have already solved when performing a `$random` command (requires at least 1 linked account)
+#### Rating
  - `$updateRank` Gives you a role corresponding to your DMOJ rank across all servers (requires login)
- - `$profile <user>` See a user's linked accounts
- - `$profile` See your linked accounts
- - `$whois <name>` Searches for a user on 4 online judges (DMOJ, Codeforces, AtCoder, WCIPEG) and GitHub
+#### Contests
+ - `$sub <#channel>` Subscribes a channel to contest notifications
+ - `$subd` Checks channels subscribed to contest notifications in a channel
+ - `$unsub <#channel>` Unsubscribes a channel to contest notifications
  - `$contests` Gets a random upcoming contest from DMOJ, Codeforces, or AtCoder
- - `$contests <#>` Gets a number of random upcoming contests DMOJ, Codeforces, or AtCoder
- <!-- - `$notify` Lists contest notification channels in a server (requires admin)
- - `$notify <channel>` Sets a channel as a contest notification channel (requires admin)
- - `$unnotify <channel>` Sets a channel to be no longer a contest notification channel (requires admin) -->
+ - `$contests <#>` Gets a number of random upcoming contests from DMOJ, Codeforces, or AtCoder
+ - `$contests all` Gets all upcoming contests from DMOJ, Codeforces, and AtCoder
  ### Programming
  - `$run <language> <stdin> <script>` Runs a script in one of 72 languages! (200 calls allowed daily for everyone)
  - `$whatis <query>` Searches for something on WCIPEG Wiki or Wikipedia
