@@ -28,7 +28,7 @@ Notice: Starting from July 31, 2020 support for WCIPEG may be discontinued as [P
  - `$updateRank` Gives you a role corresponding to your DMOJ rank across all servers (requires login)
 #### Contests
  - `$sub <#channel>` Subscribes a channel to contest notifications
- - `$subd` Checks channels subscribed to contest notifications in a channel
+ - `$subd` Checks channels subscribed to contest notifications in a server
  - `$unsub <#channel>` Unsubscribes a channel to contest notifications
  - `$contests` Gets a random upcoming contest from DMOJ, Codeforces, or AtCoder
  - `$contests <#>` Gets a number of random upcoming contests from DMOJ, Codeforces, or AtCoder
