@@ -144,7 +144,7 @@ class RandomProblem(object):
             oj = rand.choice(('dmoj', 'cf', 'at', 'peg'))
 
         temp_dmoj_problems = {}
-        if oj in accounts and 'repeat' in self.global_users[iden] and not self.global_users[iden]['repeat']:
+        if iden is not None and oj in accounts and 'repeat' in self.global_users[iden] and not self.global_users[iden]['repeat']:
             if oj == 'dmoj':
                 user_response = json_get('https://dmoj.ca/api/user/info/%s' % self.global_users[iden]['dmoj'])
                 if user_response is not None:
@@ -202,7 +202,8 @@ class RandomProblem(object):
                 name, prob = rand.choice(list(problem_list['dmoj'][points].items()))
             else:
                 raise InvalidParametersException
-            self.global_users[iden]['last_dmoj_problem'] = name
+            if iden is not None:
+                self.global_users[iden]['last_dmoj_problem'] = name
             return self.embed_dmoj_problem(name, prob)
             
         elif oj.lower() == 'cf' or oj.lower() == 'codeforces':

@@ -23,6 +23,7 @@ Notice: Starting from July 31, 2020 support for WCIPEG may be discontinued as [P
  - `$random <online judge> <points>` Gets a random problem from a specific online judge (DMOJ, Codeforces, AtCoder, or WCIPEG) with a specific number of points
  - `$random <online judge> <minimum> <maximum>` Gets a random problem from a specific online judge (DMOJ, Codeforces, AtCoder, or WCIPEG) within a specific point range
  - `$toggleRepeat` Toggles whether or not you want problems that you have already solved when performing a `$random` command (requires at least 1 linked account)
+ - `$daily` Gets a random problem that updates every 24 hours (at midnight)
 #### Rating
  - `$updateRank` Gives you a role corresponding to your DMOJ rank across all servers (requires login)
 #### Contests

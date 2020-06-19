@@ -5,7 +5,7 @@ import requests
 import json
 import random as rand
 from time import time
-from datetime import datetime
+from datetime import datetime, date
 import pytz
 import urllib
 import secrets
@@ -48,6 +48,11 @@ with open('data/users.json', 'r', encoding='utf8', errors='ignore') as f:
 
 with open('data/subscriptions.json', 'r', encoding='utf8', errors='ignore') as f:
     subscribed_channels = list(map(int, json.load(f)))
+
+def update_daily():
+    global daily_problems
+    with open('data/daily.json', 'w') as json_file:
+        json.dump(daily_problems, json_file)
 
 def update_contest_cache():
     global contest_cache
@@ -149,6 +154,34 @@ async def random(ctx, oj=None, points=None, maximum=None):
         await ctx.send(ctx.message.author.mention + ' There seems to be a problem with %s. Please try again later :shrug:' % str(e))
     except InvalidQueryException:
         await ctx.send(ctx.message.author.mention + ' Invalid query. Make sure your points are positive integers.')
+
+url_to_thumbnail = {
+    'https://dmoj.ca/problem/': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/dmoj-thumbnail.png',
+    'https://codeforces.com/problemset/problem/': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/cf-thumbnail.png',
+    'https://atcoder.jp/contests/': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/at-thumbnail.png',
+    'https://wcipeg.com/problem/': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/peg-thumbnail.png'
+}
+
+@bot.command()
+async def daily(ctx):
+    if str(date.today()) not in daily_problems.keys():
+        title, description, embed = problemUser.get_random_problem()
+        thumbnail = 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/logo.png'
+        for url, tn in list(url_to_thumbnail.items()):
+            if url in description:
+                thumbnail = tn
+                break
+        daily_problems[str(date.today())] = {
+            'title': title,
+            'description': description,
+            'thumbnail': thumbnail
+        }
+        update_daily()
+    problem_data = daily_problems[str(date.today())]
+    embed = discord.Embed(title=problem_data['title'], description=problem_data['description'])
+    embed.set_thumbnail(url=problem_data['thumbnail'])
+    embed.timestamp = datetime.utcnow()
+    await ctx.send(ctx.message.author.mention + ' Hello! Here\'s today\'s problem of the day!', embed=embed)
 
 @bot.command()
 async def motivation(ctx):
