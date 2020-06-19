@@ -23,7 +23,7 @@ Discord to DMOJ/Codeforces/AtCoder/WCIPEG integration. Handles problems, account
 [Full list of commands here](COMMANDS.md)
 
 ## Online Judges
-| | Random Problems | Random Contests | Rating Roles | Account Link | Submission |
+| | Random Problems | Contest Notifications | Rating Roles | Account Link | Submission |
 |---|---|---|---|---|---|
 | DMOJ | ✔ | ✔ | ✔ | ✔ | ✔ |
 | Codeforces | ✔ | ✔ | ❌ | ❌ | ❌ |
