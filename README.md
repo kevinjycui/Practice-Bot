@@ -8,9 +8,6 @@ Discord to DMOJ/Codeforces/AtCoder/WCIPEG integration. Handles problems, account
 
 [🍵 Invite me to your server!](https://discord.com/api/oauth2/authorize?client_id=691416325557452861&permissions=402779152&scope=bot)
 
-<!-- [☕ Invite me to your server! (without automatic DMOJ-based ranked roles)](https://discordapp.com/api/oauth2/authorize?client_id=691416325557452861&permissions=34816&scope=bot)
-> Note: Do not give Practice Bot the `Manage Roles` permission if you want to keep automatic DMOJ-based ranked roles off -->
-
 ---
 
 [👀 Check me out on TOP.GG](https://top.gg/bot/691416325557452861)
@@ -20,7 +17,7 @@ Discord to DMOJ/Codeforces/AtCoder/WCIPEG integration. Handles problems, account
 [👀 Check me out on Discord Bot List](https://discordbotlist.com/bots/691416325557452861/)
 
 ## Commands
-[Full list of commands here](COMMANDS.md)
+[Full list of commands here](https://github.com/kevinjycui/Practice-Bot/wiki/Commands)
 
 ## Online Judges
 | | Random Problems | Contest Notifications | Rating Roles | Account Link | Submission |
