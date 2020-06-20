@@ -49,4 +49,4 @@ Discord to DMOJ/Codeforces/AtCoder/WCIPEG integration. Handles problems, account
  *Not affiliated with DMOJ, Codeforces, AtCoder, or WCIPEG. Sites are only used as tools for this bot.
 
 ## Icon
-> ![](logo.png)
+![](logo.png)
