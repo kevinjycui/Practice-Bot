@@ -35,13 +35,13 @@ Discord to DMOJ/Codeforces/AtCoder/WCIPEG integration. Handles problems, account
  - [kenkoooo/AtCoderProblems](https://github.com/kenkoooo/AtCoderProb✔ems)
  - [WCIPEG](https://wcipeg.com/main)
 
- ![](screenshots/dmoj_logo.png) 
+ ![](static/dmoj_logo.png) 
  
- ![](screenshots/codeforces_logo.png) 
+ ![](static/codeforces_logo.png) 
  
- ![](screenshots/atcoder_logo.png) 
+ ![](static/atcoder_logo.png) 
  
- ![](screenshots/wcipeg_logo.png)
+ ![](static/wcipeg_logo.png)
 
  *Not affiliated with DMOJ, Codeforces, AtCoder, or WCIPEG. Sites are only used as tools for this bot.
 
