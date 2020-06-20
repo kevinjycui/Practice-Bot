@@ -427,7 +427,7 @@ async def sub(ctx, channel: discord.TextChannel):
 
 @bot.command()
 @commands.guild_only()
-async def subd(ctx):
+async def subs(ctx):
     global subscribed_channels
     clist = ctx.message.author.mention + ' Contest notification channels in this server:\n'
     for text_channel in ctx.message.guild.text_channels:
