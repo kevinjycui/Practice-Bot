@@ -423,7 +423,7 @@ async def sub(ctx, channel: discord.TextChannel):
         return
     subscribed_channels.append(channel.id)
     update_subscribed_channels()
-    await ctx.send(channel.mention + ' subscribed to contest notifications.')
+    await ctx.send(ctx.message.author.mention + ' ' + channel.mention + ' subscribed to contest notifications.')
 
 @bot.command()
 @commands.guild_only()
@@ -448,7 +448,7 @@ async def unsub(ctx, channel: discord.TextChannel):
         return
     subscribed_channels.remove(channel.id)
     update_subscribed_channels()
-    await ctx.send(channel.mention + ' is no longer a contest notification channel.')
+    await ctx.send(ctx.message.author.mention + ' ' + channel.mention + ' is no longer a contest notification channel.')
 
 @tasks.loop(minutes=30)
 async def status_change():
