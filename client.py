@@ -49,6 +49,9 @@ with open('data/users.json', 'r', encoding='utf8', errors='ignore') as f:
 with open('data/subscriptions.json', 'r', encoding='utf8', errors='ignore') as f:
     subscribed_channels = list(map(int, json.load(f)))
 
+with open('data/server_roles.json', 'r', encoding='utf8', errors='ignore') as f:
+    server_roles = list(map(int, json.load(f)))
+
 def update_daily():
     global daily_problems
     with open('data/daily.json', 'w') as json_file:
@@ -71,6 +74,11 @@ def update_subscribed_channels():
     global subscribed_channels
     with open('data/subscriptions.json', 'w') as json_file:
         json.dump(subscribed_channels, json_file)
+
+def update_server_roles():
+    global server_roles
+    with open('data/server_roles.json', 'w') as json_file:
+        json.dump(server_roles, json_file)
 
 sessions = {}
 
@@ -451,8 +459,27 @@ async def status_change_before():
     await bot.wait_until_ready()
 
 @bot.command()
+@commands.has_permissions(manage_roles=True)
+@commands.guild_only()
+async def toggleRanks(ctx):
+    global server_roles
+    if int(ctx.message.guild.id) not in server_roles:
+        server_roles.append(int(ctx.message.guild.id))
+        names = []
+        for role in ctx.message.guild.roles:
+            names.append(role.name)
+        for role in list(ratings.values()):
+            if role[0] not in names:
+                await ctx.message.guild.create_role(name=role[0], colour=role[1], mentionable=False)
+        await ctx.send(ctx.message.author.mention + ' DMOJ based ranked roles set to `ON`')
+    else:
+        server_roles.remove(int(ctx.message.guild.id))
+        await ctx.send(ctx.message.author.mention + ' DMOJ based ranked roles set to `OFF`')
+    update_server_roles()
+
+@bot.command()
 async def updateRank(ctx):
-    global problemUser, rank_times
+    global problemUser, rank_times, server_roles
     checkExistingUser(ctx.message.author)
     iden = str(ctx.message.author.id)
     if 'dmoj' not in problemUser.global_users[iden]:
@@ -469,13 +496,15 @@ async def updateRank(ctx):
         if current_rating in rating:
             rating_name = role[0]
     for guild in bot.guilds:
+        if int(guild.id) not in server_roles:
+            continue
+        names = []
+        for role in guild.roles:
+            names.append(role.name)
+        for role in list(ratings.values()):
+            if role[0] not in names:
+                await guild.create_role(name=role[0], colour=role[1], mentionable=False)
         try:
-            names = []
-            for role in guild.roles:
-                names.append(role.name)
-            for role in list(ratings.values()):
-                if role[0] not in names:
-                    await guild.create_role(name=role[0], colour=role[1], mentionable=False)
             for member in guild.members:
                 if iden == str(member.id):
                     for rating, role in list(ratings.items()):
@@ -488,7 +517,7 @@ async def updateRank(ctx):
         except:
             pass
     rank_times[iden] = time()
-    await ctx.send(ctx.message.author.mention + ' Successfully updated your DMOJ rank to **%s**!' % rating_name)
+    await ctx.send(ctx.message.author.mention + ' Successfully updated your DMOJ rank to **%s** across all servers with DMOJ based ranks set to on!' % rating_name)
 
 @tasks.loop(hours=3)
 async def refresh_dmoj_problems():

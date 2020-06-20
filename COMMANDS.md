@@ -26,10 +26,11 @@ Notice: Starting from July 31, 2020 support for WCIPEG may be discontinued as [P
  - `$daily` Gets a random problem that updates every 24 hours (at midnight)
 #### Rating
  - `$updateRank` Gives you a role corresponding to your DMOJ rank across all servers (requires login)
+ - `$toggleRanks` Toggles whether or not DMOJ-based ranked roles are used in server (requires Manage Roles permission)
 #### Contests
- - `$sub <#channel>` Subscribes a channel to contest notifications
+ - `$sub <#channel>` Subscribes a channel to contest notifications (requires Manage Channels permission)
  - `$subd` Checks channels subscribed to contest notifications in a server
- - `$unsub <#channel>` Unsubscribes a channel to contest notifications
+ - `$unsub <#channel>` Unsubscribes a channel to contest notifications (requires Manage Channels permission)
  - `$contests` Gets a random upcoming contest from DMOJ, Codeforces, or AtCoder
  - `$contests <#>` Gets a number of random upcoming contests from DMOJ, Codeforces, or AtCoder
  - `$contests all` Gets all upcoming contests from DMOJ, Codeforces, and AtCoder
