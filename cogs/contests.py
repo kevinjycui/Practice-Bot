@@ -1,11 +1,21 @@
 import discord
+from discord.ext import commands, tasks
 from time import time
 import random as rand
 from datetime import datetime
+import json
+import requests
+import pytz
 
+
+def json_get(api_url):
+    response = requests.get(api_url)
+
+    if response.status_code == 200:
+        return json.loads(response.content.decode('utf-8'))
+    return None
 
 class Contest(object):
-
     def __init__(self, data):
         self.data = data
 
@@ -24,7 +34,7 @@ class Contest(object):
 class NoContestsAvailableException(Exception):
     pass
 
-class RandomContests(object):
+class ContestCog(commands.Cog):
     all_contest_embeds = []
     fetch_time = 0
 
@@ -37,6 +47,20 @@ class RandomContests(object):
     atcoder_contest_titles = []
 
     contest_objects = []
+
+    def __init__(self, bot):
+        self.bot = bot
+
+        with open('data/contests.json', 'r', encoding='utf8', errors='ignore') as f:
+            prev_contest_data = json.load(f)
+            self.contest_cache = []
+            for data in prev_contest_data:
+                self.contest_cache.append(Contest(data))
+
+        with open('data/subscriptions.json', 'r', encoding='utf8', errors='ignore') as f:
+            self.subscribed_channels = list(map(int, json.load(f)))
+
+        self.refresh_contests.start()
 
     def get_random_contests(self, number):
         if len(self.all_contest_embeds) == 0:
@@ -148,3 +172,105 @@ class RandomContests(object):
             self.contest_objects.append(contest)
         self.all_contest_embeds = list(set(self.all_contest_embeds))
         self.contest_objects = list(set(self.contest_objects))
+
+    def update_contest_cache(self):
+        with open('data/contests.json', 'w') as json_file:
+            prev_contest_data = []
+            for contest in self.contest_cache:
+                prev_contest_data.append(contest.asdict())
+            json.dump(prev_contest_data, json_file)
+
+    def update_subscribed_channels(self):
+        with open('data/subscriptions.json', 'w') as json_file:
+            json.dump(self.subscribed_channels, json_file)
+
+    @commands.command()
+    async def contests(self, ctx, numstr='1'):
+        if numstr == 'all':
+            number = len(self.all_contest_embeds)
+        else:
+            number = int(numstr)
+        try:
+            contestList = self.get_random_contests(number)
+            await ctx.send(ctx.message.author.mention + ' Sending %d random upcoming contest(s). Last fetched, %d minutes ago' % (len(contestList), (time()-self.fetch_time)//60))
+            for contest in contestList:
+                await ctx.send(embed=contest)
+        except NoContestsAvailableException:
+            await ctx.send(ctx.message.author.mention + ' Sorry, there are not upcoming contests currently available.')
+
+    @commands.command()
+    @commands.has_permissions(manage_channels=True)
+    @commands.guild_only()
+    async def sub(self, ctx, channel: discord.TextChannel):
+        if channel.id in self.subscribed_channels:
+            await ctx.send(ctx.message.author.mention + ' That channel is already subscribed to contest notifications.')
+            return
+        self.subscribed_channels.append(channel.id)
+        self.update_subscribed_channels()
+        await ctx.send(ctx.message.author.mention + ' ' + channel.mention + ' subscribed to contest notifications.')
+
+    @commands.command()
+    @commands.guild_only()
+    async def subs(self, ctx):
+        clist = ctx.message.author.mention + ' Contest notification channels in this server:\n'
+        for text_channel in ctx.message.guild.text_channels:
+            if text_channel.id in self.subscribed_channels:
+                clist += text_channel.mention + '\n'
+        if clist == ctx.message.author.mention + ' Contest notification channels in this server:\n':
+            await ctx.send(ctx.message.author.mention + ' There are no channels subscribed to contest notifications in this server :slight_frown:')
+        else:
+            await ctx.send(clist)
+
+    @commands.command()
+    @commands.has_permissions(manage_channels=True)
+    @commands.guild_only()
+    async def unsub(self, ctx, channel: discord.TextChannel):
+        if int(channel.id) not in self.subscribed_channels:
+            await ctx.send(ctx.message.author.mention + ' That channel is already not subscribed to contest notifications.')
+            return
+        self.subscribed_channels.remove(channel.id)
+        self.update_subscribed_channels()
+        await ctx.send(ctx.message.author.mention + ' ' + channel.mention + ' is no longer a contest notification channel.')
+
+    @tasks.loop(minutes=5)
+    async def refresh_contests(self):
+        try:
+            self.reset_contest('dmoj')
+            self.parse_dmoj_contests(json_get('https://dmoj.ca/api/contest/list'))
+        except:
+            pass
+
+        try:
+            self.reset_contest('cf')
+            self.parse_cf_contests(json_get('https://codeforces.com/api/contest.list'))
+        except:
+            pass
+
+        try:
+            self.reset_contest('atcoder')
+            self.parse_atcoder_contests(json_get('https://atcoder-api.appspot.com/contests'))
+        except:
+            pass
+
+        self.set_time()
+        self.generate_stream()
+
+        new_contests = list(set(self.contest_objects).difference(set(self.contest_cache)))
+
+        for channel_id in self.subscribed_channels:
+            try:
+                channel = self.bot.get_channel(channel_id)
+                for contest in new_contests:
+                    await channel.send(embed=self.embed_contest(contest.asdict()))
+            except:
+                pass
+
+        self.contest_cache = list(set(self.contest_objects).union(set(self.contest_cache)))
+        self.update_contest_cache()
+
+    @refresh_contests.before_loop
+    async def check_contests_before(self):
+        await self.bot.wait_until_ready()
+
+def setup(bot):
+    bot.add_cog(ContestCog(bot))
