@@ -354,47 +354,6 @@ class ProblemCog(commands.Cog):
         await ctx.send(ctx.message.author.mention, embed=embed)
 
     @commands.command()
-    async def login(self, ctx, site=None, token=None):
-        if ctx.guild is not None:
-            await ctx.send(ctx.message.author.mention + ' Please do not post your DMOJ API token on a server! Login command should be used in DMs only!')
-        else:
-            if site is None or token is None:
-                await ctx.send('Invalid query. Please use format `%slogin <site> <token>`.' % prefix)
-                return
-            self.checkExistingUser(ctx.message.author)
-            if site.lower() == 'dmoj':
-                iden = str(ctx.message.author.id)
-                if ctx.message.author.id in self.sessions:
-                    prev = 'logged out of %s and ' % self.sessions.pop(ctx.message.author.id)
-                else:
-                    prev = ''
-                try:
-                    self.sessions[ctx.message.author.id] = Session(token)
-                    self.global_users[iden]['dmoj'] = str(self.sessions[ctx.message.author.id])
-                    self.update_users()
-                    await ctx.send('Successfully ' + prev + 'logged in with submission permissions as %s! (Note that for security reasons, you will be automatically logged out after the cache resets or when you go offline. You may delete the message containing your token now)' % self.sessions[ctx.message.author.id])
-                except InvalidSessionException:
-                    await ctx.send('Token invalid, failed to log in (your DMOJ API token can be found by going to https://dmoj.ca/edit/profile/ and selecting the __Generate__ or __Regenerate__ option next to API Token). Note: The login command will ONLY WORK IN DIRECT MESSAGE. Please do not share this token with anyone else.')
-            else:
-                await ctx.send('Sorry, that site does not exist or logins to that site are not available yet')
-
-    @commands.command()
-    async def logout(self, ctx, site=None):
-        if ctx.guild is not None:
-            mention = ctx.message.author.mention + ' '
-        else:
-            mention = ''
-        if site is None:
-            await ctx.send(mention + 'Invalid query. Please use format `%slogout <site>`.' % prefix)
-        elif site.lower() == 'dmoj':
-            if ctx.message.author.id not in self.sessions.keys():
-                await ctx.send(mention + 'You are already not logged in!')
-                return
-            await ctx.send(mention + 'Successfully logged out of submission permissions from %s! (Note that your account will still be linked to your Discord account, but will now be unable to submit to problems)' % self.sessions.pop(ctx.message.author.id))
-        else:
-            await ctx.send(mention + 'Sorry, that site does not exist or logins to that site are not available yet')
-
-    @commands.command()
     async def submit(self, ctx, problem, lang, *, source=None):
         if ctx.message.author.id not in self.sessions.keys():
             await ctx.send(ctx.message.author.mention + ' You are not logged in to a DMOJ account with submission permissions (this could happen if you last logged in a long time ago or have recently gone offline). Please use command `%slogin dmoj <token>` (your DMOJ API token can be found by going to https://dmoj.ca/edit/profile/ and selecting the __Generate__ or __Regenerate__ option next to API Token). Note: The login command will ONLY WORK IN DIRECT MESSAGE. Please do not share this token with anyone else.' % prefix)

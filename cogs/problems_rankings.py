@@ -21,11 +21,67 @@ class ProblemRankingCog(ProblemCog):
         with open('data/server_roles.json', 'r', encoding='utf8', errors='ignore') as f:
             self.server_roles = list(map(int, json.load(f)))
 
+        with open('data/server_nicks.json', 'r', encoding='utf8', errors='ignore') as f:
+            self.server_nicks = list(map(int, json.load(f)))
+
         self.update_ranks.start()
 
     def update_server_roles(self):
         with open('data/server_roles.json', 'w') as json_file:
             json.dump(self.server_roles, json_file)
+
+    def update_server_nicks(self):
+        with open('data/server_nicks.json', 'w') as json_file:
+            json.dump(self.server_nicks, json_file)
+
+    @commands.command()
+    async def login(self, ctx, site=None, token=None):
+        if ctx.guild is not None:
+            await ctx.send(ctx.message.author.mention + ' Please do not post your DMOJ API token on a server! Login command should be used in DMs only!')
+        else:
+            if site is None or token is None:
+                await ctx.send('Invalid query. Please use format `%slogin <site> <token>`.' % prefix)
+                return
+            self.checkExistingUser(ctx.message.author)
+            if site.lower() == 'dmoj':
+                iden = str(ctx.message.author.id)
+                if ctx.message.author.id in self.sessions:
+                    prev = 'logged out of %s and ' % self.sessions.pop(ctx.message.author.id)
+                else:
+                    prev = ''
+                try:
+                    self.sessions[ctx.message.author.id] = Session(token)
+                    self.global_users[iden]['dmoj'] = str(self.sessions[ctx.message.author.id])
+                    for guild in self.bot.guilds:
+                        if guild.id in self.server_nicks:
+                            for member in guild.members:
+                                if member.id == ctx.message.author.id:
+                                    try:
+                                        await member.edit(nick=self.global_users[iden]['dmoj'])
+                                    except:
+                                        pass
+                    self.update_users()
+                    await ctx.send('Successfully ' + prev + 'logged in with submission permissions as %s! (Note that for security reasons, you will be automatically logged out after the cache resets or when you go offline. You may delete the message containing your token now)' % self.sessions[ctx.message.author.id])
+                except InvalidSessionException:
+                    await ctx.send('Token invalid, failed to log in (your DMOJ API token can be found by going to https://dmoj.ca/edit/profile/ and selecting the __Generate__ or __Regenerate__ option next to API Token). Note: The login command will ONLY WORK IN DIRECT MESSAGE. Please do not share this token with anyone else.')
+            else:
+                await ctx.send('Sorry, that site does not exist or logins to that site are not available yet')
+
+    @commands.command()
+    async def logout(self, ctx, site=None):
+        if ctx.guild is not None:
+            mention = ctx.message.author.mention + ' '
+        else:
+            mention = ''
+        if site is None:
+            await ctx.send(mention + 'Invalid query. Please use format `%slogout <site>`.' % prefix)
+        elif site.lower() == 'dmoj':
+            if ctx.message.author.id not in self.sessions.keys():
+                await ctx.send(mention + 'You are already not logged in!')
+                return
+            await ctx.send(mention + 'Successfully logged out of submission permissions from %s! (Note that your account will still be linked to your Discord account, but will now be unable to submit to problems)' % self.sessions.pop(ctx.message.author.id))
+        else:
+            await ctx.send(mention + 'Sorry, that site does not exist or logins to that site are not available yet')
 
     @commands.command()
     @commands.has_permissions(manage_roles=True)
@@ -45,9 +101,26 @@ class ProblemRankingCog(ProblemCog):
             await ctx.send(ctx.message.author.mention + ' DMOJ based ranked roles set to `OFF`')
         self.update_server_roles()
 
+    @commands.command()
+    @commands.has_permissions(manage_nicknames=True)
+    @commands.guild_only()
+    async def toggleNicks(self, ctx):
+        if int(ctx.message.guild.id) not in self.server_nicks:
+            self.server_nicks.append(int(ctx.message.guild.id))
+            for member in ctx.message.guild.members:
+                if str(member.id) in self.global_users.keys() and 'dmoj' in self.global_users[str(member.id)]:
+                    try:
+                        await member.edit(nick=self.global_users[str(member.id)]['dmoj'])
+                    except discord.errors.Forbidden:
+                        await ctx.send('Failed to change nickname of user %s#%s, insufficient permissions' % (member.name, member.discriminator))
+            await ctx.send(ctx.message.author.mention + ' DMOJ based nicknames set to `ON`')
+        else:
+            self.server_nicks.remove(int(ctx.message.guild.id))
+            await ctx.send(ctx.message.author.mention + ' DMOJ based nicknames set to `OFF`')
+        self.update_server_nicks()
+
     @tasks.loop(minutes=5)
     async def update_ranks(self):
-
         if self.update_index >= len(self.global_users):
             self.update_index = 0
         while self.update_index < len(self.global_users):
