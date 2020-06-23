@@ -75,6 +75,7 @@ class ProblemRankingCog(ProblemCog):
     @commands.has_permissions(manage_roles=True)
     @commands.guild_only()
     async def toggleRanks(self, ctx):
+        self.check_existing_server(ctx.message.guild)
         if ctx.message.guild.id not in self.server_roles:
             self.server_roles.append(ctx.message.guild.id)
             names = []
@@ -94,6 +95,7 @@ class ProblemRankingCog(ProblemCog):
     @commands.has_permissions(manage_nicknames=True)
     @commands.guild_only()
     async def toggleNicks(self, ctx):
+        self.check_existing_server(ctx.message.guild)
         if ctx.message.guild.id not in self.server_nicks:
             self.server_nicks.append(ctx.message.guild.id)
             for member in ctx.message.guild.members:
@@ -128,6 +130,7 @@ class ProblemRankingCog(ProblemCog):
             if current_rating in rating:
                 rating_name = role[0]
         for guild in self.bot.guilds:
+            self.check_existing_server(guild)
             if int(guild.id) not in self.server_roles:
                 continue
             names = []

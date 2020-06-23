@@ -282,6 +282,11 @@ class ProblemCog(commands.Cog):
                 'last_dmoj_problem': None,
                 'can_repeat': True
             }
+            return False
+        return True
+
+    def check_existing_server(self, server):
+        query.insert_ignore_server(server.id)
     
     @commands.command()
     async def random(self, ctx, oj=None, points=None, maximum=None):
@@ -336,7 +341,6 @@ class ProblemCog(commands.Cog):
         await ctx.send(ctx.message.author.mention + ' You are not linked to any accounts')
 
     @commands.command()
-    @commands.guild_only()
     async def profile(self, ctx, user: discord.User=None):
         if user is None:
             user = ctx.message.author

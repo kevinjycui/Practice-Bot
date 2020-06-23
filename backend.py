@@ -129,13 +129,15 @@ class MySQLConnection(object):
         self.set_query(sql)
         return 0
 
-    def insert_server(self, server_id):
+    def insert_ignore_server(self, server_id):
         if not self.sanitize_id(server_id):
             return -1
-        sql = "INSERT INTO servers(server_id, nickname_sync, role_sync, sync_source) \
+        sql = "INSERT IGNORE INTO servers(server_id, nickname_sync, role_sync, sync_source) \
             VALUES (%d, FALSE, FALSE, 'dmoj')" % \
             (server_id)
-        self.set_query(sql)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            self.set_query(sql)
         return 0
 
     def update_server(self, server_id, field, value):
