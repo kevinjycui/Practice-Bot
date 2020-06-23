@@ -60,7 +60,10 @@ async def on_command_error(ctx, error):
         )
     ):
         return
-    raise error
+    elif isinstance(error, commands.errors.MissingPermissions):
+        await ctx.send(ctx.message.author.mention + ' Sorry, you are missing permissions to run this command!')
+    else:
+        raise error
 
 @bot.event
 async def on_ready():
