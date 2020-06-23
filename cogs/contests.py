@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands, tasks
 from time import time
 import random as rand
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 import requests
 import pytz
@@ -229,7 +229,7 @@ class ContestCog(commands.Cog):
         await ctx.send(ctx.message.author.mention + ' ' + channel.mention + ' is no longer a contest notification channel.')
 
     def is_upcoming(self, contest):
-        return datetime.strptime(contest.asdict()['Start Time'], '%Y-%m-%d %H:%M:%S') > datetime.now()
+        return datetime.strptime(contest.asdict()['Start Time'], '%Y-%m-%d %H:%M:%S') > datetime.now() - timedelta(days=7)
 
     @tasks.loop(minutes=5)
     async def refresh_contests(self):
