@@ -6,6 +6,7 @@ from datetime import datetime
 import json
 import requests
 import pytz
+from backend import mySQLConnection as query
 
 
 def json_get(api_url):
@@ -57,8 +58,7 @@ class ContestCog(commands.Cog):
             for data in prev_contest_data:
                 self.contest_cache.append(Contest(data))
 
-        with open('data/subscriptions.json', 'r', encoding='utf8', errors='ignore') as f:
-            self.subscribed_channels = list(map(int, json.load(f)))
+        self.subscribed_channels = query.get_all_subs()
 
         self.refresh_contests.start()
 
@@ -96,8 +96,8 @@ class ContestCog(commands.Cog):
                         'title': ':trophy: %s' % details['name'],
                         'description': url,
                         'thumbnail': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/dmoj-thumbnail.png',
-                        'Start Time': datetime.strptime(details['start_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z').strftime('%B %d, %Y %H:%M:%S%z'),
-                        'End Time': datetime.strptime(details['end_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z').strftime('%B %d, %Y %H:%M:%S%z'),
+                        'Start Time': datetime.strptime(details['start_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z').strftime('%Y-%m-%d %H:%M:%S'),
+                        'End Time': datetime.strptime(details['end_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z').strftime('%Y-%m-%d %H:%M:%S'),
 
                     }
                     if details['time_limit']:
@@ -180,10 +180,6 @@ class ContestCog(commands.Cog):
                 prev_contest_data.append(contest.asdict())
             json.dump(prev_contest_data, json_file)
 
-    def update_subscribed_channels(self):
-        with open('data/subscriptions.json', 'w') as json_file:
-            json.dump(self.subscribed_channels, json_file)
-
     @commands.command()
     async def contests(self, ctx, numstr='1'):
         if numstr == 'all':
@@ -206,7 +202,7 @@ class ContestCog(commands.Cog):
             await ctx.send(ctx.message.author.mention + ' That channel is already subscribed to contest notifications.')
             return
         self.subscribed_channels.append(channel.id)
-        self.update_subscribed_channels()
+        query.sub_channel(channel.id)
         await ctx.send(ctx.message.author.mention + ' ' + channel.mention + ' subscribed to contest notifications.')
 
     @commands.command()
@@ -225,12 +221,15 @@ class ContestCog(commands.Cog):
     @commands.has_permissions(manage_channels=True)
     @commands.guild_only()
     async def unsub(self, ctx, channel: discord.TextChannel):
-        if int(channel.id) not in self.subscribed_channels:
+        if channel.id not in self.subscribed_channels:
             await ctx.send(ctx.message.author.mention + ' That channel is already not subscribed to contest notifications.')
             return
         self.subscribed_channels.remove(channel.id)
-        self.update_subscribed_channels()
+        query.unsub_channel(channel.id)
         await ctx.send(ctx.message.author.mention + ' ' + channel.mention + ' is no longer a contest notification channel.')
+
+    def is_upcoming(self, contest):
+        return datetime.strptime(contest.asdict()['Start Time'], '%Y-%m-%d %H:%M:%S') > datetime.now()
 
     @tasks.loop(minutes=5)
     async def refresh_contests(self):
@@ -265,7 +264,7 @@ class ContestCog(commands.Cog):
             except:
                 pass
 
-        self.contest_cache = list(set(self.contest_objects).union(set(self.contest_cache)))
+        self.contest_cache = list(filter(self.is_upcoming, list(set(self.contest_objects).union(set(self.contest_cache)))))
         self.update_contest_cache()
 
     @refresh_contests.before_loop

@@ -4,9 +4,18 @@ from time import time
 from smtplib import SMTP_SSL as SMTP
 from smtplib import SMTPException
 from email.mime.text import MIMEText
-from auth import USERNAME, PASSWORD
+import yaml
 from datetime import datetime
 
+
+try:
+    config_file = open('config.yaml')
+except FileNotFoundError:
+    config_file = open('example_config.yaml')
+finally:
+    config = yaml.load(config_file, Loader=yaml.FullLoader)
+    USERNAME = config['smtp']['email']
+    PASSWORD = config['smtp']['password']
 
 class EmailCog(commands.Cog):
     suggesters = []

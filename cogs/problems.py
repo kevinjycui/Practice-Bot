@@ -6,11 +6,9 @@ import requests
 import bs4 as bs
 from dmoj.session import Session, InvalidSessionException
 from dmoj.language import Language
+from backend import mySQLConnection as query
 import json
 
-
-with open('prefix') as f:
-    prefix = f.read()
 
 def json_get(api_url):
     response = requests.get(api_url)
@@ -60,8 +58,7 @@ class ProblemCog(commands.Cog):
         with open('data/daily.json', 'r', encoding='utf8', errors='ignore') as f:
             self.daily_problems = json.load(f)
 
-        with open('data/users.json', 'r', encoding='utf8', errors='ignore') as f:
-            self.global_users = json.load(f)
+        self.global_users = query.read_users()
 
         self.refresh_dmoj_problems.start()
         self.refresh_cf_problems.start()
@@ -171,7 +168,7 @@ class ProblemCog(commands.Cog):
             oj = rand.choice(('dmoj', 'cf', 'at', 'peg'))
 
         temp_dmoj_problems = {}
-        if iden is not None and oj in self.accounts and 'repeat' in self.global_users[iden] and not self.global_users[iden]['repeat']:
+        if iden is not None and oj in self.accounts and self.global_users[iden]['dmoj'] is not None and not self.global_users[iden]['can_repeat']:
             if oj == 'dmoj':
                 user_response = json_get('https://dmoj.ca/api/user/info/%s' % self.global_users[iden]['dmoj'])
                 if user_response is not None:
@@ -231,6 +228,7 @@ class ProblemCog(commands.Cog):
                 raise InvalidParametersException
             if iden is not None:
                 self.global_users[iden]['last_dmoj_problem'] = name
+                query.update_user(iden, 'last_dmoj_problem', name)
             return self.embed_dmoj_problem(name, prob)
             
         elif oj.lower() == 'cf' or oj.lower() == 'codeforces':
@@ -275,25 +273,16 @@ class ProblemCog(commands.Cog):
         with open('data/daily.json', 'w') as json_file:
             json.dump(self.daily_problems, json_file)
 
-    def update_users(self):
-        with open('data/users.json', 'w') as json_file:
-            json.dump(self.global_users, json_file)
-
-    def checkExistingUser(self, user):
-        if str(user.id) not in self.global_users:
-            self.global_users[str(user.id)] = {}
-            self.update_users()
-            return False
-        return True
+    def check_existing_user(self, user):
+        query.insert_ignore_user(user.id)
     
     @commands.command()
     async def random(self, ctx, oj=None, points=None, maximum=None):
-        iden = str(ctx.message.author.id)
-        self.checkExistingUser(ctx.message.author)
+        self.check_existing_user(ctx.message.author)
         if isinstance(oj, str) and (oj.lower() == 'peg' or oj.lower() == 'wcipeg'):
             await ctx.send(ctx.message.author.mention + ' Notice: Starting from July 31, 2020 support for WCIPEG may be discontinued as **PEG Judge will shut down at the end of July**\nhttps://wcipeg.com/announcement/9383')
         try:
-            title, description, embed = self.get_random_problem(oj, points, maximum, iden)
+            title, description, embed = self.get_random_problem(oj, points, maximum, ctx.message.author.id)
             embed.title = title
             embed.description = description + ' (searched in %ss)' % str(round(self.bot.latency, 3))
             embed.timestamp = datetime.utcnow()
@@ -330,13 +319,12 @@ class ProblemCog(commands.Cog):
 
     @commands.command()
     async def toggleRepeat(self, ctx):
-        self.checkExistingUser(ctx.message.author)
-        iden = str(ctx.message.author.id)
+        self.check_existing_user(ctx.message.author)
         for account in self.accounts:
-            if account in self.global_users[iden]:
-                self.global_users[iden]['repeat'] = not self.global_users[iden].get('repeat', True)
-                self.update_users()
-                await ctx.send(ctx.message.author.mention + ' Repeat setting for command `%srandom` set to %s.' % (prefix, ('ON' if self.global_users[iden]['repeat'] else 'OFF')))
+            if self.global_users[ctx.message.author.id][account] is not None:
+                self.global_users[ctx.message.author.id]['can_repeat'] = not self.global_users[ctx.message.author.id]['can_repeat']
+                query.update_user(ctx.message.author.id, 'can_repeat', self.global_users[ctx.message.author.id]['can_repeat'])
+                await ctx.send(ctx.message.author.mention + ' Repeat setting for command `%srandom` set to %s.' % (self.bot.command_prefix, ('ON' if self.global_users[ctx.message.author.id]['can_repeat'] else 'OFF')))
                 return
         await ctx.send(ctx.message.author.mention + ' You are not linked to any accounts')
 
@@ -345,20 +333,20 @@ class ProblemCog(commands.Cog):
     async def profile(self, ctx, user: discord.User=None):
         if user is None:
             user = ctx.message.author
-        self.checkExistingUser(user)
+        self.check_existing_user(user)
         embed = discord.Embed(title=user.display_name, description=user.mention)
         embed.timestamp = datetime.utcnow()
         embed.add_field(name='Discord ID', value=user.id, inline=False)
-        if 'dmoj' in self.global_users[str(user.id)]:
-            embed.add_field(name='DMOJ', value='https://dmoj.ca/user/%s' % self.global_users[str(user.id)].get('dmoj', 'This user has no connected DMOJ account'), inline=False)
+        if self.global_users[user.id]['dmoj'] is not None:
+            embed.add_field(name='DMOJ', value='https://dmoj.ca/user/%s' % self.global_users[user.id]['dmoj'], inline=False)
         await ctx.send(ctx.message.author.mention, embed=embed)
 
     @commands.command()
     async def submit(self, ctx, problem, lang, *, source=None):
         if ctx.message.author.id not in self.sessions.keys():
-            await ctx.send(ctx.message.author.mention + ' You are not logged in to a DMOJ account with submission permissions (this could happen if you last logged in a long time ago or have recently gone offline). Please use command `%slogin dmoj <token>` (your DMOJ API token can be found by going to https://dmoj.ca/edit/profile/ and selecting the __Generate__ or __Regenerate__ option next to API Token). Note: The login command will ONLY WORK IN DIRECT MESSAGE. Please do not share this token with anyone else.' % prefix)
+            await ctx.send(ctx.message.author.mention + ' You are not logged in to a DMOJ account with submission permissions (this could happen if you last logged in a long time ago or have recently gone offline). Please use command `%slogin dmoj <token>` (your DMOJ API token can be found by going to https://dmoj.ca/edit/profile/ and selecting the __Generate__ or __Regenerate__ option next to API Token). Note: The login command will ONLY WORK IN DIRECT MESSAGE. Please do not share this token with anyone else.' % self.bot.command_prefix)
             return
-        userSession = self.sessions[ctx.message.author.id]
+        user_session = self.sessions[ctx.message.author.id]
         if not self.language.languageExists(lang):
             await ctx.send(ctx.message.author.mention + ' That language is not available. The available languages are as followed: ```%s```' % ', '.join(self.language.getLanguages()))
             return
@@ -366,12 +354,11 @@ class ProblemCog(commands.Cog):
             if source is None and len(ctx.message.attachments) > 0:
                 f = requests.get(ctx.message.attachments[0].url)
                 source = f.content
-            iden = str(ctx.message.author.id)
-            self.checkExistingUser(ctx.message.author)
-            if problem == '^' and 'last_dmoj_problem' in self.global_users[iden]:
-                problem = self.global_users[iden]['last_dmoj_problem']
-            id = userSession.submit(problem, self.language.getId(lang), source)
-            response = userSession.getTestcaseStatus(id)
+            self.check_existing_user(ctx.message.author)
+            if problem == '^' and self.global_users[ctx.message.author.id]['last_dmoj_problem'] is not None:
+                problem = self.global_users[ctx.message.author.id]['last_dmoj_problem']
+            id = user_session.submit(problem, self.language.getId(lang), source)
+            response = user_session.getTestcaseStatus(id)
             responseText = str(response)
             if len(responseText) > 1950:
                 responseText = responseText[1950:] + '\n(Result cut off to fit message length limit)'
@@ -428,13 +415,13 @@ class ProblemCog(commands.Cog):
     @commands.guild_only()
     async def tea(self, ctx, user: discord.User=None):
         if user is None:
-            if not self.checkExistingUser(ctx.message.author):
+            if not self.check_existing_user(ctx.message.author):
                 await ctx.send(ctx.message.author.mention + ' You have 0 cups of :tea:.')
                 return
-            if self.global_users[str(ctx.message.author.id)].get('tea', 0) == 1:
+            if self.global_users[ctx.message.author.id]['tea'] == 1:
                 await ctx.send(ctx.message.author.mention + ' You have 1 cup of :tea:.')
             else:
-                await ctx.send(ctx.message.author.mention + ' You have ' + str(self.global_users[str(ctx.message.author.id)].get('tea', 0)) + ' cups of :tea:.')
+                await ctx.send(ctx.message.author.mention + ' You have ' + str(self.global_users[ctx.message.author.id]['tea']) + ' cups of :tea:.')
             return
         if user.id == ctx.message.author.id:
             await ctx.send(ctx.message.author.mention + ' Sorry, cannot send :tea: to yourself!')
@@ -442,9 +429,9 @@ class ProblemCog(commands.Cog):
         elif user.id == self.bot.user.id:
             await ctx.send(ctx.message.author.mention + ' Thanks for the :tea:!')
             return
-        self.checkExistingUser(user)
-        self.global_users[str(user.id)]['tea'] = self.global_users[str(user.id)].get('tea', 0) + 1
-        self.update_users()
+        self.check_existing_user(user)
+        self.global_users[user.id]['tea'] += 1
+        query.update_user(user.id, 'tea', self.global_users[user.id]['tea'])
         await ctx.send(ctx.message.author.mention + ' sent a cup of :tea: to ' + user.mention)
         
 def setup(bot):

@@ -6,14 +6,20 @@ import json
 import urllib
 import wikipedia
 from time import time
+import yaml
 from datetime import datetime
 import bs4 as bs
 from bs4.element import Comment
-from auth import cat_api, client_id, client_secret
 
 
-with open('prefix') as f:
-    prefix = f.read()
+try:
+    config_file = open('config.yaml')
+except FileNotFoundError:
+    config_file = open('example_config.yaml')
+finally:
+    config = yaml.load(config_file, Loader=yaml.FullLoader)
+    cat_api = config['cats']['token']
+    client_id, client_secret = config['jdoodle']['client_id'], config['jdoodle']['client_secret']
 
 def json_get(api_url):
     response = requests.get(api_url)
@@ -90,7 +96,7 @@ class SearcherCog(commands.Cog):
     @commands.command()
     async def whatis(self, ctx, *, name=None):
         if name is None:
-            await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%swhatis <thing>`.' % prefix)
+            await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%swhatis <thing>`.' % self.bot.command_prefix)
             return
         peg_res = self.wcipegScrape(name)
         if peg_res is not None:
@@ -112,7 +118,7 @@ class SearcherCog(commands.Cog):
     @commands.command()
     async def whois(self, ctx, *, name=None):
         if name is None:
-            await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%swhois <name>`.' % prefix)
+            await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%swhois <name>`.' % self.bot.command_prefix)
             return
         accounts = self.accountScrape(name)
         if len(accounts) == 0:
@@ -135,7 +141,7 @@ class SearcherCog(commands.Cog):
     @commands.command()
     async def run(self, ctx, lang=None, stdin=None, *, script=None):
         if lang is None or stdin is None or script is None:
-            await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%srun <language> "<stdin>" <script>`.' % prefix)
+            await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%srun <language> "<stdin>" <script>`.' % self.bot.command_prefix)
             return
         headers = {'Content-type':'application/json', 'Accept':'application/json'}
         credit_spent = requests.post('https://api.jdoodle.com/v1/credit-spent', json={'clientId': client_id, 'clientSecret': client_secret}, headers=headers).json()

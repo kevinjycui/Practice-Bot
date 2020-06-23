@@ -1,0 +1,24 @@
+# example_config.yaml file
+
+mysql:
+  database: practice
+  user: root # user for accessing MySQL DB
+  pass: secret
+  tables:
+    - servers
+    - channels
+    - users
+bot:
+  token: secret # retrive token from Discord Developer Portal https://discord.com/developers/applications/
+  dev_token: secret # optional token for checking if token is for development
+  prefix: $
+cats:
+  token: secret # retrive token from cat API https://thecatapi.com/signup
+jdoodle:
+  client_id: secret # retrive token from JDoodle API https://www.jdoodle.com/compiler-api/
+  client_secret: secret
+smtp:
+  email: user@gmail.com # Email for hosting feedback (Must be GMail)
+  password: secret
+dbl:
+  token: secret # token for DBL, optional if in development or bot is not on DBL
