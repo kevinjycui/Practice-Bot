@@ -274,6 +274,7 @@ class ProblemCog(commands.Cog):
             json.dump(self.daily_problems, json_file)
 
     def check_existing_user(self, user):
+        query.insert_ignore_user(user.id)
         if user.id not in self.global_users:
             self.global_users[user.id] = {
                 'tea': 0,
@@ -281,7 +282,6 @@ class ProblemCog(commands.Cog):
                 'last_dmoj_problem': None,
                 'can_repeat': True
             }
-        query.insert_ignore_user(user.id)
     
     @commands.command()
     async def random(self, ctx, oj=None, points=None, maximum=None):
