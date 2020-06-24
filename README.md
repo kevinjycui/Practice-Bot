@@ -25,7 +25,8 @@ Discord to DMOJ/Codeforces/AtCoder/WCIPEG integration. Handles problems, account
 | DMOJ | ✔ | ✔ | ✔ | ✔ | ✔ |
 | Codeforces | ✔ | ✔ | ❌ | ❌ | ❌ |
 | AtCoder | ✔ | ✔ | ❌ | ❌ | ❌ |
-| WCIPEG | ✔ | ❌ | ❌ | ❌ | ❌ |
+| WCIPEG | ✔ | ➖ | ❌ | ❌ | ❌ |
+| CSES | ✔ | ➖ | ➖ | ❌ | ❌ |
   
 ## Tools
  - discord.py
@@ -34,6 +35,7 @@ Discord to DMOJ/Codeforces/AtCoder/WCIPEG integration. Handles problems, account
  - [nomikura/atcoder-api](https://github.com/nomikura/atcoder-api)
  - [kenkoooo/AtCoderProblems](https://github.com/kenkoooo/AtCoderProb✔ems)
  - [WCIPEG](https://wcipeg.com/main)
+ - [CSES](https://cses.fi/)
 
  ![](static/dmoj_logo.png) 
  
@@ -43,7 +45,9 @@ Discord to DMOJ/Codeforces/AtCoder/WCIPEG integration. Handles problems, account
  
  ![](static/wcipeg_logo.png)
 
- *Not affiliated with DMOJ, Codeforces, AtCoder, or WCIPEG. Sites are only used as tools for this bot.
+ ![](static/cses_logo.png)
+
+ *Not affiliated with DMOJ, Codeforces, AtCoder, WCIPEG, or CSES. Sites are only used as tools for this bot.
 
 ## Icon
 ![](logo.png)

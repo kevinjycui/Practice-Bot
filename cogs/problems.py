@@ -22,8 +22,13 @@ class NoSuchOJException(Exception):
         self.oj = oj
 
 class InvalidParametersException(Exception):
-    def __init__(self):
-        pass
+    def __init__(self, cses=False):
+        self.cses = cses
+    
+    def __str__(self):
+        if self.cses:
+            return 'Sorry, I couldn\'t find any problems with those parameters. :cry: (Note that CSES problems do not have points)'
+        return 'Sorry, I couldn\'t find any problems with those parameters. :cry:'
 
 class OnlineJudgeHTTPException(Exception):
     def __init__(self, oj):
@@ -41,6 +46,7 @@ class ProblemCog(commands.Cog):
     dmoj_problems = None
     cf_problems = None
     at_problems = None
+    cses_problems = {}
     peg_problems = {}
     accounts = ('dmoj',)
     sessions = {}
@@ -63,6 +69,7 @@ class ProblemCog(commands.Cog):
         self.refresh_dmoj_problems.start()
         self.refresh_cf_problems.start()
         self.refresh_atcoder_problems.start()
+        self.refresh_cses_problems.start()
         self.refresh_peg_problems.start()
         self.logout_offline.start()
 
@@ -95,6 +102,28 @@ class ProblemCog(commands.Cog):
                     if details['point'] not in self.problems_by_points['at']:
                         self.problems_by_points['at'][details['point']] = []
                     self.problems_by_points['at'][details['point']].append(details)
+
+    def parse_cses_problems(self, problems):
+        if problems.status_code == 200:
+            soup = bs.BeautifulSoup(problems.text, 'lxml')
+            task_lists = soup.findAll('ul', attrs={'class' : 'task-list'})
+            task_groups = soup.findAll('h2')
+            for index in range(1, len(task_groups)):
+                tasks = task_lists[index].findAll('li', attrs={'class' : 'task'})
+                for task in tasks:
+                    name = task.find('a').contents[0]
+                    url = 'https://cses.fi' + task.find('a').attrs['href']
+                    id = url.split('/')[-1]
+                    rate = task.find('span', attrs={'class' : 'detail'}).contents[0]
+                    group = task_groups[index].contents[0]
+                    cses_data = {
+                        'id': id,
+                        'name': name,
+                        'url': url,
+                        'rate': rate,
+                        'group': group
+                    }
+                    self.cses_problems[id] = cses_data
 
     def parse_peg_problems(self, problems):
         if problems.status_code == 200:
@@ -153,6 +182,13 @@ class ProblemCog(commands.Cog):
         embed.add_field(name='Solver Count', value=prob['solver_count'], inline=False)
         return prob['title'], url, embed
 
+    def embed_cses_problem(self, prob):
+        embed = discord.Embed()
+        embed.set_thumbnail(url='https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/cses-thumbnail.png')
+        embed.add_field(name='Success Rate', value=prob['rate'], inline=False)
+        embed.add_field(name='Group', value='||' + prob['group'] + '||', inline=False)
+        return prob['name'], prob['url'], embed
+
     def embed_peg_problem(self, prob):
         embed = discord.Embed()
         embed.set_thumbnail(url='https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/peg-thumbnail.png')
@@ -165,7 +201,10 @@ class ProblemCog(commands.Cog):
 
     def get_random_problem(self, oj=None, points=None, maximum=None, iden=None):
         if oj is None:
-            oj = rand.choice(('dmoj', 'cf', 'at', 'peg'))
+            oj = rand.choice(('dmoj', 'cf', 'at', 'peg', 'cses'))
+        
+        if oj.lower() == 'cses' and points is not None:
+            raise InvalidParametersException(cses=True)
 
         temp_dmoj_problems = {}
         if iden is not None and oj in self.accounts and self.global_users[iden]['dmoj'] is not None and not self.global_users[iden]['can_repeat']:
@@ -184,7 +223,7 @@ class ProblemCog(commands.Cog):
                                 if name not in user_response['solved_problems']:
                                     temp_dmoj_problems['dmoj'][point][name] = prob
                     if temp_dmoj_problems == {}:
-                        raise InvalidParametersException
+                        raise InvalidParametersException()
                     
         if temp_dmoj_problems != {}:
             problem_list = temp_dmoj_problems
@@ -195,12 +234,12 @@ class ProblemCog(commands.Cog):
                                     
         if points is not None:
             if not points.isdigit():
-                raise InvalidQueryException
+                raise InvalidQueryException()
             points = int(points)
 
         if maximum is not None:
             if not maximum.isdigit():
-                raise InvalidQueryException
+                raise InvalidQueryException()
             maximum = int(maximum)
             possibilities = []
             if oj.lower() == 'codeforces':
@@ -213,7 +252,7 @@ class ProblemCog(commands.Cog):
                 if point >= points and point <= maximum:
                     possibilities.append(point)
             if len(possibilities) == 0:
-                raise InvalidParametersException
+                raise InvalidParametersException()
             points = rand.choice(possibilities)
             
         if oj.lower() == 'dmoj':
@@ -225,7 +264,7 @@ class ProblemCog(commands.Cog):
             elif points in problem_list['dmoj'] and len(problem_list['dmoj'][points]) > 0:
                 name, prob = rand.choice(list(problem_list['dmoj'][points].items()))
             else:
-                raise InvalidParametersException
+                raise InvalidParametersException()
             if iden is not None:
                 self.global_users[iden]['last_dmoj_problem'] = name
                 query.update_user(iden, 'last_dmoj_problem', name)
@@ -240,7 +279,7 @@ class ProblemCog(commands.Cog):
             elif points in self.problems_by_points['cf']:
                 prob = rand.choice(self.problems_by_points['cf'][points])
             else:
-                raise InvalidParametersException
+                raise InvalidParametersException()
             return self.embed_cf_problem(prob)
 
         elif oj.lower() == 'atcoder' or oj.lower() == 'at' or oj.lower() == 'ac':
@@ -252,7 +291,7 @@ class ProblemCog(commands.Cog):
             elif points in self.problems_by_points['at']:
                 prob = rand.choice(self.problems_by_points['at'][points])
             else:
-                raise InvalidParametersException
+                raise InvalidParametersException()
             return self.embed_atcoder_problem(prob)
 
         elif oj.lower() == 'wcipeg' or oj.lower() == 'peg':
@@ -263,8 +302,12 @@ class ProblemCog(commands.Cog):
             elif points in self.problems_by_points['peg']:
                 prob = rand.choice(list(self.problems_by_points['peg'][points]))
             else:
-                raise InvalidParametersException
+                raise InvalidParametersException()
             return self.embed_peg_problem(prob)
+
+        elif oj.lower() == 'cses':
+            prob = rand.choice(list(self.cses_problems.values()))
+            return self.embed_cses_problem(prob)
         
         else:
             raise NoSuchOJException(oj)
@@ -301,8 +344,8 @@ class ProblemCog(commands.Cog):
             await ctx.send(ctx.message.author.mention, embed=embed)
         except NoSuchOJException:
             await ctx.send(ctx.message.author.mention + ' Invalid query. The online judge must be one of the following: DMOJ (dmoj), Codeforces (codeforces/cf), AtCoder (atcoder/at), WCIPEG (wcipeg/peg).')
-        except InvalidParametersException:
-            await ctx.send(ctx.message.author.mention + ' Sorry, I couldn\'t find any problems with those parameters. :cry:')
+        except InvalidParametersException as e:
+            await ctx.send(ctx.message.author.mention + ' ' + str(e))
         except OnlineJudgeHTTPException as e:
             await ctx.send(ctx.message.author.mention + ' There seems to be a problem with %s. Please try again later :shrug:' % str(e))
         except InvalidQueryException:
@@ -412,6 +455,14 @@ class ProblemCog(commands.Cog):
 
     @refresh_atcoder_problems.before_loop
     async def refresh_atcoder_problems_before(self):
+        await self.bot.wait_until_ready()
+
+    @tasks.loop(hours=3)
+    async def refresh_cses_problems(self):
+        self.parse_cses_problems(requests.get('https://cses.fi/problemset/list/'))
+
+    @refresh_cses_problems.before_loop
+    async def refresh_cses_problems_before(self):
         await self.bot.wait_until_ready()
 
     @tasks.loop(hours=3)

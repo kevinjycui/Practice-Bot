@@ -34,6 +34,8 @@ def make_db():
         user_id BIGINT NOT NULL,
         tea INT,
         dmoj VARCHAR(255),
+        codeforces VARCHAR(255),
+        atcoder VARCHAR(255),
         last_dmoj_problem VARCHAR(255),
         can_repeat BOOLEAN,
         PRIMARY KEY (user_id))""")
