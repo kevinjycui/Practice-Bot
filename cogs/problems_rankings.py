@@ -29,7 +29,8 @@ class ProblemRankingCog(ProblemCog):
             await ctx.send(ctx.message.author.mention + ' Please do not post your DMOJ API token on a server! Login command should be used in DMs only!')
         else:
             if site is None or token is None:
-                await ctx.send('Invalid query. Please use format `%slogin <site> <token>`.' % self.bot.command_prefix)
+                prefix = await self.bot.command_prefix(self.bot, ctx.message)
+                await ctx.send('Invalid query. Please use format `%slogin <site> <token>`.' % prefix)
                 return
             self.check_existing_user(ctx.message.author)
             if site.lower() == 'dmoj':
@@ -62,7 +63,8 @@ class ProblemRankingCog(ProblemCog):
         else:
             mention = ''
         if site is None:
-            await ctx.send(mention + 'Invalid query. Please use format `%slogout <site>`.' % self.bot.command_prefix)
+            prefix = await self.bot.command_prefix(self.bot, ctx.message)
+            await ctx.send(mention + 'Invalid query. Please use format `%slogout <site>`.' % prefix)
         elif site.lower() == 'dmoj':
             if ctx.message.author.id not in self.sessions.keys():
                 await ctx.send(mention + 'You are already not logged in!')

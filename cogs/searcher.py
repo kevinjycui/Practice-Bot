@@ -96,7 +96,8 @@ class SearcherCog(commands.Cog):
     @commands.command()
     async def whatis(self, ctx, *, name=None):
         if name is None:
-            await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%swhatis <thing>`.' % self.bot.command_prefix)
+            prefix = await self.bot.command_prefix(self.bot, ctx.message)
+            await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%swhatis <thing>`.' % prefix)
             return
         peg_res = self.wcipegScrape(name)
         if peg_res is not None:
@@ -118,7 +119,8 @@ class SearcherCog(commands.Cog):
     @commands.command()
     async def whois(self, ctx, *, name=None):
         if name is None:
-            await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%swhois <name>`.' % self.bot.command_prefix)
+            prefix = await self.bot.command_prefix(self.bot, ctx.message)
+            await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%swhois <name>`.' % prefix)
             return
         accounts = self.accountScrape(name)
         if len(accounts) == 0:
@@ -141,7 +143,8 @@ class SearcherCog(commands.Cog):
     @commands.command()
     async def run(self, ctx, lang=None, stdin=None, *, script=None):
         if lang is None or stdin is None or script is None:
-            await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%srun <language> "<stdin>" <script>`.' % self.bot.command_prefix)
+            prefix = await self.bot.command_prefix(self.bot, ctx.message)
+            await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%srun <language> "<stdin>" <script>`.' % prefix)
             return
         headers = {'Content-type':'application/json', 'Accept':'application/json'}
         credit_spent = requests.post('https://api.jdoodle.com/v1/credit-spent', json={'clientId': client_id, 'clientSecret': client_secret}, headers=headers).json()

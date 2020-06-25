@@ -491,7 +491,8 @@ class ProblemCog(commands.Cog):
             if self.global_users[ctx.message.author.id][account] is not None:
                 self.global_users[ctx.message.author.id]['can_repeat'] = not self.global_users[ctx.message.author.id]['can_repeat']
                 query.update_user(ctx.message.author.id, 'can_repeat', self.global_users[ctx.message.author.id]['can_repeat'])
-                await ctx.send(ctx.message.author.mention + ' Repeat setting for command `%srandom` set to %s.' % (self.bot.command_prefix, ('ON' if self.global_users[ctx.message.author.id]['can_repeat'] else 'OFF')))
+                prefix = await self.bot.command_prefix(self.bot, ctx.message)
+                await ctx.send(ctx.message.author.mention + ' Repeat setting for command `%srandom` set to %s.' % (prefix, ('ON' if self.global_users[ctx.message.author.id]['can_repeat'] else 'OFF')))
                 return
         await ctx.send(ctx.message.author.mention + ' You are not linked to any accounts')
 
@@ -510,7 +511,8 @@ class ProblemCog(commands.Cog):
     @commands.command(aliases=['s'])
     async def submit(self, ctx, problem, lang, *, source=None):
         if ctx.message.author.id not in self.sessions.keys():
-            await ctx.send(ctx.message.author.mention + ' You are not logged in to a DMOJ account with submission permissions (this could happen if you last logged in a long time ago or have recently gone offline). Please use command `%slogin dmoj <token>` (your DMOJ API token can be found by going to https://dmoj.ca/edit/profile/ and selecting the __Generate__ or __Regenerate__ option next to API Token). Note: The login command will ONLY WORK IN DIRECT MESSAGE. Please do not share this token with anyone else.' % self.bot.command_prefix)
+            prefix = await self.bot.command_prefix(self.bot, ctx.message)
+            await ctx.send(ctx.message.author.mention + ' You are not logged in to a DMOJ account with submission permissions (this could happen if you last logged in a long time ago or have recently gone offline). Please use command `%slogin dmoj <token>` (your DMOJ API token can be found by going to https://dmoj.ca/edit/profile/ and selecting the __Generate__ or __Regenerate__ option next to API Token). Note: The login command will ONLY WORK IN DIRECT MESSAGE. Please do not share this token with anyone else.' % prefix)
             return
         user_session = self.sessions[ctx.message.author.id]
         if not self.language.languageExists(lang):
