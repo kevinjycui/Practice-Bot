@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands, tasks
 import requests
 import json
+import sys
 
 
 class DiscordBotLists(commands.Cog):
@@ -21,8 +22,7 @@ class DiscordBotLists(commands.Cog):
     async def post_guild_count_manual(self, ctx):
         self.data['server_count'] = len(self.bot.guilds)
         response = requests.post('https://botblock.org/api/count', json=self.data, headers={'Content-type':'application/json', 'Accept':'application/json'})
-        print(response.status_code)
-        print(response.json())
+        print(response.json(), file=sys.stderr)
 
 def setup(bot, bot_id, tokens):
     bot.add_cog(DiscordBotLists(bot, bot_id, tokens))
