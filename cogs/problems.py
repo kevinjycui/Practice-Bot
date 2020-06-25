@@ -8,6 +8,7 @@ from dmoj.session import Session, InvalidSessionException
 from dmoj.language import Language
 from backend import mySQLConnection as query
 import json
+import re
 
 
 def json_get(api_url):
@@ -38,6 +39,22 @@ class OnlineJudgeHTTPException(Exception):
         return self.oj
 
 class InvalidQueryException(Exception):
+    def __init__(self):
+        pass
+
+class ProblemNotFoundException(Exception):
+    def __init__(self):
+        self.message = ''
+    
+    def __str__(self):
+        return self.message
+
+class CSESProblemNotFoundException(ProblemNotFoundException):
+    def __init__(self):
+        ProblemNotFoundException.__init__(self)
+        self.message = 'Note that only problems from the CSES Problem Set are available for CSES'
+
+class InvalidURLException(Exception):
     def __init__(self):
         pass
 
@@ -96,7 +113,7 @@ class ProblemCog(commands.Cog):
 
     def parse_atcoder_problems(self, problems):
         if problems is not None:
-            self.at_problems = problems
+            self.atcoder_problems = problems
             for details in problems:
                 if details['point']:
                     if details['point'] not in self.problems_by_points['at']:
@@ -199,6 +216,88 @@ class ProblemCog(commands.Cog):
         embed.add_field(name='Date Added', value=prob['date'], inline=False)
         return prob['name'], prob['url'], embed
 
+    def get_problem(self, oj, contest_id=None, problem_id=None):
+        if problem_id is None:
+            raise ProblemNotFoundException
+        
+        if oj.lower() == 'dmoj':
+            if problem_id not in self.dmoj_problems.keys():
+                raise ProblemNotFoundException
+            title, description, embed = self.embed_dmoj_problem(problem_id, self.dmoj_problems[problem_id])
+            embed.title = title
+            embed.description = description + ' (searched in %ss)' % str(round(self.bot.latency, 3))
+            embed.timestamp = datetime.utcnow()
+            return embed
+        
+        elif oj.lower() == 'cf' or oj.lower() == 'codeforces':
+            if contest_id is None:
+                raise ProblemNotFoundException
+            def is_problem(prob):
+                return prob['contestId'] == int(contest_id) and prob['index'] == problem_id
+            problist = list(filter(is_problem, self.cf_problems))
+            if len(problist) == 0:
+                raise ProblemNotFoundException
+            title, description, embed = self.embed_cf_problem(problist[0])
+            embed.title = title
+            embed.description = description + ' (searched in %ss)' % str(round(self.bot.latency, 3))
+            embed.timestamp = datetime.utcnow()
+            return embed
+
+        elif oj.lower() == 'atcoder' or oj.lower() == 'at' or oj.lower() == 'ac':
+            if contest_id is None:
+                raise ProblemNotFoundException
+            def is_problem(prob):
+                return prob['contest_id'] == contest_id and prob['id'] == problem_id
+            problist = list(filter(is_problem, self.atcoder_problems))
+            if len(problist) == 0:
+                raise ProblemNotFoundException
+            title, description, embed = self.embed_atcoder_problem(problist[0])
+            embed.title = title
+            embed.description = description + ' (searched in %ss)' % str(round(self.bot.latency, 3))
+            embed.timestamp = datetime.utcnow()
+            return embed
+
+        elif oj.lower() == 'wcipeg' or oj.lower() == 'peg':
+            def is_problem(prob):
+                return prob['url'] == 'https://wcipeg.com/problem/' + problem_id
+            problist = list(filter(is_problem, list(self.peg_problems.values())))
+            if len(problist) == 0:
+                raise ProblemNotFoundException
+            title, description, embed = self.embed_peg_problem(problist[0])
+            embed.title = title
+            embed.description = description + ' (searched in %ss)' % str(round(self.bot.latency, 3))
+            embed.timestamp = datetime.utcnow()
+            return embed
+
+        elif oj.lower() == 'cses':
+            if problem_id not in self.cses_problems.keys():
+                raise CSESProblemNotFoundException
+            title, description, embed = self.embed_cses_problem(self.cses_problems[problem_id])
+            embed.title = title
+            embed.description = description + ' (searched in %ss)' % str(round(self.bot.latency, 3))
+            embed.timestamp = datetime.utcnow()
+            return embed
+
+    def get_problem_from_url(self, url):
+        regex = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
+        valid_urls = [tuple(result for result in results if result) for results in re.findall(regex, url)][0]
+        components = url.split('/')
+        if len(valid_urls) == 1 and valid_urls[0] == url:
+            if url[:24] == 'https://dmoj.ca/problem/' and len(components) == 5:
+                return self.get_problem('dmoj', problem_id=components[4])
+            elif url[:42] == 'https://codeforces.com/problemset/problem/' and len(components) == 7:
+                return self.get_problem('cf', components[5], components[6])
+            elif url[:28] == 'https://atcoder.jp/contests/' and len(components) == 7 and components[5] == 'tasks':
+                return self.get_problem('atcoder', components[4], components[6])
+            elif url[:27] == 'https://wcipeg.com/problem/' and len(components) == 5:
+                return self.get_problem('peg', problem_id=components[4])
+            elif url[:32] == 'https://cses.fi/problemset/task/' and len(components) == 6:
+                return self.get_problem('cses', problem_id=components[5])
+            else:
+                raise InvalidURLException
+        else:
+            raise InvalidURLException
+
     def get_random_problem(self, oj=None, points=None, maximum=None, iden=None):
         if oj is None:
             oj = rand.choice(('dmoj', 'cf', 'at', 'peg', 'cses'))
@@ -283,11 +382,11 @@ class ProblemCog(commands.Cog):
             return self.embed_cf_problem(prob)
 
         elif oj.lower() == 'atcoder' or oj.lower() == 'at' or oj.lower() == 'ac':
-            if not self.at_problems:
+            if not self.atcoder_problems:
                 raise OnlineJudgeHTTPException('AtCoder')
 
             if points is None:
-                prob = rand.choice(self.at_problems)
+                prob = rand.choice(self.atcoder_problems)
             elif points in self.problems_by_points['at']:
                 prob = rand.choice(self.problems_by_points['at'][points])
             else:
@@ -330,8 +429,18 @@ class ProblemCog(commands.Cog):
 
     def check_existing_server(self, server):
         query.insert_ignore_server(server.id)
-    
-    @commands.command()
+
+    @commands.command(aliases=['p'])
+    async def problem(self, ctx, url: str):
+        try:
+            embed = self.get_problem_from_url(url)
+            await ctx.send(ctx.message.author.mention, embed=embed)
+        except InvalidURLException:
+            await ctx.send(ctx.message.author.mention + ' Sorry, the problem URL was not recognised.')
+        except ProblemNotFoundException as e:
+            await ctx.send(ctx.message.author.mention + ' Sorry, the problem was not found. ' + str(e))
+
+    @commands.command(aliases=['r'])
     async def random(self, ctx, oj=None, points=None, maximum=None):
         self.check_existing_user(ctx.message.author)
         if isinstance(oj, str) and (oj.lower() == 'peg' or oj.lower() == 'wcipeg'):
@@ -342,8 +451,10 @@ class ProblemCog(commands.Cog):
             embed.description = description + ' (searched in %ss)' % str(round(self.bot.latency, 3))
             embed.timestamp = datetime.utcnow()
             await ctx.send(ctx.message.author.mention, embed=embed)
+        except IndexError:
+            await ctx.send(ctx.message.author.mention + ' No problem was found. This may be due to the bot updating the problem cache. Please wait a moment, then try again.')
         except NoSuchOJException:
-            await ctx.send(ctx.message.author.mention + ' Invalid query. The online judge must be one of the following: DMOJ (dmoj), Codeforces (codeforces/cf), AtCoder (atcoder/at), WCIPEG (wcipeg/peg).')
+            await ctx.send(ctx.message.author.mention + ' Invalid query. The online judge must be one of the following: DMOJ (dmoj), Codeforces (codeforces/cf), AtCoder (atcoder/at/ac), WCIPEG (wcipeg/peg), CSES (cses).')
         except InvalidParametersException as e:
             await ctx.send(ctx.message.author.mention + ' ' + str(e))
         except OnlineJudgeHTTPException as e:
@@ -351,10 +462,13 @@ class ProblemCog(commands.Cog):
         except InvalidQueryException:
             await ctx.send(ctx.message.author.mention + ' Invalid query. Make sure your points are positive integers.')
 
-    @commands.command()
+    @commands.command(aliases=['d'])
     async def daily(self, ctx):
         if str(date.today()) not in self.daily_problems.keys():
-            title, description, embed = self.get_random_problem()
+            try:
+                title, description, embed = self.get_random_problem()
+            except IndexError:
+                await ctx.send(ctx.message.author.mention + ' No problem was found. This may be due to the bot updating the problem cache. Please wait a moment, then try again.')
             thumbnail = 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/logo.png'
             for url, tn in list(self.url_to_thumbnail.items()):
                 if url in description:
@@ -367,9 +481,7 @@ class ProblemCog(commands.Cog):
             }
             self.update_daily()
         problem_data = self.daily_problems[str(date.today())]
-        embed = discord.Embed(title=problem_data['title'], description=problem_data['description'])
-        embed.set_thumbnail(url=problem_data['thumbnail'])
-        embed.timestamp = datetime.utcnow()
+        embed = self.get_problem_from_url(problem_data['description'])
         await ctx.send(ctx.message.author.mention + ' Hello! Here\'s today\'s problem of the day!', embed=embed)
 
     @commands.command()
@@ -383,8 +495,8 @@ class ProblemCog(commands.Cog):
                 return
         await ctx.send(ctx.message.author.mention + ' You are not linked to any accounts')
 
-    @commands.command()
-    async def profile(self, ctx, user: discord.User=None):
+    @commands.command(aliases=['u'])
+    async def user(self, ctx, user: discord.User=None):
         if user is None:
             user = ctx.message.author
         self.check_existing_user(user)
@@ -395,7 +507,7 @@ class ProblemCog(commands.Cog):
             embed.add_field(name='DMOJ', value='https://dmoj.ca/user/%s' % self.global_users[user.id]['dmoj'], inline=False)
         await ctx.send(ctx.message.author.mention, embed=embed)
 
-    @commands.command()
+    @commands.command(aliases=['s'])
     async def submit(self, ctx, problem, lang, *, source=None):
         if ctx.message.author.id not in self.sessions.keys():
             await ctx.send(ctx.message.author.mention + ' You are not logged in to a DMOJ account with submission permissions (this could happen if you last logged in a long time ago or have recently gone offline). Please use command `%slogin dmoj <token>` (your DMOJ API token can be found by going to https://dmoj.ca/edit/profile/ and selecting the __Generate__ or __Regenerate__ option next to API Token). Note: The login command will ONLY WORK IN DIRECT MESSAGE. Please do not share this token with anyone else.' % self.bot.command_prefix)

@@ -7,6 +7,7 @@ import cogs.feedback as feedback
 import cogs.problems_rankings as problems_rankings
 import cogs.contests as contests
 import cogs.searcher as searcher
+from backend import mySQLConnection as query
 
 
 try:
@@ -23,13 +24,37 @@ statuses = ('implementation', 'dynamic programming', 'graph theory', 'data struc
 replies = ('Practice Bot believes that with enough practice, you can complete any goal!', 'Keep practicing! Practice Bot says that every great programmer starts somewhere!', 'Hey now, you\'re an All Star, get your game on, go play (and practice)!',
            'Stuck on a problem? Every logical problem has a solution. You just have to keep practicing!', ':heart:')
 
-bot = commands.Bot(command_prefix=prefix,
+custom_prefixes = query.get_prefixes()
+
+async def determine_prefix(bot, message):
+    guild = message.guild
+    if guild:
+        return custom_prefixes.get(guild.id, prefix)
+    return prefix
+
+bot = commands.Bot(command_prefix=determine_prefix,
                    description='The all-competitive-programming-purpose Discord bot!',
                    owner_id=492435232071483392)
 
 @bot.command()
 async def ping(ctx):
     await ctx.send('Pong! (ponged in %ss)' % str(round(bot.latency, 3)))
+
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def setprefix(ctx, fix: str=prefix):
+    if len(fix) > 255:
+        await ctx.send(ctx.message.author.mention + ' Sorry, prefix is too long (maximum of 255 characters)')
+    elif '"' in fix or '\'' in fix:
+        await ctx.send(ctx.message.author.mention + ' Sorry, prefix cannot contain quotation charaters `\'` or `"`')
+    elif ' ' in fix or '\n' in fix or '\r' in fix or '\t' in fix:
+        await ctx.send(ctx.message.author.mention + 'Sorry, prefix cannot contain any whitespace')
+    else:
+        previous_prefix = custom_prefixes.get(ctx.message.guild.id, prefix)
+        custom_prefixes[ctx.message.guild.id] = fix
+        query.insert_ignore_server(ctx.message.guild.id)
+        query.update_server_prefix(ctx.message.guild.id, fix)
+        await ctx.send(ctx.message.author.mention + ' Server prefix changed from `%s` to `%s`' % (previous_prefix, fix))
 
 @bot.command()
 async def motivation(ctx):

@@ -151,6 +151,20 @@ class MySQLConnection(object):
         self.set_query(sql)
         return 0
 
+    def update_server_prefix(self, server_id, fix):
+        sql = "UPDATE servers SET prefix = '%s' WHERE server_id = %d" % (fix, server_id)
+        self.set_query(sql)
+        return 0
+
+    def get_prefixes(self):
+        sql = "SELECT * FROM servers \
+        WHERE prefix IS NOT NULL"
+        result = self.readall_query(sql)
+        server_to_prefix = {}
+        for row in result:
+            server_to_prefix[row[0]] = row[4]
+        return server_to_prefix
+
     def get_sync_source(self, server_id):
         return 'dmoj'
 

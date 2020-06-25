@@ -180,7 +180,7 @@ class ContestCog(commands.Cog):
                 prev_contest_data.append(contest.asdict())
             json.dump(prev_contest_data, json_file)
 
-    @commands.command()
+    @commands.command(aliases=['c'])
     async def contests(self, ctx, numstr='1'):
         if numstr == 'all':
             number = len(self.all_contest_embeds)

@@ -27,7 +27,7 @@ Discord to DMOJ/Codeforces/AtCoder/WCIPEG integration. Handles problems, account
 | AtCoder | ✔ | ✔ | ❌ | ❌ | ❌ |
 | WCIPEG | ✔ | ➖ | ❌ | ❌ | ❌ |
 | CSES | ✔ | ➖ | ➖ | ❌ | ❌ |
-  
+
 ## Tools
  - discord.py
  - [DMOJ API](https://dmoj.ca/api/)
