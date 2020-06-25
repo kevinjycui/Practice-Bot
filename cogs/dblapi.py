@@ -1,18 +1,20 @@
-import dbl
 import discord
 from discord.ext import commands
+import requests
 
 
-class TopGG(commands.Cog):
-    '''Handles interactions with the top.gg API'''
+class DiscordBotLists(commands.Cog):
 
-    def __init__(self, bot, token):
+    def __init__(self, bot, tokens):
         self.bot = bot
-        self.token = token
-        self.dblpy = dbl.DBLClient(self.bot, self.token, autopost=True)
+        self.data = tokens
+        self.data['bot_id'] = bot.user.id
 
-    async def on_guild_post():
-        print('Server count posted successfully')
+    @tasks.loop(minutes=30)
+    async def post_guild_count(self):
+        self.data['server_count'] = len(bot.guilds)
+        requests.post('https://botblock.org/api/count', data=self.data, headers={'Content-type':'application/json', 'Accept':'application/json'})
 
-def setup(bot, token):
-    bot.add_cog(TopGG(bot, token))
+
+def setup(bot, tokens):
+    bot.add_cog(DiscordBotLists(bot, tokens))
