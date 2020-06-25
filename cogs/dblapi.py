@@ -16,5 +16,5 @@ class DiscordBotLists(commands.Cog):
         requests.post('https://botblock.org/api/count', data=self.data, headers={'Content-type':'application/json', 'Accept':'application/json'})
 
 
-def setup(bot, tokens):
-    bot.add_cog(DiscordBotLists(bot, tokens))
+def setup(bot, bot_id, tokens):
+    bot.add_cog(DiscordBotLists(bot, bot_id, tokens))
