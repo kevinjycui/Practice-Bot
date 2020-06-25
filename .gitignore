@@ -16,5 +16,3 @@ env/
 *.pem
 
 .idea/
-
-log.txt
