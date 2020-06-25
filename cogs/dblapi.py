@@ -5,10 +5,10 @@ import requests
 
 class DiscordBotLists(commands.Cog):
 
-    def __init__(self, bot, tokens):
+    def __init__(self, bot, bot_id, tokens):
         self.bot = bot
         self.data = tokens
-        self.data['bot_id'] = bot.user.id
+        self.data['bot_id'] = bot_id
 
     @tasks.loop(minutes=30)
     async def post_guild_count(self):

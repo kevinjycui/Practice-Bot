@@ -21,6 +21,7 @@ finally:
     dbl_tokens = {}
     for dbl, dbl_token in list(config['dbl'].items()):
         dbl_tokens[dbl] = dbl_token
+    bot_id = config['bot']['id']
 
 statuses = ('implementation', 'dynamic programming', 'graph theory', 'data structures', 'trees', 'geometry', 'strings', 'optimization')
 replies = ('Practice Bot believes that with enough practice, you can complete any goal!', 'Keep practicing! Practice Bot says that every great programmer starts somewhere!', 'Hey now, you\'re an All Star, get your game on, go play (and practice)!',
@@ -106,5 +107,5 @@ if __name__ == '__main__':
     feedback.setup(bot)
     searcher.setup(bot)
     if bot_token != dev_token:
-        dblapi.setup(bot, dbl_tokens)
+        dblapi.setup(bot, bot_id, dbl_tokens)
     bot.run(bot_token)
