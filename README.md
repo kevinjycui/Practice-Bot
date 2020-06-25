@@ -33,16 +33,6 @@ Support this bot by voting for it [here](https://top.gg/bot/691416325557452861/v
  - [WCIPEG](https://wcipeg.com/main)
  - [CSES](https://cses.fi/)
 
- ![](static/dmoj_logo.png) 
- 
- ![](static/codeforces_logo.png) 
- 
- ![](static/atcoder_logo.png) 
- 
- ![](static/wcipeg_logo.png)
-
- ![](static/cses_logo.png)
-
  *Not affiliated with DMOJ, Codeforces, AtCoder, WCIPEG, or CSES. Sites are only used as tools for this bot.
 
 ## Icon
