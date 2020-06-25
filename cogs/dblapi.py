@@ -22,7 +22,8 @@ class DiscordBotLists(commands.Cog):
     async def post_guild_count_manual(self, ctx):
         self.data['server_count'] = len(self.bot.guilds)
         response = requests.post('https://botblock.org/api/count', json=self.data, headers={'Content-type':'application/json', 'Accept':'application/json'})
-        print(response.json(), file=sys.stderr)
+        with open('log.txt', 'w+') as log:
+            print(response.json(), file=log)
 
 def setup(bot, bot_id, tokens):
     bot.add_cog(DiscordBotLists(bot, bot_id, tokens))
