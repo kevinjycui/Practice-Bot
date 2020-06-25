@@ -48,7 +48,7 @@ async def setprefix(ctx, fix: str=prefix):
     elif '"' in fix or '\'' in fix:
         await ctx.send(ctx.message.author.mention + ' Sorry, prefix cannot contain quotation charaters `\'` or `"`')
     elif ' ' in fix or '\n' in fix or '\r' in fix or '\t' in fix:
-        await ctx.send(ctx.message.author.mention + 'Sorry, prefix cannot contain any whitespace')
+        await ctx.send(ctx.message.author.mention + ' Sorry, prefix cannot contain any whitespace')
     else:
         previous_prefix = custom_prefixes.get(ctx.message.guild.id, prefix)
         custom_prefixes[ctx.message.guild.id] = fix
