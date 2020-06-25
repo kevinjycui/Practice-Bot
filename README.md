@@ -10,11 +10,7 @@ Discord to DMOJ/Codeforces/AtCoder/WCIPEG integration. Handles problems, account
 
 ---
 
-[👀 Check me out on TOP.GG](https://top.gg/bot/691416325557452861)
-
-[👀 Check me out on Bots For Discord](https://botsfordiscord.com/bot/691416325557452861)
-
-[👀 Check me out on Discord Bot List](https://discordbotlist.com/bots/691416325557452861/)
+Support this bot by voting for it [here](https://top.gg/bot/691416325557452861/vote)
 
 ## Commands
 [Full list of commands here](https://github.com/kevinjycui/Practice-Bot/wiki/Commands)
