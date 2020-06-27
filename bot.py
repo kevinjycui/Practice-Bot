@@ -182,6 +182,7 @@ async def on_command_error(ctx, error):
     elif isinstance(error, commands.errors.MissingPermissions):
         await ctx.send(ctx.message.author.mention + ' Sorry, you are missing permissions to run this command!')
     else:
+        await ctx.send(ctx.message.author.mention + ' An unexpected error occured. Please try again. If this error persists, you can report it using the `$suggest <suggestion>` command.')
         raise error
 
 @bot.event

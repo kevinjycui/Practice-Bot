@@ -186,7 +186,8 @@ class ProblemCog(commands.Cog):
         embed.add_field(name='Type', value=prob['type'], inline=False)
         if 'points' in prob.keys():
             embed.add_field(name='Points', value=prob['points'], inline=False)
-        embed.add_field(name='Rating', value=prob['rating'], inline=False)
+        if 'rating' in prob.keys():
+            embed.add_field(name='Rating', value=prob['rating'], inline=False)
         embed.add_field(name='Tags', value='||'+', '.join(prob['tags'])+'||', inline=False)
         return prob['name'], url, embed
 
