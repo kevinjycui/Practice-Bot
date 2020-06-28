@@ -199,6 +199,7 @@ async def on_command_error(ctx, error):
         raise error
 
 @bot.command(aliases=['toggleJoin'])
+@commands.has_permissions(administrator=True)
 async def togglejoin(ctx):
     join_message = query.get_join_message(ctx.message.guild.id)
     query.update_server(ctx.message.guild.id, 'join_message', not join_message)
