@@ -188,32 +188,32 @@ class ContestCog(commands.Cog):
             number = int(numstr)
         try:
             contestList = self.get_random_contests(number)
-            await ctx.send(ctx.message.author.mention + ' Sending %d random upcoming contest(s). Last fetched, %d minutes ago' % (len(contestList), (time()-self.fetch_time)//60))
+            await ctx.send(ctx.message.author.display_name + ', Sending %d random upcoming contest(s). Last fetched, %d minutes ago' % (len(contestList), (time()-self.fetch_time)//60))
             for contest in contestList:
                 await ctx.send(embed=contest)
         except NoContestsAvailableException:
-            await ctx.send(ctx.message.author.mention + ' Sorry, there are not upcoming contests currently available.')
+            await ctx.send(ctx.message.author.display_name + ', Sorry, there are not upcoming contests currently available.')
 
     @commands.command()
     @commands.has_permissions(manage_channels=True)
     @commands.guild_only()
     async def sub(self, ctx, channel: discord.TextChannel):
         if channel.id in self.subscribed_channels:
-            await ctx.send(ctx.message.author.mention + ' That channel is already subscribed to contest notifications.')
+            await ctx.send(ctx.message.author.display_name + ', That channel is already subscribed to contest notifications.')
             return
         self.subscribed_channels.append(channel.id)
         query.sub_channel(channel.id)
-        await ctx.send(ctx.message.author.mention + ' ' + channel.mention + ' subscribed to contest notifications.')
+        await ctx.send(ctx.message.author.display_name + ', ' + channel.mention + ' subscribed to contest notifications.')
 
     @commands.command()
     @commands.guild_only()
     async def subs(self, ctx):
-        clist = ctx.message.author.mention + ' Contest notification channels in this server:\n'
+        clist = ctx.message.author.display_name + ', Contest notification channels in this server:\n'
         for text_channel in ctx.message.guild.text_channels:
             if text_channel.id in self.subscribed_channels:
                 clist += text_channel.mention + '\n'
-        if clist == ctx.message.author.mention + ' Contest notification channels in this server:\n':
-            await ctx.send(ctx.message.author.mention + ' There are no channels subscribed to contest notifications in this server :slight_frown:')
+        if clist == ctx.message.author.display_name + ', Contest notification channels in this server:\n':
+            await ctx.send(ctx.message.author.display_name + ', There are no channels subscribed to contest notifications in this server :slight_frown:')
         else:
             await ctx.send(clist)
 
@@ -222,11 +222,11 @@ class ContestCog(commands.Cog):
     @commands.guild_only()
     async def unsub(self, ctx, channel: discord.TextChannel):
         if channel.id not in self.subscribed_channels:
-            await ctx.send(ctx.message.author.mention + ' That channel is already not subscribed to contest notifications.')
+            await ctx.send(ctx.message.author.display_name + ', That channel is already not subscribed to contest notifications.')
             return
         self.subscribed_channels.remove(channel.id)
         query.unsub_channel(channel.id)
-        await ctx.send(ctx.message.author.mention + ' ' + channel.mention + ' is no longer a contest notification channel.')
+        await ctx.send(ctx.message.author.display_name + ', ' + channel.mention + ' is no longer a contest notification channel.')
 
     def is_upcoming(self, contest):
         return datetime.strptime(contest.asdict()['Start Time'], '%Y-%m-%d %H:%M:%S') > datetime.now() - timedelta(days=7)

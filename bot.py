@@ -45,19 +45,25 @@ async def ping(ctx):
 
 @bot.command()
 @commands.has_permissions(administrator=True)
-async def setprefix(ctx, fix: str=prefix):
-    if len(fix) > 255:
-        await ctx.send(ctx.message.author.mention + ' Sorry, prefix is too long (maximum of 255 characters)')
-    elif '"' in fix or '\'' in fix:
-        await ctx.send(ctx.message.author.mention + ' Sorry, prefix cannot contain quotation charaters `\'` or `"`')
-    elif ' ' in fix or '\n' in fix or '\r' in fix or '\t' in fix:
-        await ctx.send(ctx.message.author.mention + ' Sorry, prefix cannot contain any whitespace')
+async def setprefix(ctx, fix: str=None):
+    if fix is not None and len(fix) > 255:
+        await ctx.send(ctx.message.author.display_name + ', Sorry, prefix is too long (maximum of 255 characters)')
+    elif fix is not None and '"' in fix or '\'' in fix:
+        await ctx.send(ctx.message.author.display_name + ', Sorry, prefix cannot contain quotation charaters `\'` or `"`')
+    elif fix is not None and ' ' in fix or '\n' in fix or '\r' in fix or '\t' in fix:
+        await ctx.send(ctx.message.author.display_name + ', Sorry, prefix cannot contain any whitespace')
     else:
+        default = fix is None
+        if default:
+            fix = prefix
         previous_prefix = custom_prefixes.get(ctx.message.guild.id, prefix)
         custom_prefixes[ctx.message.guild.id] = fix
         query.insert_ignore_server(ctx.message.guild.id)
         query.update_server_prefix(ctx.message.guild.id, fix)
-        await ctx.send(ctx.message.author.mention + ' Server prefix changed from `%s` to `%s`' % (previous_prefix, fix))
+        if default:
+            await ctx.send(ctx.message.author.display_name + ', No prefix given, defaulting to %s. Server prefix changed from `%s` to `%s`' % (prefix, previous_prefix, fix))
+        else:
+            await ctx.send(ctx.message.author.display_name + ', Server prefix changed from `%s` to `%s`' % (previous_prefix, fix))
 
 @bot.command()
 async def oj(ctx, oj: str):
@@ -148,11 +154,11 @@ async def oj(ctx, oj: str):
         embed.add_field(name='Submission', value='No', inline=False)
         await ctx.send(embed=embed)
     else:
-        await ctx.send(ctx.message.author.mention + ' Sorry, no online judge found. Search only for online judges used by this bot (DMOJ, Codeforces, AtCoder, WCIPEG, CSES)')
+        await ctx.send(ctx.message.author.display_name + ', Sorry, no online judge found. Search only for online judges used by this bot (DMOJ, Codeforces, AtCoder, WCIPEG, CSES)')
 
 @bot.command()
 async def motivation(ctx):
-    await ctx.send(ctx.message.author.mention + ' ' + rand.choice(replies))
+    await ctx.send(ctx.message.author.display_name + ', ' + rand.choice(replies))
 
 @tasks.loop(minutes=30)
 async def status_change():
@@ -166,7 +172,7 @@ bot.remove_command('help')
 
 @bot.command()
 async def help(ctx):
-    await ctx.send(ctx.message.author.mention + ' Here is a full list of my commands! https://github.com/kevinjycui/Practice-Bot/wiki/Commands')
+    await ctx.send(ctx.message.author.display_name + ', Here is a full list of my commands! https://github.com/kevinjycui/Practice-Bot/wiki/Commands')
 
 @bot.event
 async def on_command_error(ctx, error):
@@ -180,9 +186,9 @@ async def on_command_error(ctx, error):
     ):
         return
     elif isinstance(error, commands.errors.MissingPermissions):
-        await ctx.send(ctx.message.author.mention + ' Sorry, you are missing permissions to run this command!')
+        await ctx.send(ctx.message.author.display_name + ', Sorry, you are missing permissions to run this command!')
     else:
-        await ctx.send(ctx.message.author.mention + ' An unexpected error occured. Please try again. If this error persists, you can report it using the `$suggest <suggestion>` command.')
+        await ctx.send(ctx.message.author.display_name + ', An unexpected error occured. Please try again. If this error persists, you can report it using the `$suggest <suggestion>` command.')
         raise error
 
 @bot.event

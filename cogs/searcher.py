@@ -97,7 +97,7 @@ class SearcherCog(commands.Cog):
     async def whatis(self, ctx, *, name=None):
         if name is None:
             prefix = await self.bot.command_prefix(self.bot, ctx.message)
-            await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%swhatis <thing>`.' % prefix)
+            await ctx.send(ctx.message.author.display_name + ', Invalid query. Please use format `%swhatis <thing>`.' % prefix)
             return
         peg_res = self.wcipegScrape(name)
         if peg_res is not None:
@@ -105,32 +105,32 @@ class SearcherCog(commands.Cog):
             embed = discord.Embed(title=title, description=url + ' (searched in %ss)' % str(round(self.bot.latency, 3)))
             embed.timestamp = datetime.utcnow()
             embed.add_field(name='Summary', value=summary, inline=False)
-            await ctx.send(ctx.message.author.mention + ' Here\'s what I found!', embed=embed)
+            await ctx.send(ctx.message.author.display_name + ', Here\'s what I found!', embed=embed)
             return
         page, summary = self.getSummary(name.replace(' ', '_'))
         if summary is None:
-            await ctx.send(ctx.message.author.mention + ' Sorry, I couldn\'t find anything on "%s"' % name)
+            await ctx.send(ctx.message.author.display_name + ', Sorry, I couldn\'t find anything on "%s"' % name)
             return
         embed = discord.Embed(title=page.title, description=page.url+' (searched in %ss)' % str(round(self.bot.latency, 3)))
         embed.timestamp = datetime.utcnow()
         embed.add_field(name='Summary', value=summary, inline=False)
-        await ctx.send(ctx.message.author.mention + ' Here\'s what I found!', embed=embed)
+        await ctx.send(ctx.message.author.display_name + ', Here\'s what I found!', embed=embed)
 
     @commands.command()
     async def whois(self, ctx, *, name=None):
         if name is None:
             prefix = await self.bot.command_prefix(self.bot, ctx.message)
-            await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%swhois <name>`.' % prefix)
+            await ctx.send(ctx.message.author.display_name + ', Invalid query. Please use format `%swhois <name>`.' % prefix)
             return
         accounts = self.accountScrape(name)
         if len(accounts) == 0:
-            await ctx.send(ctx.message.author.mention + ' Sorry, found 0 results for %s' % name)
+            await ctx.send(ctx.message.author.display_name + ', Sorry, found 0 results for %s' % name)
             return
         embed = discord.Embed(title=name, description=' (searched in %ss)' % str(round(self.bot.latency, 3)))
         embed.timestamp = datetime.utcnow()
         for oj, url in accounts.items():
             embed.add_field(name=oj, value=url, inline=False)
-        await ctx.send(ctx.message.author.mention + ' Found %d result(s) for `%s`' % (len(accounts), name), embed=embed)
+        await ctx.send(ctx.message.author.display_name + ', Found %d result(s) for `%s`' % (len(accounts), name), embed=embed)
 
     @commands.command()
     async def cat(self, ctx):
@@ -138,21 +138,21 @@ class SearcherCog(commands.Cog):
             data = [{'url':'https://media.discordapp.net/attachments/511001840071213067/660303090444140545/539233495000809475.png'}]
         else:
             data = json_get('https://api.thecatapi.com/v1/images/search?x-api-key=' + cat_api)
-        await ctx.send(ctx.message.author.mention + ' :smiley_cat: ' + data[0]['url'])
+        await ctx.send(ctx.message.author.display_name + ', :smiley_cat: ' + data[0]['url'])
 
     @commands.command()
     async def run(self, ctx, lang=None, stdin=None, *, script=None):
         if lang is None or stdin is None or script is None:
             prefix = await self.bot.command_prefix(self.bot, ctx.message)
-            await ctx.send(ctx.message.author.mention + ' Invalid query. Please use format `%srun <language> "<stdin>" <script>`.' % prefix)
+            await ctx.send(ctx.message.author.display_name + ', Invalid query. Please use format `%srun <language> "<stdin>" <script>`.' % prefix)
             return
         headers = {'Content-type':'application/json', 'Accept':'application/json'}
         credit_spent = requests.post('https://api.jdoodle.com/v1/credit-spent', json={'clientId': client_id, 'clientSecret': client_secret}, headers=headers).json()
         if 'error' not in credit_spent and credit_spent['used'] >= 200:
-            await ctx.send(ctx.message.author.mention + ' Sorry, the daily limit of compilations has been surpassed (200). Please wait until 12:00 AM UTC')
+            await ctx.send(ctx.message.author.display_name + ', Sorry, the daily limit of compilations has been surpassed (200). Please wait until 12:00 AM UTC')
             return
         if time() - self.wait_time < 15:
-            await ctx.send(ctx.message.author.mention + ' Queue in process, please wait %d seconds' % (15 - (time() - self.wait_time)))
+            await ctx.send(ctx.message.author.display_name + ', Queue in process, please wait %d seconds' % (15 - (time() - self.wait_time)))
             return
         self.wait_time = time()
         lang = lang.lower()
@@ -167,9 +167,9 @@ class SearcherCog(commands.Cog):
             }
         response = requests.post('https://api.jdoodle.com/v1/execute', json=data, headers=headers).json()
         if 'error' in response and response['statusCode'] == 400:
-            await ctx.send(ctx.message.author.mention + ' Invalid request. Perhaps the language you\'re using is unavailable.')
+            await ctx.send(ctx.message.author.display_name + ', Invalid request. Perhaps the language you\'re using is unavailable.')
         elif 'error' in response:
-            await ctx.send(ctx.message.author.mention + ' Compilation failed. The compiler may be down.')
+            await ctx.send(ctx.message.author.display_name + ', Compilation failed. The compiler may be down.')
         else:
             message = '\n'
             message += 'CPU Time: `' + ((str(response['cpuTime']) + 's') if response['cpuTime'] is not None else 'N/A') + '`\n'

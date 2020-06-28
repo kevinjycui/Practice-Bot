@@ -4,8 +4,11 @@ from datetime import datetime, date
 import random as rand
 import requests
 import bs4 as bs
-from dmoj.session import Session, InvalidSessionException
+from dmoj.session import Session as DMOJSession
+from dmoj.session import InvalidSessionException
 from dmoj.language import Language
+from codeforces.session import Session as CodeforcesSession
+from codeforces.session import InvalidCodeforcesSessionException, NoSubmissionsException, SessionTimeoutException, PrivateSubmissionException
 from backend import mySQLConnection as query
 import json
 import re
@@ -66,7 +69,8 @@ class ProblemCog(commands.Cog):
     cses_problems = {}
     peg_problems = {}
     accounts = ('dmoj',)
-    sessions = {}
+    dmoj_sessions = {}
+    cf_sessions = {}
     language = Language()
     url_to_thumbnail = {
         'https://dmoj.ca/problem/': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/dmoj-thumbnail.png',
@@ -220,8 +224,10 @@ class ProblemCog(commands.Cog):
     def get_problem(self, oj, contest_id=None, problem_id=None):
         if problem_id is None:
             raise ProblemNotFoundException
+
+        oj = oj.lower()
         
-        if oj.lower() == 'dmoj':
+        if oj == 'dmoj':
             if problem_id not in self.dmoj_problems.keys():
                 raise ProblemNotFoundException
             title, description, embed = self.embed_dmoj_problem(problem_id, self.dmoj_problems[problem_id])
@@ -230,7 +236,7 @@ class ProblemCog(commands.Cog):
             embed.timestamp = datetime.utcnow()
             return embed
         
-        elif oj.lower() == 'cf' or oj.lower() == 'codeforces':
+        elif oj == 'cf' or oj == 'codeforces':
             if contest_id is None:
                 raise ProblemNotFoundException
             def is_problem(prob):
@@ -244,7 +250,7 @@ class ProblemCog(commands.Cog):
             embed.timestamp = datetime.utcnow()
             return embed
 
-        elif oj.lower() == 'atcoder' or oj.lower() == 'at' or oj.lower() == 'ac':
+        elif oj == 'atcoder' or oj == 'at' or oj == 'ac':
             if contest_id is None:
                 raise ProblemNotFoundException
             def is_problem(prob):
@@ -258,7 +264,7 @@ class ProblemCog(commands.Cog):
             embed.timestamp = datetime.utcnow()
             return embed
 
-        elif oj.lower() == 'wcipeg' or oj.lower() == 'peg':
+        elif oj == 'wcipeg' or oj == 'peg':
             def is_problem(prob):
                 return prob['url'] == 'https://wcipeg.com/problem/' + problem_id
             problist = list(filter(is_problem, list(self.peg_problems.values())))
@@ -270,7 +276,7 @@ class ProblemCog(commands.Cog):
             embed.timestamp = datetime.utcnow()
             return embed
 
-        elif oj.lower() == 'cses':
+        elif oj == 'cses':
             if problem_id not in self.cses_problems.keys():
                 raise CSESProblemNotFoundException
             title, description, embed = self.embed_cses_problem(self.cses_problems[problem_id])
@@ -302,13 +308,23 @@ class ProblemCog(commands.Cog):
     def get_random_problem(self, oj=None, points=None, maximum=None, iden=None):
         if oj is None:
             oj = rand.choice(('dmoj', 'cf', 'at', 'peg', 'cses'))
+
+        oj = oj.lower()
         
-        if oj.lower() == 'cses' and points is not None:
+        if oj == 'cses' and points is not None:
             raise InvalidParametersException(cses=True)
 
+        if oj == 'codeforces':
+            oj = 'cf'
+        elif oj == 'atcoder' or oj == 'ac':
+            oj = 'at'
+        elif oj == 'wcipeg':
+            oj = 'peg'
+
         temp_dmoj_problems = {}
-        if iden is not None and oj in self.accounts and self.global_users[iden]['dmoj'] is not None and not self.global_users[iden]['can_repeat']:
-            if oj == 'dmoj':
+        temp_cf_problems = []
+        if iden is not None and not self.global_users[iden]['can_repeat']:
+            if oj == 'dmoj' and self.global_users[iden]['dmoj'] is not None:
                 user_response = json_get('https://dmoj.ca/api/user/info/%s' % self.global_users[iden]['dmoj'])
                 if user_response is not None:
                     if points is None:
@@ -324,11 +340,35 @@ class ProblemCog(commands.Cog):
                                     temp_dmoj_problems['dmoj'][point][name] = prob
                     if temp_dmoj_problems == {}:
                         raise InvalidParametersException()
-                    
+            elif oj == 'cf' or oj == 'codeforces':
+                response = requests.get('https://codeforces.com/api/user.status?handle=' + self.global_users[iden]['codeforces'])
+                if response.status_code != 200 or response.json()['status'] != 'OK':
+                    return None
+                solved = []
+                for sub in response.json()['result']:
+                    if sub['verdict'] == 'OK':
+                        if 'contestId' in sub['problem']:
+                            solved.append((sub['problem']['contestId'], sub['problem']['index']))
+                        elif 'problemsetName' in sub['problem']:
+                            solved.append((sub['problem']['problemsetName'], sub['problem']['index']))
+                if points is None:
+                    temp_cf_problems = list(filter(lambda prob: (prob.get('contestId', prob.get('problemsetName')), prob['index']) not in solved, self.cf_problems))
+                else:
+                    temp_cf_problems = {'cf': {}}
+                    for point in list(self.problems_by_points['cf']):
+                        temp_cf_problems['cf'][point] = list(filter(lambda prob: (prob['contestId'], prob['index']) not in solved, self.problems_by_points['cf'][point]))
+                if temp_cf_problems == [] or (type(temp_cf_problems) is dict and temp_cf_problems['cf'] == {}):
+                    raise InvalidParametersException()
+
         if temp_dmoj_problems != {}:
             problem_list = temp_dmoj_problems
+        elif temp_cf_problems != []:
+            problem_list = temp_cf_problems
         elif points is None:
-            problem_list = self.dmoj_problems
+            if oj == 'dmoj':
+                problem_list = self.dmoj_problems
+            elif oj == 'cf':
+                problem_list = self.cf_problems
         else:
             problem_list = self.problems_by_points
                                     
@@ -342,12 +382,6 @@ class ProblemCog(commands.Cog):
                 raise InvalidQueryException()
             maximum = int(maximum)
             possibilities = []
-            if oj.lower() == 'codeforces':
-                oj = 'cf'
-            elif oj.lower() == 'atcoder' or oj.lower() == 'ac':
-                oj = 'at'
-            elif oj.lower() == 'wcipeg':
-                oj = 'peg'
             for point in list(problem_list[oj].keys()):
                 if point >= points and point <= maximum:
                     possibilities.append(point)
@@ -355,7 +389,7 @@ class ProblemCog(commands.Cog):
                 raise InvalidParametersException()
             points = rand.choice(possibilities)
             
-        if oj.lower() == 'dmoj':
+        if oj == 'dmoj':
             if not self.dmoj_problems:
                 raise OnlineJudgeHTTPException('DMOJ')
                 
@@ -370,19 +404,19 @@ class ProblemCog(commands.Cog):
                 query.update_user(iden, 'last_dmoj_problem', name)
             return self.embed_dmoj_problem(name, prob)
             
-        elif oj.lower() == 'cf' or oj.lower() == 'codeforces':
+        elif oj == 'cf' or oj == 'codeforces':
             if not self.cf_problems:
                 raise OnlineJudgeHTTPException('Codeforces')
                 return
             if points is None:
-                prob = rand.choice(self.cf_problems)
-            elif points in self.problems_by_points['cf']:
-                prob = rand.choice(self.problems_by_points['cf'][points])
+                prob = rand.choice(problem_list)
+            elif points in problem_list['cf']:
+                prob = rand.choice(problem_list['cf'][points])
             else:
                 raise InvalidParametersException()
             return self.embed_cf_problem(prob)
 
-        elif oj.lower() == 'atcoder' or oj.lower() == 'at' or oj.lower() == 'ac':
+        elif oj == 'atcoder' or oj == 'at' or oj == 'ac':
             if not self.atcoder_problems:
                 raise OnlineJudgeHTTPException('AtCoder')
 
@@ -394,7 +428,7 @@ class ProblemCog(commands.Cog):
                 raise InvalidParametersException()
             return self.embed_atcoder_problem(prob)
 
-        elif oj.lower() == 'wcipeg' or oj.lower() == 'peg':
+        elif oj == 'wcipeg' or oj == 'peg':
             if not self.peg_problems:
                 raise OnlineJudgeHTTPException('WCIPEG')
             if points is None:
@@ -405,7 +439,7 @@ class ProblemCog(commands.Cog):
                 raise InvalidParametersException()
             return self.embed_peg_problem(prob)
 
-        elif oj.lower() == 'cses':
+        elif oj == 'cses':
             prob = rand.choice(list(self.cses_problems.values()))
             return self.embed_cses_problem(prob)
         
@@ -435,33 +469,33 @@ class ProblemCog(commands.Cog):
     async def problem(self, ctx, url: str):
         try:
             embed = self.get_problem_from_url(url)
-            await ctx.send(ctx.message.author.mention, embed=embed)
+            await ctx.send('Requested problem for ' + ctx.message.author.display_name, embed=embed)
         except InvalidURLException:
-            await ctx.send(ctx.message.author.mention + ' Sorry, the problem URL was not recognised.')
+            await ctx.send(ctx.message.author.display_name + ', Sorry, the problem URL was not recognised.')
         except ProblemNotFoundException as e:
-            await ctx.send(ctx.message.author.mention + ' Sorry, the problem was not found. ' + str(e))
+            await ctx.send(ctx.message.author.display_name + ', Sorry, the problem was not found. ' + str(e))
 
     @commands.command(aliases=['r'])
     async def random(self, ctx, oj=None, points=None, maximum=None):
         self.check_existing_user(ctx.message.author)
         if isinstance(oj, str) and (oj.lower() == 'peg' or oj.lower() == 'wcipeg'):
-            await ctx.send(ctx.message.author.mention + ' Notice: Starting from July 31, 2020 support for WCIPEG may be discontinued as **PEG Judge will shut down at the end of July**\nhttps://wcipeg.com/announcement/9383')
+            await ctx.send(ctx.message.author.display_name + ', Notice: Starting from July 31, 2020 support for WCIPEG may be discontinued as **PEG Judge will shut down at the end of July**\nhttps://wcipeg.com/announcement/9383')
         try:
             title, description, embed = self.get_random_problem(oj, points, maximum, ctx.message.author.id)
             embed.title = title
             embed.description = description + ' (searched in %ss)' % str(round(self.bot.latency, 3))
             embed.timestamp = datetime.utcnow()
-            await ctx.send(ctx.message.author.mention, embed=embed)
+            await ctx.send('Requested problem for ' + ctx.message.author.display_name, embed=embed)
         except IndexError:
-            await ctx.send(ctx.message.author.mention + ' No problem was found. This may be due to the bot updating the problem cache. Please wait a moment, then try again.')
+            await ctx.send(ctx.message.author.display_name + ', No problem was found. This may be due to the bot updating the problem cache. Please wait a moment, then try again.')
         except NoSuchOJException:
-            await ctx.send(ctx.message.author.mention + ' Invalid query. The online judge must be one of the following: DMOJ (dmoj), Codeforces (codeforces/cf), AtCoder (atcoder/at/ac), WCIPEG (wcipeg/peg), CSES (cses).')
+            await ctx.send(ctx.message.author.display_name + ', Invalid query. The online judge must be one of the following: DMOJ (dmoj), Codeforces (codeforces/cf), AtCoder (atcoder/at/ac), WCIPEG (wcipeg/peg), CSES (cses).')
         except InvalidParametersException as e:
-            await ctx.send(ctx.message.author.mention + ' ' + str(e))
+            await ctx.send(ctx.message.author.display_name + ', ' + str(e))
         except OnlineJudgeHTTPException as e:
-            await ctx.send(ctx.message.author.mention + ' There seems to be a problem with %s. Please try again later :shrug:' % str(e))
+            await ctx.send(ctx.message.author.display_name + ', There seems to be a problem with %s. Please try again later :shrug:' % str(e))
         except InvalidQueryException:
-            await ctx.send(ctx.message.author.mention + ' Invalid query. Make sure your points are positive integers.')
+            await ctx.send(ctx.message.author.display_name + ', Invalid query. Make sure your points are positive integers.')
 
     @commands.command(aliases=['d'])
     async def daily(self, ctx):
@@ -469,7 +503,7 @@ class ProblemCog(commands.Cog):
             try:
                 title, description, embed = self.get_random_problem()
             except IndexError:
-                await ctx.send(ctx.message.author.mention + ' No problem was found. This may be due to the bot updating the problem cache. Please wait a moment, then try again.')
+                await ctx.send(ctx.message.author.display_name + ', No problem was found. This may be due to the bot updating the problem cache. Please wait a moment, then try again.')
             thumbnail = 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/logo.png'
             for url, tn in list(self.url_to_thumbnail.items()):
                 if url in description:
@@ -483,41 +517,47 @@ class ProblemCog(commands.Cog):
             self.update_daily()
         problem_data = self.daily_problems[str(date.today())]
         embed = self.get_problem_from_url(problem_data['description'])
-        await ctx.send(ctx.message.author.mention + ' Hello! Here\'s today\'s problem of the day!', embed=embed)
+        await ctx.send(ctx.message.author.display_name + ', Hello! Here\'s today\'s problem of the day!', embed=embed)
 
-    @commands.command()
-    async def toggleRepeat(self, ctx):
+    @commands.command(aliases=['toggleRepeat'])
+    async def togglerepeat(self, ctx):
         self.check_existing_user(ctx.message.author)
         for account in self.accounts:
             if self.global_users[ctx.message.author.id][account] is not None:
                 self.global_users[ctx.message.author.id]['can_repeat'] = not self.global_users[ctx.message.author.id]['can_repeat']
                 query.update_user(ctx.message.author.id, 'can_repeat', self.global_users[ctx.message.author.id]['can_repeat'])
                 prefix = await self.bot.command_prefix(self.bot, ctx.message)
-                await ctx.send(ctx.message.author.mention + ' Repeat setting for command `%srandom` set to %s.' % (prefix, ('ON' if self.global_users[ctx.message.author.id]['can_repeat'] else 'OFF')))
+                await ctx.send(ctx.message.author.display_name + ', Repeat setting for command `%srandom` set to %s.' % (prefix, ('ON' if self.global_users[ctx.message.author.id]['can_repeat'] else 'OFF')))
                 return
-        await ctx.send(ctx.message.author.mention + ' You are not linked to any accounts')
+        await ctx.send(ctx.message.author.display_name + ', You are not linked to any accounts')
 
-    @commands.command(aliases=['u'])
+    @commands.command(aliases=['u', 'profile'])
     async def user(self, ctx, user: discord.User=None):
         if user is None:
             user = ctx.message.author
         self.check_existing_user(user)
-        embed = discord.Embed(title=user.display_name, description=user.mention)
+        embed = discord.Embed(title=user.display_name)
         embed.timestamp = datetime.utcnow()
-        embed.add_field(name='Discord ID', value=user.id, inline=False)
+        empty = True
         if self.global_users[user.id]['dmoj'] is not None:
             embed.add_field(name='DMOJ', value='https://dmoj.ca/user/%s' % self.global_users[user.id]['dmoj'], inline=False)
-        await ctx.send(ctx.message.author.mention, embed=embed)
+            empty = False
+        if self.global_users[user.id]['codeforces'] is not None:
+            embed.add_field(name='Codeforces', value='https://codeforces.com/profile/%s' % self.global_users[user.id]['codeforces'], inline=False)
+            empty = False
+        if empty:
+            embed.description = 'No accounts linked...'
+        await ctx.send('Requested profile by ' + ctx.message.author.display_name, embed=embed)
 
     @commands.command(aliases=['s'])
     async def submit(self, ctx, problem, lang, *, source=None):
-        if ctx.message.author.id not in self.sessions.keys():
+        if ctx.message.author.id not in self.dmoj_sessions.keys():
             prefix = await self.bot.command_prefix(self.bot, ctx.message)
-            await ctx.send(ctx.message.author.mention + ' You are not logged in to a DMOJ account with submission permissions (this could happen if you last logged in a long time ago or have recently gone offline). Please use command `%slogin dmoj <token>` (your DMOJ API token can be found by going to https://dmoj.ca/edit/profile/ and selecting the __Generate__ or __Regenerate__ option next to API Token). Note: The login command will ONLY WORK IN DIRECT MESSAGE. Please do not share this token with anyone else.' % prefix)
+            await ctx.send(ctx.message.author.display_name + ', You are not logged in to a DMOJ account with submission permissions (this could happen if you last logged in a long time ago or have recently gone offline). Please use command `%sconnect dmoj <token>` (your DMOJ API token can be found by going to https://dmoj.ca/edit/profile/ and selecting the __Generate__ or __Regenerate__ option next to API Token). Note: The connect command will ONLY WORK IN DIRECT MESSAGE. Please do not share this token with anyone else.' % prefix)
             return
-        user_session = self.sessions[ctx.message.author.id]
+        user_session = self.dmoj_sessions[ctx.message.author.id]
         if not self.language.languageExists(lang):
-            await ctx.send(ctx.message.author.mention + ' That language is not available. The available languages are as followed: ```%s```' % ', '.join(self.language.getLanguages()))
+            await ctx.send(ctx.message.author.display_name + ', That language is not available. The available languages are as followed: ```%s```' % ', '.join(self.language.getLanguages()))
             return
         try:
             if source is None and len(ctx.message.attachments) > 0:
@@ -531,18 +571,18 @@ class ProblemCog(commands.Cog):
             responseText = str(response)
             if len(responseText) > 1950:
                 responseText = responseText[1950:] + '\n(Result cut off to fit message length limit)'
-            await ctx.send(ctx.message.author.mention + ' ' + responseText + '\nTrack your submission here: https://dmoj.ca/submission/' + str(id))
+            await ctx.send(ctx.message.author.display_name + ', ' + responseText + '\nTrack your submission here: https://dmoj.ca/submission/' + str(id))
         except InvalidSessionException:
-            await ctx.send(ctx.message.author.mention + ' Failed to connect, or problem not available. Make sure you are submitting to a valid problem, check your authentication, and try again.')
+            await ctx.send(ctx.message.author.display_name + ', Failed to connect, or problem not available. Make sure you are submitting to a valid problem, check your authentication, and try again.')
         except:
-            await ctx.send(ctx.message.author.mention + ' Error submitting to the problem. Report this using command `$suggest Submission to DMOJ failed`.')
+            await ctx.send(ctx.message.author.display_name + ', Error submitting to the problem. Report this using command `$suggest Submission to DMOJ failed`.')
 
     @tasks.loop(seconds=30)
     async def logout_offline(self):
         for guild in self.bot.guilds:
             for member in guild.members:
-                if member.id in self.sessions.keys() and member.status == discord.Status.offline:
-                    await member.send('Attention! You have been logged out of the account %s due to being offline (Note that your account will still be linked to your Discord account, but will now be unable to submit to problems)' % self.sessions.pop(member.id))
+                if member.id in self.dmoj_sessions.keys() and member.status == discord.Status.offline:
+                    await member.send('Attention! You have been logged out of the account %s due to being offline (Note that your account will still be linked to your Discord account, but will now be unable to submit to problems)' % self.dmoj_sessions.pop(member.id))
 
     @logout_offline.before_loop
     async def logout_offline_before(self):
@@ -593,23 +633,23 @@ class ProblemCog(commands.Cog):
     async def tea(self, ctx, user: discord.User=None):
         if user is None:
             if not self.check_existing_user(ctx.message.author):
-                await ctx.send(ctx.message.author.mention + ' You have 0 cups of :tea:.')
+                await ctx.send(ctx.message.author.display_name + ', You have 0 cups of :tea:.')
                 return
             if self.global_users[ctx.message.author.id]['tea'] == 1:
-                await ctx.send(ctx.message.author.mention + ' You have 1 cup of :tea:.')
+                await ctx.send(ctx.message.author.display_name + ', You have 1 cup of :tea:.')
             else:
-                await ctx.send(ctx.message.author.mention + ' You have ' + str(self.global_users[ctx.message.author.id]['tea']) + ' cups of :tea:.')
+                await ctx.send(ctx.message.author.display_name + ', You have ' + str(self.global_users[ctx.message.author.id]['tea']) + ' cups of :tea:.')
             return
         if user.id == ctx.message.author.id:
-            await ctx.send(ctx.message.author.mention + ' Sorry, cannot send :tea: to yourself!')
+            await ctx.send(ctx.message.author.display_name + ', Sorry, cannot send :tea: to yourself!')
             return
         elif user.id == self.bot.user.id:
-            await ctx.send(ctx.message.author.mention + ' Thanks for the :tea:!')
+            await ctx.send(ctx.message.author.display_name + ', Thanks for the :tea:!')
             return
         self.check_existing_user(user)
         self.global_users[user.id]['tea'] += 1
         query.update_user(user.id, 'tea', self.global_users[user.id]['tea'])
-        await ctx.send(ctx.message.author.mention + ' sent a cup of :tea: to ' + user.mention)
+        await ctx.send(ctx.message.author.display_name + ', sent a cup of :tea: to ' + user.mention)
         
 def setup(bot):
     bot.add_cog(ProblemCog(bot))

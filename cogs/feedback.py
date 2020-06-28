@@ -47,7 +47,7 @@ class EmailCog(commands.Cog):
     @commands.command()
     async def suggest(self, ctx, *, content):
         if ctx.message.author.id in self.suggesters and time() - self.suggester_times[self.suggesters.index(ctx.message.author.id)] < 3600:
-            await ctx.send(ctx.message.author.mention + ' Please wait %d minutes before making another suggestion!' % int((3600 - time() + self.suggester_times[self.suggesters.index(ctx.message.author.id)])//60))
+            await ctx.send(ctx.message.author.display_name + ', Please wait %d minutes before making another suggestion!' % int((3600 - time() + self.suggester_times[self.suggesters.index(ctx.message.author.id)])//60))
             return
 
         try:
@@ -57,9 +57,9 @@ class EmailCog(commands.Cog):
             else:
                 self.suggesters.append(ctx.message.author.id)
                 self.suggester_times.append(time())
-            await ctx.send(ctx.message.author.mention + ' Suggestion sent!\n```From: You\nTo: The Dev\nAt: ' + datetime.now().strftime('%d/%m/%Y %H:%M:%S') + '\n' + content + '```')
+            await ctx.send(ctx.message.author.display_name + ', Suggestion sent!\n```From: You\nTo: The Dev\nAt: ' + datetime.now().strftime('%d/%m/%Y %H:%M:%S') + '\n' + content + '```')
         except SMTPException:
-            await ctx.send(ctx.message.author.mention + ' Failed to send that suggestion.')
+            await ctx.send(ctx.message.author.display_name + ', Failed to send that suggestion.')
 
 def setup(bot):
     bot.add_cog(EmailCog(bot))

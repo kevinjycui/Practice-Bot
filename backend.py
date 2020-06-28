@@ -13,37 +13,38 @@ finally:
 
 db = pymysql.connect('localhost', user, password, database)
 
-def make_db():
-    """
-    DANGER: RESETS ALL DATA IN DATABASE
-    """
-    cursor = db.cursor()
-    cursor.execute("DROP TABLE IF EXISTS servers")
-    cursor.execute("""CREATE TABLE servers (
-        server_id BIGINT NOT NULL,
-        nickname_sync BOOLEAN,
-        role_sync BOOLEAN,
-        sync_source VARCHAR(20),
-        PRIMARY KEY (server_id))""")
-    cursor.execute("DROP TABLE IF EXISTS subscriptions_contests")
-    cursor.execute("""CREATE TABLE subscriptions_contests (
-        channel_id BIGINT NOT NULL,
-        PRIMARY KEY (channel_id))""")
-    cursor.execute("DROP TABLE IF EXISTS users")
-    cursor.execute("""CREATE TABLE users (
-        user_id BIGINT NOT NULL,
-        tea INT,
-        dmoj VARCHAR(255),
-        codeforces VARCHAR(255),
-        atcoder VARCHAR(255),
-        last_dmoj_problem VARCHAR(255),
-        can_repeat BOOLEAN,
-        PRIMARY KEY (user_id))""")
-    cursor.execute("SHOW TABLES")
-    result = cursor.fetchall()
-    print("Tables:")
-    for data in result:
-        print(data[0])
+# def make_db():
+#     """
+#     DANGER: RESETS ALL DATA IN DATABASE
+#     """
+#     cursor = db.cursor()
+#     cursor.execute("DROP TABLE IF EXISTS servers")
+#     cursor.execute("""CREATE TABLE servers (
+#         server_id BIGINT NOT NULL,
+#         nickname_sync BOOLEAN,
+#         role_sync BOOLEAN,
+#         sync_source VARCHAR(20),
+#         PRIMARY KEY (server_id))""")
+#     cursor.execute("DROP TABLE IF EXISTS subscriptions_contests")
+#     cursor.execute("""CREATE TABLE subscriptions_contests (
+#         channel_id BIGINT NOT NULL,
+#         PRIMARY KEY (channel_id))""")
+#     cursor.execute("DROP TABLE IF EXISTS users")
+#     cursor.execute("""CREATE TABLE users (
+#         user_id BIGINT NOT NULL,
+#         tea INT,
+#         dmoj VARCHAR(255),
+#         codeforces VARCHAR(255),
+#         codeforces VARCHAR(255),
+#         atcoder VARCHAR(255),
+#         last_dmoj_problem VARCHAR(255),
+#         can_repeat BOOLEAN,
+#         PRIMARY KEY (user_id))""")
+#     cursor.execute("SHOW TABLES")
+#     result = cursor.fetchall()
+#     print("Tables:")
+#     for data in result:
+#         print(data[0])
 
 class MySQLConnection(object):
     def sanitize_id(self, id):
@@ -90,8 +91,8 @@ class MySQLConnection(object):
     def insert_ignore_user(self, user_id):
         if not self.sanitize_id(user_id):
             return -1
-        sql = "INSERT IGNORE INTO users(user_id, tea, dmoj, last_dmoj_problem, can_repeat) \
-            VALUES (%d, 0, NULL, NULL, TRUE)" % \
+        sql = "INSERT IGNORE INTO users(user_id, tea, dmoj, last_dmoj_problem, can_repeat, codeforces) \
+            VALUES (%d, 0, NULL, NULL, TRUE, NULL)" % \
             (user_id)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -107,7 +108,8 @@ class MySQLConnection(object):
                 'tea': row[1],
                 'dmoj': row[2],
                 'last_dmoj_problem': row[3],
-                'can_repeat': row[4]
+                'can_repeat': row[4],
+                'codeforces': row[5]
             }
         return users
 
@@ -165,26 +167,43 @@ class MySQLConnection(object):
             server_to_prefix[row[0]] = row[4]
         return server_to_prefix
 
-    def get_sync_source(self, server_id):
-        return 'dmoj'
+    def get_all_sync_source(self):
+        sql = "SELECT server_id, sync_source from servers"
+        result = self.readall_query(sql)
+        sync_sources = {}
+        for row in result:
+            sync_sources[row[0]] = row[1]
+        return sync_sources
 
-    def get_all_role_sync(self):
+    def get_all_role_sync(self, site):
+        if not self.sanitize_alnum(site):
+            return -1
         sql = "SELECT * FROM servers \
-        WHERE role_sync"
+        WHERE role_sync AND sync_source = '%s'" % site
         result = self.readall_query(sql)
         servers = []
         for row in result:
             servers.append(row[0])
         return servers
 
-    def get_all_nick_sync(self):
+    def get_all_nick_sync(self, site):
+        if not self.sanitize_alnum(site):
+            return -1
         sql = "SELECT * FROM servers \
-        WHERE nickname_sync"
+        WHERE nickname_sync AND sync_source = '%s'" % site
         result = self.readall_query(sql)
         servers = []
         for row in result:
             servers.append(row[0])
         return servers
+
+    def get_cf_handles(self):
+        sql = "SELECT user_id, codeforces FROM users WHERE codeforces IS NOT NULL"
+        result = self.readall_query(sql)
+        handles = {}
+        for row in result:
+            handles[row[1]] = row[0]
+        return handles
 
     def sub_channel(self, channel_id):
         if not self.sanitize_id(channel_id):
