@@ -242,9 +242,9 @@ class ProblemRankingCog(ProblemCog):
                 if ctx.message.guild.id in self.cf_server_roles:
                     self.cf_server_roles.remove(ctx.message.guild.id)
                 query.update_server(ctx.message.guild.id, 'role_sync', False)
-                if ctx.message.guild.id in dmoj_server_nicks:
+                if ctx.message.guild.id in self.dmoj_server_nicks:
                     self.dmoj_server_nicks.remove(ctx.message.guild.id)
-                if ctx.message.guild.id in cf_server_nicks:
+                if ctx.message.guild.id in self.cf_server_nicks:
                     self.cf_server_nicks.remove(ctx.message.guild.id)
                 query.update_server(ctx.message.guild.id, 'nickname_sync', False)
                 await ctx.send(ctx.message.author.display_name + ', Ranked roles set to `OFF`')
