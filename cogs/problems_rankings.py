@@ -100,7 +100,7 @@ class ProblemRankingCog(ProblemCog):
                 except InvalidCodeforcesSessionException:
                     await ctx.send('Failed to connect to %s. User does not exist or Codeforces may be down currently.' % token)
                 except NoSubmissionsException:
-                    await ctx.send('Could not find any submissions that contain the token as a comment. Submit to the following problem with the token and try again: https://codeforces.com/problemsets/acmsguru/problem/99999/100')
+                    await ctx.send('Could not find any submissions that contain the token as a comment. Submit to the a problem with the token as a comment and try again.')
                 except SessionTimeoutException:
                     self.cf_sessions.pop(ctx.message.author.id)
                     prefix = await self.bot.command_prefix(self.bot, ctx.message)
