@@ -197,7 +197,7 @@ class ProblemRankingCog(ProblemCog):
                 query.update_server(ctx.message.guild.id, 'nickname_sync', True)
                 await ctx.send(ctx.message.author.display_name + ', DMOJ based nicknames and ranked roles set to `ON`. It may take some time for all roles to fully update. Failed to edit the nicknames of the following users due to insufficient permissions: ```%s```' % '\n'.join(forbidden_users))
             except discord.errors.Forbidden:
-                await ctx.send(ctx.message.author.display_name + ', Toggle failed, make sure that the bot has the Manage Roles permission and try again.')
+                await ctx.send(ctx.message.author.display_name + ', Toggle failed, make sure that the bot has the Manage Roles and Manage Roles permissions and try again.')
         elif site == 'cf' or site == 'codeforces':
             if ctx.message.guild.id in self.cf_server_roles:
                 await ctx.send(ctx.message.author.display_name + ', Codeforces based ranked roles already set to `ON`!')
@@ -228,7 +228,7 @@ class ProblemRankingCog(ProblemCog):
                 query.update_server(ctx.message.guild.id, 'nickname_sync', True)
                 await ctx.send(ctx.message.author.display_name + ', Codeforces based nicknames and ranked roles set to `ON`. It may take some time for all roles to fully update. Failed to edit the nicknames of the following users due to insufficient permissions: ```%s```' % '\n'.join(forbidden_users))
             except discord.errors.Forbidden:
-                await ctx.send(ctx.message.author.display_name + ', Toggle failed, make sure that the bot has the Manage Roles permission and try again.')
+                await ctx.send(ctx.message.author.display_name + ', Toggle failed, make sure that the bot has the Manage Roles and Manage Roles permissions and try again.')
         elif site == 'off':
             if ctx.message.guild.id not in self.cf_server_roles and ctx.message.guild.id not in self.dmoj_server_roles:
                 await ctx.send(ctx.message.author.display_name + ', Ranked roles already set to `OFF`!')
@@ -249,7 +249,7 @@ class ProblemRankingCog(ProblemCog):
                 query.update_server(ctx.message.guild.id, 'nickname_sync', False)
                 await ctx.send(ctx.message.author.display_name + ', Ranked roles set to `OFF`')
             except discord.errors.Forbidden:
-                await ctx.send(ctx.message.author.display_name + ', Toggle failed, make sure that the bot has the Manage Roles permission and try again.')
+                await ctx.send(ctx.message.author.display_name + ', Toggle failed, make sure that the bot has the Manage Roles and Manage Roles permissions and try again.')
 
     @tasks.loop(minutes=5)
     async def update_dmoj_ranks(self):
