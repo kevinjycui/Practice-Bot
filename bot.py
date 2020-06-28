@@ -195,7 +195,7 @@ async def on_command_error(ctx, error):
     else:
         await ctx.send(ctx.message.author.display_name + ', An unexpected error occured. Please try again. If this error persists, you can report it using the `$suggest <suggestion>` command.')
         user = bot.get_user(bot.owner_id)
-        user.send(str(error))
+        await user.send(str(error))
         raise error
 
 @bot.event
