@@ -195,8 +195,14 @@ async def on_command_error(ctx, error):
     else:
         await ctx.send(ctx.message.author.display_name + ', An unexpected error occured. Please try again. If this error persists, you can report it using the `$suggest <suggestion>` command.')
         user = bot.get_user(bot.owner_id)
-        await user.send(str(error))
+        await user.send('```%s```' % str(error))
         raise error
+
+@bot.command(aliases=['toggleJoin'])
+async def togglejoin(ctx):
+    join_message = query.get_join_message(ctx.message.guild.id)
+    query.update_server(ctx.message.guild.id, 'join_message', not join_message)
+    await ctx.send(ctx.message.author.display_name + ', on-join direct messages for the bot turned `%s`.' % ('ON' if not join_message else 'OFF'))
 
 @bot.event
 async def on_member_join(member):
