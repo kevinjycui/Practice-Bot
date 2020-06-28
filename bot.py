@@ -49,7 +49,7 @@ async def ping(ctx):
     await ctx.send('Pong! (ponged in %ss)' % str(round(bot.latency, 3)))
 
 @bot.command()
-@commands.has_permissions(administrator=True)
+@commands.has_permissions(manage_guild=True)
 async def setprefix(ctx, fix: str=None):
     if fix is not None and len(fix) > 255:
         await ctx.send(ctx.message.author.display_name + ', Sorry, prefix is too long (maximum of 255 characters)')

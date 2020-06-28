@@ -158,8 +158,8 @@ class ProblemRankingCog(ProblemCog):
         else:
             await ctx.send(mention + 'Sorry, that site does not exist or logins to that site are not available yet')
 
-    @commands.command(aliases=['toggleSync'])
-    @commands.has_permissions(manage_roles=True)
+    @commands.command(aliases=['toggleSync', 'toggleRanks'. 'toggleNicks', 'toggleranks', 'togglenicks'])
+    @commands.has_permissions(manage_roles=True, manage_nicknames=True)
     @commands.guild_only()
     async def togglesync(self, ctx, site=None):
         self.check_existing_server(ctx.message.guild)
