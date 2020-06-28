@@ -102,6 +102,7 @@ class ProblemRankingCog(ProblemCog):
                 except NoSubmissionsException:
                     await ctx.send('Could not find any submissions that contain the token as a comment. Submit to the following problem with the token and try again: https://codeforces.com/problemsets/acmsguru/problem/99999/100')
                 except SessionTimeoutException:
+                    self.cf_sessions.pop(ctx.message.author.id)
                     prefix = await self.bot.command_prefix(self.bot, ctx.message)
                     await ctx.send('Session timed out (submit within 1 minute of using the connect command). Try initialising another session `%sconnect cf <handle>`.' % prefix)
                 except PrivateSubmissionException:
