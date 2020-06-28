@@ -24,6 +24,7 @@ db = pymysql.connect('localhost', user, password, database)
 #         nickname_sync BOOLEAN,
 #         role_sync BOOLEAN,
 #         sync_source VARCHAR(20),
+#         join_message BOOLEAN DEFAULT FALSE,
 #         PRIMARY KEY (server_id))""")
 #     cursor.execute("DROP TABLE IF EXISTS subscriptions_contests")
 #     cursor.execute("""CREATE TABLE subscriptions_contests (
@@ -136,8 +137,8 @@ class MySQLConnection(object):
     def insert_ignore_server(self, server_id):
         if not self.sanitize_id(server_id):
             return -1
-        sql = "INSERT IGNORE INTO servers(server_id, nickname_sync, role_sync, sync_source) \
-            VALUES (%d, FALSE, FALSE, 'dmoj')" % \
+        sql = "INSERT IGNORE INTO servers(server_id, nickname_sync, role_sync, sync_source, join_message) \
+            VALUES (%d, FALSE, FALSE, 'dmoj', FALSE)" % \
             (server_id)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -196,6 +197,12 @@ class MySQLConnection(object):
         for row in result:
             servers.append(row[0])
         return servers
+
+    def get_join_message(self, server_id):
+        if not self.sanitize_id(server_id):
+            return -1
+        sql = "SELECT join_message from servers WHERE server_id = %d" % server_id
+        return self.readone_query(sql)[0]
 
     def get_cf_handles(self):
         sql = "SELECT user_id, codeforces FROM users WHERE codeforces IS NOT NULL"

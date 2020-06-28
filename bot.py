@@ -201,6 +201,9 @@ async def on_command_error(ctx, error):
 @bot.event
 async def on_member_join(member):
     global prefix
+    join_message = query.get_join_message(member.guild.id)
+    if not join_message:
+        return
     all_users = query.read_users()
     if member.id not in all_users.keys():
         query.insert_ignore_user(member.id)
