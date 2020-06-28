@@ -195,7 +195,7 @@ class ProblemRankingCog(ProblemCog):
                             forbidden_users.append('%s#%s' % (member.name, member.discriminator))
                 self.dmoj_server_nicks.append(ctx.message.guild.id)
                 query.update_server(ctx.message.guild.id, 'nickname_sync', True)
-                await ctx.send(ctx.message.author.display_name + ', DMOJ based nicknames and ranked roles set to `ON`. It may take some time for all roles to fully update. Skipped changing the nickname of %d members do to having lower permissions.' % len(forbidden_users))
+                await ctx.send(ctx.message.author.display_name + ', DMOJ based nicknames and ranked roles set to `ON`. It may take some time for all roles to fully update. Skipped changing the nickname of %d members due to having lower permissions.' % len(forbidden_users))
             except discord.errors.Forbidden:
                 await ctx.send(ctx.message.author.display_name + ', Toggle failed, make sure that the bot has the Manage Roles and Manage Roles permissions and try again.')
         elif site == 'cf' or site == 'codeforces':
@@ -226,7 +226,7 @@ class ProblemRankingCog(ProblemCog):
                             forbidden_users.append('%s#%s' % (member.name, member.discriminator))
                 self.dmoj_server_nicks.append(ctx.message.guild.id)
                 query.update_server(ctx.message.guild.id, 'nickname_sync', True)
-                await ctx.send(ctx.message.author.display_name + ', Codeforces based nicknames and ranked roles set to `ON`. It may take some time for all roles to fully update. Skipped changing the nickname of %d members do to having lower permissions.' % len(forbidden_users))
+                await ctx.send(ctx.message.author.display_name + ', Codeforces based nicknames and ranked roles set to `ON`. It may take some time for all roles to fully update. Skipped changing the nickname of %d members due to having lower permissions.' % len(forbidden_users))
             except discord.errors.Forbidden:
                 await ctx.send(ctx.message.author.display_name + ', Toggle failed, make sure that the bot has the Manage Roles and Manage Roles permissions and try again.')
         elif site == 'off':
