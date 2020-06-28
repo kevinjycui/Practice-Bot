@@ -55,7 +55,7 @@ async def setprefix(ctx, fix: str=None):
         await ctx.send(ctx.message.author.display_name + ', Sorry, prefix is too long (maximum of 255 characters)')
     elif fix is not None and ('"' in fix or '\'' in fix):
         await ctx.send(ctx.message.author.display_name + ', Sorry, prefix cannot contain quotation charaters `\'` or `"`')
-    elif fix is not None and (' ' in fix or '\n' in fix or '\r' in fix or '\t' in fix:)
+    elif fix is not None and (' ' in fix or '\n' in fix or '\r' in fix or '\t' in fix):
         await ctx.send(ctx.message.author.display_name + ', Sorry, prefix cannot contain any whitespace')
     else:
         default = fix is None
