@@ -12,7 +12,7 @@ Discord to DMOJ/Codeforces/AtCoder/WCIPEG integration. Handles problems, account
 
 Support this bot by voting for it [here](https://top.gg/bot/691416325557452861/vote)
 
-## What's New
+## What's New \[BETA\]
  * Added connection support for Codeforces
  * Changed some command names. See [commands](https://github.com/kevinjycui/Practice-Bot/wiki/Commands) for more details
 
