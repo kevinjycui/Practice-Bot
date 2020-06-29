@@ -8,7 +8,6 @@ import cogs.problems_rankings as problems_rankings
 import cogs.contests as contests
 import cogs.searcher as searcher
 from backend import mySQLConnection as query
-from traceback import format_exc
 
 
 try:
@@ -191,12 +190,19 @@ async def on_command_error(ctx, error):
         )
     ):
         return
+    elif any(
+        isinstance(error, CommonError) for CommonError in (
+            commands.errors.UnexpectedQuoteError,
+            commands.errors.ExpectedClosingQuoteError
+        )
+    ):
+        await ctx.send(ctx.message.author.display_name + ', Invalid query. Please do not place any unnecessary quotation marks in your command.')
     elif isinstance(error, commands.errors.MissingPermissions):
         await ctx.send(ctx.message.author.display_name + ', Sorry, you are missing permissions to run this command!')
     else:
         await ctx.send(ctx.message.author.display_name + ', An unexpected error occured. Please try again. If this error persists, you can report it using the `$suggest <suggestion>` command.')
         user = bot.get_user(bot.owner_id)
-        await user.send('```%s\n%s```' % (repr(error), format_exc()))
+        await user.send('```%s\n%s```' % (repr(error), ctx.message.content)
         raise error
 
 @bot.command(aliases=['toggleJoin'])

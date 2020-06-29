@@ -184,6 +184,9 @@ class ContestCog(commands.Cog):
     async def contests(self, ctx, numstr='1'):
         if numstr == 'all':
             number = len(self.all_contest_embeds)
+        elif not numstr.isdigit():
+            prefix = await self.bot.command_prefix(self.bot, ctx.message)
+            await ctx.send(ctx.message.author.display_name + ', Invalid query. Please use format `%scontests <# of contests>`' % prefix)
         else:
             number = int(numstr)
         try:
