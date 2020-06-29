@@ -202,7 +202,7 @@ async def on_command_error(ctx, error):
     else:
         await ctx.send(ctx.message.author.display_name + ', An unexpected error occured. Please try again. If this error persists, you can report it using the `$suggest <suggestion>` command.')
         user = bot.get_user(bot.owner_id)
-        await user.send('```%s\n%s```' % (repr(error), ctx.message.content)
+        await user.send('```%s\n%s```' % (repr(error), ctx.message.content))
         raise error
 
 @bot.command(aliases=['toggleJoin'])
