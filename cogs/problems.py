@@ -287,7 +287,10 @@ class ProblemCog(commands.Cog):
 
     def get_problem_from_url(self, url):
         regex = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
-        valid_urls = [tuple(result for result in results if result) for results in re.findall(regex, url)][0]
+        try:
+            valid_urls = [tuple(result for result in results if result) for results in re.findall(regex, url)][0]
+        except IndexError:
+            raise InvalidURLException
         components = url.split('/')
         if len(valid_urls) == 1 and valid_urls[0] == url:
             if url[:24] == 'https://dmoj.ca/problem/' and len(components) == 5:
