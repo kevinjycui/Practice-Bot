@@ -187,6 +187,7 @@ class ContestCog(commands.Cog):
         elif not numstr.isdigit():
             prefix = await self.bot.command_prefix(self.bot, ctx.message)
             await ctx.send(ctx.message.author.display_name + ', Invalid query. Please use format `%scontests <# of contests>`' % prefix)
+            return
         else:
             number = int(numstr)
         try:
