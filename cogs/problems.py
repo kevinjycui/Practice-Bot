@@ -460,7 +460,8 @@ class ProblemCog(commands.Cog):
                 'tea': 0,
                 'dmoj': None,
                 'last_dmoj_problem': None,
-                'can_repeat': True
+                'can_repeat': True,
+                'codeforces': None
             }
             return False
         return True
