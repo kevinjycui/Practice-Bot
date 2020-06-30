@@ -22,6 +22,7 @@ finally:
     for dbl, dbl_token in list(config['dbl'].items()):
         dbl_tokens[dbl] = dbl_token
     bot_id = config['bot']['id']
+    owner_id = config['bot']['owner_id']
 
 statuses = ('implementation', 'dynamic programming', 'graph theory', 'data structures', 'trees', 'geometry', 'strings', 'optimization')
 replies = ('Practice Bot believes that with enough practice, you can complete any goal!', 'Keep practicing! Practice Bot says that every great programmer starts somewhere!', 'Hey now, you\'re an All Star, get your game on, go play (and practice)!',
@@ -37,7 +38,7 @@ async def determine_prefix(bot, message):
 
 bot = commands.Bot(command_prefix=determine_prefix,
                    description='The all-competitive-programming-purpose Discord bot!',
-                   owner_id=492435232071483392)
+                   owner_id=owner_id)
 
 async def prefix_from_guild(guild):
     if guild:
