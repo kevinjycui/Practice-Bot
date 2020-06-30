@@ -50,6 +50,9 @@ class EmailCog(commands.Cog):
             await ctx.send(ctx.message.author.display_name + ', Please wait %d minutes before making another suggestion!' % int((3600 - time() + self.suggester_times[self.suggesters.index(ctx.message.author.id)])//60))
             return
 
+        user = self.bot.get_user(self.bot.owner_id)
+        await user.send('```From: %s\n%s```' % (ctx.message.author.name, content))
+
         try:
             self.send(ctx.message.author, content)
             if ctx.message.author.id in self.suggesters:
@@ -57,9 +60,10 @@ class EmailCog(commands.Cog):
             else:
                 self.suggesters.append(ctx.message.author.id)
                 self.suggester_times.append(time())
-            await ctx.send(ctx.message.author.display_name + ', Suggestion sent!\n```From: You\nTo: The Dev\nAt: ' + datetime.now().strftime('%d/%m/%Y %H:%M:%S') + '\n' + content + '```')
         except SMTPException:
-            await ctx.send(ctx.message.author.display_name + ', Failed to send that suggestion.')
+            pass
+        finally:
+            await ctx.send(ctx.message.author.display_name + ', Suggestion sent!\n```From: You\nTo: The Dev\nAt: ' + datetime.now().strftime('%d/%m/%Y %H:%M:%S') + '\n' + content + '```')
 
 def setup(bot):
     bot.add_cog(EmailCog(bot))
