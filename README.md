@@ -14,6 +14,7 @@ Support this bot by voting for it [here](https://top.gg/bot/691416325557452861/v
 
 ## What's New \[BETA\]
  * Added connection support for Codeforces
+ * Added problem support for Szkopuł
  * Changed some command names. See [commands](https://github.com/kevinjycui/Practice-Bot/wiki/Commands) for more details
 
 ## Commands
@@ -27,6 +28,7 @@ Support this bot by voting for it [here](https://top.gg/bot/691416325557452861/v
 | AtCoder | ✔ | ✔ | ❌ | ❌ | ❌ |
 | WCIPEG | ✔ | ➖ | ❌ | ❌ | ❌ |
 | CSES | ✔ | ➖ | ➖ | ❌ | ❌ |
+| Szkopuł | ✔ | ❌ | ❌ | ❌ | ❌ |
 
 ## Tools
  - discord.py
@@ -36,8 +38,9 @@ Support this bot by voting for it [here](https://top.gg/bot/691416325557452861/v
  - [kenkoooo/AtCoderProblems](https://github.com/kenkoooo/AtCoderProb✔ems)
  - [WCIPEG](https://wcipeg.com/main)
  - [CSES](https://cses.fi/)
+ - [Szkopuł](https://szkopul.edu.pl/)
 
- *Not affiliated with DMOJ, Codeforces, AtCoder, WCIPEG, or CSES. Sites are only used as tools for this bot.
+ *Not affiliated with DMOJ, Codeforces, AtCoder, WCIPEG, CSES, or Szkopuł. Sites are only used as tools for this bot.
 
 ## Icon
 ![](logo.png)

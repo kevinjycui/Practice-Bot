@@ -62,7 +62,7 @@ class OnlineJudges:
             Vietnamese, and Simplified Chinese. DMOJ has hosted national olympiads such as the MOI \
             (Moroccan Olympiad in Informatics) in 2017.'
             embed = discord.Embed(title='DMOJ: Modern Online Judge', description=about, inline=False)
-            embed.add_field(name='Country', value=':flag_ca:', inline=False)
+            embed.add_field(name='Country', value=':flag_ca: Canada', inline=False)
             embed.add_field(name='Abbreviations', value='`$random dmoj`', inline=False)
             embed.add_field(name='Random Problems', value='Yes', inline=False)
             embed.add_field(name='Contest Notifications', value='Yes', inline=False)
@@ -82,7 +82,7 @@ class OnlineJudges:
             English and Russian. Many universities use Codeforces as a tool for teaching concepts in Competitive \
             Programming.'
             embed = discord.Embed(title='Codeforces', description=about, inline=False)
-            embed.add_field(name='Country', value=':flag_ru:', inline=False)
+            embed.add_field(name='Country', value=':flag_ru: Russia', inline=False)
             embed.add_field(name='Abbreviations', value='`$random codeforces`, `$random cf`', inline=False)
             embed.add_field(name='Random Problems', value='Yes', inline=False)
             embed.add_field(name='Contest Notifications', value='Yes', inline=False)
@@ -100,7 +100,7 @@ class OnlineJudges:
             English and Japanese.'
             embed = discord.Embed(title='AtCoder', description=about, inline=False)
             embed.add_field(name='Abbreviations', value='`$random atcoder`, `$random at`, `$random ac`', inline=False)
-            embed.add_field(name='Country', value=':flag_jp:', inline=False)
+            embed.add_field(name='Country', value=':flag_jp: Japan', inline=False)
             embed.add_field(name='Random Problems', value='Yes', inline=False)
             embed.add_field(name='Contest Notifications', value='Yes', inline=False)
             embed.add_field(name='Rating Roles', value='No', inline=False)
@@ -113,7 +113,7 @@ class OnlineJudges:
             inspired DMOJ in 2014, and merged into DMOJ in 2020. WCIPEG held contests such as the Woburn Challenge annually. Before closing, \
             WCIPEG supported 15 programming languages. The site is in English.'
             embed = discord.Embed(title='PEG Online Judge', description=about, inline=False)
-            embed.add_field(name='Country', value=':flag_ca:', inline=False)
+            embed.add_field(name='Country', value=':flag_ca: Canada', inline=False)
             embed.add_field(name='Abbreviations', value='`$random wcipeg`, `$random peg`', inline=False)
             embed.add_field(name='Random Problems', value='Yes', inline=False)
             embed.add_field(name='Contest Notifications', value='N/A', inline=False)
@@ -127,7 +127,7 @@ class OnlineJudges:
             BOI and CEOI among others. Notable users of CSES include Benjamin Qi. The site has problems available in both English and \
             Finnish. As of 2020, the CSES Problem Set contains 200 tasks with 10, 000 users.'
             embed = discord.Embed(title='CSES', description=about, inline=False)
-            embed.add_field(name='Country', value=':flag_fi:', inline=False)
+            embed.add_field(name='Country', value=':flag_fi: Finland', inline=False)
             embed.add_field(name='Abbreviations', value='`$random cses`', inline=False)
             embed.add_field(name='Random Problems', value='Yes', inline=False)
             embed.add_field(name='Contest Notifications', value='N/A', inline=False)
@@ -135,6 +135,17 @@ class OnlineJudges:
             embed.add_field(name='Account Link', value='No', inline=False)
             embed.add_field(name='Submission', value='No', inline=False)
             return embed
+        elif oj == 'szkopul':
+            about = 'Szkopuł is a Polish online judge and problem archive based in Warsaw containing problems from the CEOI, EJOI, IOI, \
+            POI, OIJ, and PA. The site is available in English and Polish.'
+            embed = discord.Embed(title='CSES', description=about, inline=False)
+            embed.add_field(name='Country', value=':flag_pl: Poland', inline=False)
+            embed.add_field(name='Abbreviations', value='`$random szkopul`, `$random szkopuł`', inline=False)
+            embed.add_field(name='Random Problems', value='Yes', inline=False)
+            embed.add_field(name='Contest Notifications', value='No', inline=False)
+            embed.add_field(name='Rating Roles', value='N/A', inline=False)
+            embed.add_field(name='Account Link', value='No', inline=False)
+            embed.add_field(name='Submission', value='No', inline=False)
         raise NoSuchOJException(oj)
 
     def __str__(self):
