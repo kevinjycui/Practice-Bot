@@ -202,7 +202,10 @@ class MySQLConnection(object):
         if not self.sanitize_id(server_id):
             return -1
         sql = "SELECT join_message from servers WHERE server_id = %d" % server_id
-        return self.readone_query(sql)[0]
+        result = self.readone_query(sql)
+        if result is None:
+            return False
+        return result[0]
 
     def get_cf_handles(self):
         sql = "SELECT user_id, codeforces FROM users WHERE codeforces IS NOT NULL"
