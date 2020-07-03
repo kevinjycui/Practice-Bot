@@ -10,6 +10,7 @@ from dmoj.language import Language
 from codeforces.session import Session as CodeforcesSession
 from codeforces.session import InvalidCodeforcesSessionException, NoSubmissionsException, SessionTimeoutException, PrivateSubmissionException
 from backend import mySQLConnection as query
+from utils.onlinejudges import OnlineJudges, NoSuchOJException
 import json
 import re
 
@@ -21,17 +22,16 @@ def json_get(api_url):
         return json.loads(response.content.decode('utf-8'))
     return None
 
-class NoSuchOJException(Exception):
-    def __init__(self, oj):
-        self.oj = oj
-
 class InvalidParametersException(Exception):
-    def __init__(self, cses=False):
+    def __init__(self, cses=False, szkopul=False):
         self.cses = cses
+        self.szkopul = szkopul
     
     def __str__(self):
         if self.cses:
             return 'Sorry, I couldn\'t find any problems with those parameters. :cry: (Note that CSES problems do not have points)'
+        elif self.szkopul:
+            return 'Sorry, I couldn\'t find any problems with those parameters. :cry: (Note that Szkopuł problems do not have points)'
         return 'Sorry, I couldn\'t find any problems with those parameters. :cry:'
 
 class OnlineJudgeHTTPException(Exception):
@@ -62,22 +62,17 @@ class InvalidURLException(Exception):
         pass
 
 class ProblemCog(commands.Cog):
-    problems_by_points = {'dmoj':{}, 'cf':{}, 'at':{}, 'peg':{}}
+    problems_by_points = {'dmoj':{}, 'codeforces':{}, 'atcoder':{}, 'peg':{}}
     dmoj_problems = None
     cf_problems = None
     at_problems = None
     cses_problems = {}
     peg_problems = {}
-    accounts = ('dmoj',)
+    szkopul_problems = {}
     dmoj_sessions = {}
     cf_sessions = {}
     language = Language()
-    url_to_thumbnail = {
-        'https://dmoj.ca/problem/': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/dmoj-thumbnail.png',
-        'https://codeforces.com/problemset/problem/': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/cf-thumbnail.png',
-        'https://atcoder.jp/contests/': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/at-thumbnail.png',
-        'https://wcipeg.com/problem/': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/peg-thumbnail.png'
-    }
+    onlineJudges = OnlineJudges()
 
     def __init__(self, bot):
         self.bot = bot
@@ -92,6 +87,7 @@ class ProblemCog(commands.Cog):
         self.refresh_atcoder_problems.start()
         self.refresh_cses_problems.start()
         self.refresh_peg_problems.start()
+        self.refresh_szkopul_problems.start()
         self.logout_offline.start()
 
     def parse_dmoj_problems(self, problems):
@@ -109,9 +105,9 @@ class ProblemCog(commands.Cog):
                 self.cf_problems = cf_data['result']['problems']
                 for details in self.cf_problems:
                     if 'points' in details.keys():
-                        if details['points'] not in self.problems_by_points['cf']:
-                            self.problems_by_points['cf'][details['points']] = []
-                        self.problems_by_points['cf'][details['points']].append(details)
+                        if details['points'] not in self.problems_by_points['codeforces']:
+                            self.problems_by_points['codeforces'][details['points']] = []
+                        self.problems_by_points['codeforces'][details['points']].append(details)
             except KeyError:
                 pass
 
@@ -120,15 +116,16 @@ class ProblemCog(commands.Cog):
             self.atcoder_problems = problems
             for details in problems:
                 if details['point']:
-                    if details['point'] not in self.problems_by_points['at']:
-                        self.problems_by_points['at'][details['point']] = []
-                    self.problems_by_points['at'][details['point']].append(details)
+                    if details['point'] not in self.problems_by_points['atcoder']:
+                        self.problems_by_points['atcoder'][details['point']] = []
+                    self.problems_by_points['atcoder'][details['point']].append(details)
 
     def parse_cses_problems(self, problems):
         if problems.status_code == 200:
             soup = bs.BeautifulSoup(problems.text, 'lxml')
             task_lists = soup.findAll('ul', attrs={'class' : 'task-list'})
             task_groups = soup.findAll('h2')
+            self.cses_problems = {}
             for index in range(1, len(task_groups)):
                 tasks = task_lists[index].findAll('li', attrs={'class' : 'task'})
                 for task in tasks:
@@ -150,6 +147,7 @@ class ProblemCog(commands.Cog):
         if problems.status_code == 200:
             soup = bs.BeautifulSoup(problems.text, 'lxml')
             table = soup.find('table', attrs={'class' : 'nicetable stripes'}).findAll('tr')
+            self.peg_problems = {}
             for prob in range(1, len(table)):
                 values = table[prob].findAll('td')
                 name = values[0].find('a').contents[0]
@@ -173,6 +171,39 @@ class ProblemCog(commands.Cog):
                 if points not in self.problems_by_points['peg']:
                     self.problems_by_points['peg'][points] = []
                 self.problems_by_points['peg'][points].append(peg_data)
+
+    def parse_szkopul_problems(self, page=1):
+        problems = requests.get('https://szkopul.edu.pl/problemset/?page=%d' % page)
+        if problems.status_code == 200:
+            soup = bs.BeautifulSoup(problems.text, 'lxml')
+            rows = soup.findAll('tr')
+            if page == 1:
+                self.szkopul_problems = {}
+            if len(rows) == 1:
+                return
+            for row in rows:
+                data = row.findAll('td')
+                if data == []:
+                    continue
+                id = data[0].contents[0]
+                title = data[1].find('a').contents[0]
+                url = 'https://szkopul.edu.pl' + data[1].find('a').attrs['href']
+                tags = []
+                for tag in data[2].findAll('a'):
+                    tags.append(tag.contents[0])
+                submitters = data[3].contents[0]
+                problem_data = {
+                    'id': id,
+                    'title': title,
+                    'url': url,
+                    'tags': tags,
+                    'submitters': submitters
+                }
+                if int(submitters) > 0:
+                    problem_data['percent_correct'] = data[4].contents[0]
+                    problem_data['average'] = data[5].contents[0]
+                self.szkopul_problems[id] = problem_data
+            self.parse_szkopul_problems(page+1)
 
     def embed_dmoj_problem(self, name, prob):
         embed = discord.Embed()
@@ -221,11 +252,23 @@ class ProblemCog(commands.Cog):
         embed.add_field(name='Date Added', value=prob['date'], inline=False)
         return prob['name'], prob['url'], embed
 
-    def get_problem(self, oj, contest_id=None, problem_id=None):
-        if problem_id is None:
-            raise ProblemNotFoundException
+    def embed_szkopul_problem(self, prob):
+        embed = discord.Embed()
+        embed.set_thumbnail(url='https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/szkopul-thumbnail.png')
+        if len(prob['tags']) > 0:
+            embed.add_field(name='Tags', value=', '.join(prob['tags']), inline=False)
+        embed.add_field(name='Submitters', value=prob['submitters'], inline=False)
+        if 'percent_correct' in prob:
+            embed.add_field(name='% Correct', value=prob['percent_correct'], inline=False)
+        if 'average' in prob:
+            embed.add_field(name='Average', value=prob['average'], inline=False)
+        return prob['title'], prob['url'], embed
 
-        oj = oj.lower()
+    def get_problem(self, oj, contest_id=None, problem_id=None, szkopul_url=''):
+
+        oj = self.onlineJudges.get_oj(oj)
+        if oj != 'szkopul' and problem_id is None:
+            raise ProblemNotFoundException
         
         if oj == 'dmoj':
             if problem_id not in self.dmoj_problems.keys():
@@ -236,7 +279,7 @@ class ProblemCog(commands.Cog):
             embed.timestamp = datetime.utcnow()
             return embed
         
-        elif oj == 'cf' or oj == 'codeforces':
+        elif oj == 'codeforces':
             if contest_id is None:
                 raise ProblemNotFoundException
             def is_problem(prob):
@@ -250,7 +293,7 @@ class ProblemCog(commands.Cog):
             embed.timestamp = datetime.utcnow()
             return embed
 
-        elif oj == 'atcoder' or oj == 'at' or oj == 'ac':
+        elif oj == 'atcoder':
             if contest_id is None:
                 raise ProblemNotFoundException
             def is_problem(prob):
@@ -264,7 +307,7 @@ class ProblemCog(commands.Cog):
             embed.timestamp = datetime.utcnow()
             return embed
 
-        elif oj == 'wcipeg' or oj == 'peg':
+        elif oj == 'peg':
             def is_problem(prob):
                 return prob['url'] == 'https://wcipeg.com/problem/' + problem_id
             problist = list(filter(is_problem, list(self.peg_problems.values())))
@@ -285,6 +328,20 @@ class ProblemCog(commands.Cog):
             embed.timestamp = datetime.utcnow()
             return embed
 
+        elif oj == 'szkopul':
+            if szkopul_url == '':
+                raise ProblemNotFoundException
+            def is_problem(prob):
+                return prob['url'] == szkopul_url
+            problist = list(filter(is_problem, self.szkopul_problems))
+            if len(problist) == 0:
+                raise ProblemNotFoundException
+            title, description, embed = self.embed_szkopul_problem(problist[0])
+            embed.title = title
+            embed.description = description + ' (searched in %ss)' % str(round(self.bot.latency, 3))
+            embed.timestamp = datetime.utcnow()
+            return embed
+
     def get_problem_from_url(self, url):
         regex = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
         try:
@@ -296,13 +353,15 @@ class ProblemCog(commands.Cog):
             if url[:24] == 'https://dmoj.ca/problem/' and len(components) == 5:
                 return self.get_problem('dmoj', problem_id=components[4])
             elif url[:42] == 'https://codeforces.com/problemset/problem/' and len(components) == 7:
-                return self.get_problem('cf', components[5], components[6])
+                return self.get_problem('codeforces', components[5], components[6])
             elif url[:28] == 'https://atcoder.jp/contests/' and len(components) == 7 and components[5] == 'tasks':
                 return self.get_problem('atcoder', components[4], components[6])
             elif url[:27] == 'https://wcipeg.com/problem/' and len(components) == 5:
                 return self.get_problem('peg', problem_id=components[4])
             elif url[:32] == 'https://cses.fi/problemset/task/' and len(components) == 6:
                 return self.get_problem('cses', problem_id=components[5])
+            elif url[:42] == 'https://szkopul.edu.pl/problemset/problem/':
+                return self.get_problem('szkopul', szkopul_url=url)
             else:
                 raise InvalidURLException
         else:
@@ -310,19 +369,12 @@ class ProblemCog(commands.Cog):
 
     def get_random_problem(self, oj=None, points=None, maximum=None, iden=None):
         if oj is None:
-            oj = rand.choice(('dmoj', 'cf', 'at', 'peg', 'cses'))
+            oj = rand.choice(self.onlineJudges.judges)
 
-        oj = oj.lower()
+        oj = self.onlineJudges.get_oj(oj)
         
         if oj == 'cses' and points is not None:
             raise InvalidParametersException(cses=True)
-
-        if oj == 'codeforces':
-            oj = 'cf'
-        elif oj == 'atcoder' or oj == 'ac':
-            oj = 'at'
-        elif oj == 'wcipeg':
-            oj = 'peg'
 
         temp_dmoj_problems = {}
         temp_cf_problems = []
@@ -343,7 +395,7 @@ class ProblemCog(commands.Cog):
                                     temp_dmoj_problems['dmoj'][point][name] = prob
                     if temp_dmoj_problems == {}:
                         raise InvalidParametersException()
-            elif oj == 'cf' or oj == 'codeforces':
+            elif oj == 'codeforces':
                 response = requests.get('https://codeforces.com/api/user.status?handle=' + self.global_users[iden]['codeforces'])
                 if response.status_code != 200 or response.json()['status'] != 'OK':
                     return None
@@ -358,8 +410,8 @@ class ProblemCog(commands.Cog):
                     temp_cf_problems = list(filter(lambda prob: (prob.get('contestId', prob.get('problemsetName')), prob['index']) not in solved, self.cf_problems))
                 else:
                     temp_cf_problems = {'cf': {}}
-                    for point in list(self.problems_by_points['cf']):
-                        temp_cf_problems['cf'][point] = list(filter(lambda prob: (prob['contestId'], prob['index']) not in solved, self.problems_by_points['cf'][point]))
+                    for point in list(self.problems_by_points['codeforces']):
+                        temp_cf_problems['cf'][point] = list(filter(lambda prob: (prob['contestId'], prob['index']) not in solved, self.problems_by_points['codeforces'][point]))
                 if temp_cf_problems == [] or (type(temp_cf_problems) is dict and temp_cf_problems['cf'] == {}):
                     raise InvalidParametersException()
 
@@ -370,7 +422,7 @@ class ProblemCog(commands.Cog):
         elif points is None:
             if oj == 'dmoj':
                 problem_list = self.dmoj_problems
-            elif oj == 'cf':
+            elif oj == 'codeforces':
                 problem_list = self.cf_problems
         else:
             problem_list = self.problems_by_points
@@ -407,7 +459,7 @@ class ProblemCog(commands.Cog):
                 query.update_user(iden, 'last_dmoj_problem', name)
             return self.embed_dmoj_problem(name, prob)
             
-        elif oj == 'cf' or oj == 'codeforces':
+        elif oj == 'codeforces':
             if not self.cf_problems:
                 raise OnlineJudgeHTTPException('Codeforces')
                 return
@@ -419,19 +471,19 @@ class ProblemCog(commands.Cog):
                 raise InvalidParametersException()
             return self.embed_cf_problem(prob)
 
-        elif oj == 'atcoder' or oj == 'at' or oj == 'ac':
+        elif oj == 'atcoder':
             if not self.atcoder_problems:
                 raise OnlineJudgeHTTPException('AtCoder')
 
             if points is None:
                 prob = rand.choice(self.atcoder_problems)
-            elif points in self.problems_by_points['at']:
-                prob = rand.choice(self.problems_by_points['at'][points])
+            elif points in self.problems_by_points['atcoder']:
+                prob = rand.choice(self.problems_by_points['atcoder'][points])
             else:
                 raise InvalidParametersException()
             return self.embed_atcoder_problem(prob)
 
-        elif oj == 'wcipeg' or oj == 'peg':
+        elif oj == 'peg':
             if not self.peg_problems:
                 raise OnlineJudgeHTTPException('WCIPEG')
             if points is None:
@@ -445,6 +497,10 @@ class ProblemCog(commands.Cog):
         elif oj == 'cses':
             prob = rand.choice(list(self.cses_problems.values()))
             return self.embed_cses_problem(prob)
+
+        elif oj == 'szkopul':
+            prob = rand.choice(list(self.szkopul_problems.values()))
+            return self.embed_szkopul_problem(prob)
         
         else:
             raise NoSuchOJException(oj)
@@ -493,7 +549,7 @@ class ProblemCog(commands.Cog):
         except IndexError:
             await ctx.send(ctx.message.author.display_name + ', No problem was found. This may be due to the bot updating the problem cache. Please wait a moment, then try again.')
         except NoSuchOJException:
-            await ctx.send(ctx.message.author.display_name + ', Invalid query. The online judge must be one of the following: DMOJ (dmoj), Codeforces (codeforces/cf), AtCoder (atcoder/at/ac), WCIPEG (wcipeg/peg), CSES (cses).')
+            await ctx.send(ctx.message.author.display_name + ', Invalid query. The online judge must be one of the following: %s.' % str(self.onlineJudges))
         except InvalidParametersException as e:
             await ctx.send(ctx.message.author.display_name + ', ' + str(e))
         except OnlineJudgeHTTPException as e:
@@ -509,7 +565,7 @@ class ProblemCog(commands.Cog):
             except IndexError:
                 await ctx.send(ctx.message.author.display_name + ', No problem was found. This may be due to the bot updating the problem cache. Please wait a moment, then try again.')
             thumbnail = 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/logo.png'
-            for url, tn in list(self.url_to_thumbnail.items()):
+            for url, tn in list(self.onlineJudges.url_to_thumbnail.items()):
                 if url in description:
                     thumbnail = tn
                     break
@@ -526,7 +582,7 @@ class ProblemCog(commands.Cog):
     @commands.command(aliases=['toggleRepeat'])
     async def togglerepeat(self, ctx):
         self.check_existing_user(ctx.message.author)
-        for account in self.accounts:
+        for account in self.onlineJudges.accounts:
             if self.global_users[ctx.message.author.id][account] is not None:
                 self.global_users[ctx.message.author.id]['can_repeat'] = not self.global_users[ctx.message.author.id]['can_repeat']
                 query.update_user(ctx.message.author.id, 'can_repeat', self.global_users[ctx.message.author.id]['can_repeat'])
@@ -630,6 +686,14 @@ class ProblemCog(commands.Cog):
 
     @refresh_peg_problems.before_loop
     async def refresh_peg_problems_before(self):
+        await self.bot.wait_until_ready()
+
+    @tasks.loop(hours=3)
+    async def refresh_szkopul_problems(self):
+        self.parse_szkopul_problems()
+
+    @refresh_szkopul_problems.before_loop
+    async def refresh_szkopul_problems_before(self):
         await self.bot.wait_until_ready()
 
     @commands.command()

@@ -7,6 +7,7 @@ import json
 import requests
 import pytz
 from backend import mySQLConnection as query
+from utils.onlinejudges import OnlineJudges, NoSuchOJException
 
 
 def json_get(api_url):
@@ -33,7 +34,16 @@ class Contest(object):
         return hash(str(self))
 
 class NoContestsAvailableException(Exception):
-    pass
+
+    onlineJudges = OnlineJudges()
+
+    def __init__(self, oj=None):
+        self.oj = oj
+
+    def __str__(self):
+        if self.oj is None:
+            return 'Sorry, there are not upcoming contests currently available.'
+        return 'Sorry, there are not upcoming contests from %s currently available.' % self.onlineJudges.formal_names[self.oj]
 
 class ContestCog(commands.Cog):
     all_contest_embeds = []
@@ -48,6 +58,8 @@ class ContestCog(commands.Cog):
     atcoder_contest_titles = []
 
     contest_objects = []
+
+    onlineJudges = OnlineJudges()
 
     def __init__(self, bot):
         self.bot = bot
@@ -64,18 +76,32 @@ class ContestCog(commands.Cog):
 
     def get_random_contests(self, number):
         if len(self.all_contest_embeds) == 0:
-            raise NoContestsAvailableException
+            raise NoContestsAvailableException()
         rand.shuffle(self.all_contest_embeds)
         result = []
         for i in range(min(number, len(self.all_contest_embeds))):
             result.append(self.all_contest_embeds[i])
         return result
 
+    def get_contests_of_oj(self, oj):
+        result = []
+        oj_url = ''
+        for site_url in list(self.onlineJudges.url_to_thumbnail.keys()):
+            if oj in site_url:
+                oj_url = self.onlineJudges.url_to_thumbnail[site_url]
+                break
+        for contest_embed in self.all_contest_embeds:
+            if oj_url == contest_embed.thumbnail.url:
+                result.append(contest_embed)
+        if len(result) == 0:
+            raise NoContestsAvailableException(oj)
+        return result
+
     def reset_contest(self, oj):
         if oj == 'dmoj':
             self.dmoj_contests = []
             self.dmoj_contest_titles = []
-        elif oj == 'cf':
+        elif oj == 'codeforces':
             self.cf_contests = []
             self.cf_contest_titles = []
         elif oj == 'atcoder':
@@ -182,21 +208,30 @@ class ContestCog(commands.Cog):
 
     @commands.command(aliases=['c'])
     async def contests(self, ctx, numstr='1'):
-        if numstr == 'all':
-            number = len(self.all_contest_embeds)
-        elif not numstr.isdigit():
-            prefix = await self.bot.command_prefix(self.bot, ctx.message)
-            await ctx.send(ctx.message.author.display_name + ', Invalid query. Please use format `%scontests <# of contests>`' % prefix)
-            return
-        else:
-            number = int(numstr)
         try:
-            contestList = self.get_random_contests(number)
+            if numstr == 'all':
+                number = len(self.all_contest_embeds)
+                contestList = self.get_random_contests(number)
+            elif self.onlineJudges.oj_exists(numstr):
+                oj = self.onlineJudges.get_oj(numstr)
+                if oj not in self.onlineJudges.contest_judges:
+                    await ctx.send(ctx.message.author.display_name + ', Sorry, contests for that site are not available yet or contests are not applicable to that site.')
+                    return
+                contestList = self.get_contests_of_oj(oj)
+            elif not numstr.isdigit():
+                prefix = await self.bot.command_prefix(self.bot, ctx.message)
+                await ctx.send(ctx.message.author.display_name + ', Invalid query. Please use format `%scontests <# of contests>`' % prefix)
+                return
+            else:
+                number = int(numstr)
+                contestList = self.get_random_contests(number)
             await ctx.send(ctx.message.author.display_name + ', Sending %d random upcoming contest(s). Last fetched, %d minutes ago' % (len(contestList), (time()-self.fetch_time)//60))
             for contest in contestList:
                 await ctx.send(embed=contest)
-        except NoContestsAvailableException:
-            await ctx.send(ctx.message.author.display_name + ', Sorry, there are not upcoming contests currently available.')
+        except NoContestsAvailableException as e:
+            await ctx.send(ctx.message.author.display_name + ', ' + str(e))
+        except NoSuchOJException:
+            await ctx.send(ctx.message.author.display_name + ', Invalid query. The online judge must be one of the following: %s.' % str(self.onlineJudges))
 
     @commands.command()
     @commands.has_permissions(manage_channels=True)
@@ -244,7 +279,7 @@ class ContestCog(commands.Cog):
             pass
 
         try:
-            self.reset_contest('cf')
+            self.reset_contest('codeforces')
             self.parse_cf_contests(json_get('https://codeforces.com/api/contest.list'))
         except:
             pass
