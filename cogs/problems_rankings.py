@@ -1,6 +1,7 @@
 from time import time
 from cogs.problems import *
 
+
 class ProblemRankingCog(ProblemCog):
 
     update_dmoj_index = 0
@@ -94,6 +95,12 @@ class ProblemRankingCog(ProblemCog):
                                             pass
                         await ctx.send('Successfully linked your account as %s on Codeforces!' % str(self.cf_sessions[ctx.message.author.id]))
                         self.cf_sessions.pop(ctx.message.author.id)
+                        if self.global_users[ctx.message.author.id]['country'] is None:
+                            response = requests.get('https://codeforces.com/api/user.info?handles=' + self.global_users[ctx.message.author.id]['codeforces'])
+                            if response.status_code == 200:
+                                self.global_users[ctx.message.author.id]['country'] = response.json()['result'][0].get('country', None)
+                                query.update_user(ctx.message.author.id, 'country', self.global_users[ctx.message.author.id]['country'])
+                                await ctx.send('Country detected as %s; set as your country.' % str(Country(self.global_users[ctx.message.author.id]['country'])))
                     else:
                         prefix = await self.bot.command_prefix(self.bot, ctx.message)
                         await ctx.send('Sorry, no ongoing connect sessions to Codeforces. This could occur if the cache is reset due to maintenance or if you did not initialise a session. Try using command `%sconnect cf <handle>` to initialise a session.' % prefix)

@@ -21,6 +21,7 @@ finally:
     config = yaml.load(config_file, Loader=yaml.FullLoader)
     prefix = config['bot']['prefix']
     bot_token, dev_token = config['bot']['token'], config['bot']['dev_token']
+    DEBUG = bot_token == dev_token
     dbl_tokens = {}
     for dbl, dbl_token in list(config['dbl'].items()):
         dbl_tokens[dbl] = dbl_token
@@ -151,6 +152,9 @@ async def on_ready():
     print(bot.user.name)
     print(bot.user.id)
     print('------')
+    if DEBUG:
+        user = bot.get_user(bot.owner_id)
+        await user.send('Bot Online!')
 
 if __name__ == '__main__':
     status_change.start()
@@ -158,6 +162,6 @@ if __name__ == '__main__':
     contests.setup(bot)
     feedback.setup(bot)
     searcher.setup(bot)
-    if bot_token != dev_token:
+    if not DEBUG:
         dblapi.setup(bot, bot_id, dbl_tokens)
     bot.run(bot_token)

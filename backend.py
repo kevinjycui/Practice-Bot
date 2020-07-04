@@ -36,10 +36,10 @@ db = pymysql.connect('localhost', user, password, database)
 #         tea INT,
 #         dmoj VARCHAR(255),
 #         codeforces VARCHAR(255),
-#         codeforces VARCHAR(255),
 #         atcoder VARCHAR(255),
 #         last_dmoj_problem VARCHAR(255),
 #         can_repeat BOOLEAN,
+#         country VARCHAR(255),
 #         PRIMARY KEY (user_id))""")
 #     cursor.execute("SHOW TABLES")
 #     result = cursor.fetchall()
@@ -92,8 +92,8 @@ class MySQLConnection(object):
     def insert_ignore_user(self, user_id):
         if not self.sanitize_id(user_id):
             return -1
-        sql = "INSERT IGNORE INTO users(user_id, tea, dmoj, last_dmoj_problem, can_repeat, codeforces) \
-            VALUES (%d, 0, NULL, NULL, TRUE, NULL)" % \
+        sql = "INSERT IGNORE INTO users(user_id, tea, dmoj, last_dmoj_problem, can_repeat, codeforces, country) \
+            VALUES (%d, 0, NULL, NULL, TRUE, NULL, NULL)" % \
             (user_id)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -110,7 +110,8 @@ class MySQLConnection(object):
                 'dmoj': row[2],
                 'last_dmoj_problem': row[3],
                 'can_repeat': row[4],
-                'codeforces': row[5]
+                'codeforces': row[5],
+                'country': row[6]
             }
         return users
 

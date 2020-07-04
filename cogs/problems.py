@@ -11,6 +11,7 @@ from codeforces.session import Session as CodeforcesSession
 from codeforces.session import InvalidCodeforcesSessionException, NoSubmissionsException, SessionTimeoutException, PrivateSubmissionException
 from backend import mySQLConnection as query
 from utils.onlinejudges import OnlineJudges, NoSuchOJException
+from utils.country import Country, InvalidCountryException
 import json
 import re
 
@@ -517,7 +518,8 @@ class ProblemCog(commands.Cog):
                 'dmoj': None,
                 'last_dmoj_problem': None,
                 'can_repeat': True,
-                'codeforces': None
+                'codeforces': None,
+                'country': None
             }
             return False
         return True
@@ -591,6 +593,21 @@ class ProblemCog(commands.Cog):
                 return
         await ctx.send(ctx.message.author.display_name + ', You are not linked to any accounts')
 
+    @commands.command(aliases=['toggleCountry'])
+    async def togglecountry(self, ctx, code=''):
+        try:
+            country_object = Country(code)
+            prev_country = self.global_users[ctx.message.author.id]['country']
+            self.global_users[ctx.message.author.id]['country'] = country_object.country
+            query.update_user(ctx.message.author.id, 'country', self.global_users[ctx.message.author.id]['country'])
+            if prev_country is not None and prev_country != country_object.country:
+                await ctx.send(ctx.message.author.display_name + ', Changed your country from %s to %s.' % (str(Country(prev_country)), str(country_object)))
+            else:
+                await ctx.send(ctx.message.author.display_name + ', Set your country to %s.' % str(country_object))
+        except InvalidCountryException:
+            prefix = await self.bot.command_prefix(self.bot, ctx.message)
+            await ctx.send(ctx.message.author.display_name + ', Sorry, could not find that country. Search for a country using the name (e.g. `%stogglecountry Finland`, `%stogglecountry "United States"`) or the 2 character ISO code (e.g. `%stogglecountry FI`))' % (prefix, prefix, prefix))
+
     @commands.command(aliases=['u', 'profile'])
     async def user(self, ctx, user: discord.User=None):
         if user is None:
@@ -604,6 +621,9 @@ class ProblemCog(commands.Cog):
             empty = False
         if self.global_users[user.id]['codeforces'] is not None:
             embed.add_field(name='Codeforces', value='https://codeforces.com/profile/%s' % self.global_users[user.id]['codeforces'], inline=False)
+            empty = False
+        if self.global_users[user.id]['country'] is not None:
+            embed.add_field(name='Country', value=str(Country(self.global_users[user.id]['country'])), inline=False)
             empty = False
         if empty:
             embed.description = 'No accounts linked...'
