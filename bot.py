@@ -81,7 +81,7 @@ async def oj(ctx, oj: str):
         embed = onlineJudges.oj_to_embed(oj)
         ctx.send(embed=embed)
     except NoSuchOJException:
-        await ctx.send(ctx.message.author.display_name + ', Sorry, no online judge found. Search only for online judges used by this bot (DMOJ, Codeforces, AtCoder, WCIPEG, CSES)')
+        await ctx.send(ctx.message.author.display_name + ', Sorry, no online judge found. Search only for online judges used by this bot ' + str(onlineJudges))
 
 @bot.command()
 async def motivation(ctx):

@@ -146,6 +146,7 @@ class OnlineJudges:
             embed.add_field(name='Rating Roles', value='N/A', inline=False)
             embed.add_field(name='Account Link', value='No', inline=False)
             embed.add_field(name='Submission', value='No', inline=False)
+            return embed
         raise NoSuchOJException(oj)
 
     def __str__(self):
