@@ -116,21 +116,21 @@ class SearcherCog(commands.Cog):
         embed.add_field(name='Summary', value=summary, inline=False)
         await ctx.send(ctx.message.author.display_name + ', Here\'s what I found!', embed=embed)
 
-    @commands.command()
-    async def whois(self, ctx, *, name=None):
-        if name is None:
-            prefix = await self.bot.command_prefix(self.bot, ctx.message)
-            await ctx.send(ctx.message.author.display_name + ', Invalid query. Please use format `%swhois <name>`.' % prefix)
-            return
-        accounts = self.accountScrape(name)
-        if len(accounts) == 0:
-            await ctx.send(ctx.message.author.display_name + ', Sorry, found 0 results for %s' % name)
-            return
-        embed = discord.Embed(title=name, description=' (searched in %ss)' % str(round(self.bot.latency, 3)))
-        embed.timestamp = datetime.utcnow()
-        for oj, url in accounts.items():
-            embed.add_field(name=oj, value=url, inline=False)
-        await ctx.send(ctx.message.author.display_name + ', Found %d result(s) for `%s`' % (len(accounts), name), embed=embed)
+    # @commands.command()
+    # async def whois(self, ctx, *, name=None):
+    #     if name is None:
+    #         prefix = await self.bot.command_prefix(self.bot, ctx.message)
+    #         await ctx.send(ctx.message.author.display_name + ', Invalid query. Please use format `%swhois <name>`.' % prefix)
+    #         return
+    #     accounts = self.accountScrape(name)
+    #     if len(accounts) == 0:
+    #         await ctx.send(ctx.message.author.display_name + ', Sorry, found 0 results for %s' % name)
+    #         return
+    #     embed = discord.Embed(title=name, description=' (searched in %ss)' % str(round(self.bot.latency, 3)))
+    #     embed.timestamp = datetime.utcnow()
+    #     for oj, url in accounts.items():
+    #         embed.add_field(name=oj, value=url, inline=False)
+    #     await ctx.send(ctx.message.author.display_name + ', Found %d result(s) for `%s`' % (len(accounts), name), embed=embed)
 
     @commands.command()
     async def cat(self, ctx):

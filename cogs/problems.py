@@ -608,7 +608,7 @@ class ProblemCog(commands.Cog):
             prefix = await self.bot.command_prefix(self.bot, ctx.message)
             await ctx.send(ctx.message.author.display_name + ', Sorry, could not find that country. Search for a country using the name (e.g. `%stogglecountry Finland`, `%stogglecountry "United States"`) or the 2 character ISO code (e.g. `%stogglecountry FI`))' % (prefix, prefix, prefix))
 
-    @commands.command(aliases=['u', 'profile'])
+    @commands.command(aliases=['u', 'profile', 'whois'])
     async def user(self, ctx, user: discord.User=None):
         if user is None:
             user = ctx.message.author
