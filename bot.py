@@ -79,7 +79,7 @@ async def setprefix(ctx, fix: str=None):
 async def oj(ctx, oj: str):
     try:
         embed = onlineJudges.oj_to_embed(oj)
-        ctx.send(embed=embed)
+        await ctx.send(embed=embed)
     except NoSuchOJException:
         await ctx.send(ctx.message.author.display_name + ', Sorry, no online judge found. Search only for online judges used by this bot ' + str(onlineJudges))
 
