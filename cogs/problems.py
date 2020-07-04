@@ -334,7 +334,7 @@ class ProblemCog(commands.Cog):
                 raise ProblemNotFoundException
             def is_problem(prob):
                 return prob['url'] == szkopul_url
-            problist = list(filter(is_problem, self.szkopul_problems))
+            problist = list(filter(is_problem, list(self.szkopul_problems.values())))
             if len(problist) == 0:
                 raise ProblemNotFoundException
             title, description, embed = self.embed_szkopul_problem(problist[0])

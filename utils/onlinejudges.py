@@ -138,7 +138,7 @@ class OnlineJudges:
         elif oj == 'szkopul':
             about = 'Szkopuł is a Polish online judge and problem archive based in Warsaw containing problems from the CEOI, EJOI, IOI, \
             POI, OIJ, and PA. The site is available in English and Polish.'
-            embed = discord.Embed(title='CSES', description=about, inline=False)
+            embed = discord.Embed(title='Szkopuł', description=about, inline=False)
             embed.add_field(name='Country', value=':flag_pl: Poland', inline=False)
             embed.add_field(name='Abbreviations', value='`$random szkopul`, `$random szkopuł`', inline=False)
             embed.add_field(name='Random Problems', value='Yes', inline=False)
