@@ -72,6 +72,7 @@ class ProblemCog(commands.Cog):
     szkopul_problems = {}
     dmoj_sessions = {}
     cf_sessions = {}
+    szkopul_page = 1
     language = Language()
     onlineJudges = OnlineJudges()
 
@@ -174,8 +175,9 @@ class ProblemCog(commands.Cog):
                     self.problems_by_points['peg'][points] = []
                 self.problems_by_points['peg'][points].append(peg_data)
 
-    def parse_szkopul_problems(self, page=1):
-        problems = requests.get('https://szkopul.edu.pl/problemset/?page=%d' % page)
+    def parse_szkopul_problems(self):
+        print(page)
+        problems = requests.get('https://szkopul.edu.pl/problemset/?page=%d' % self.szkopul_page)
         if problems.status_code == 200:
             soup = bs.BeautifulSoup(problems.text, 'lxml')
             rows = soup.findAll('tr')
@@ -205,7 +207,7 @@ class ProblemCog(commands.Cog):
                     problem_data['percent_correct'] = data[4].contents[0]
                     problem_data['average'] = data[5].contents[0]
                 self.szkopul_problems[id] = problem_data
-            self.parse_szkopul_problems(page+1)
+            self.szkopul_page += 1
 
     def embed_dmoj_problem(self, name, prob):
         embed = discord.Embed()

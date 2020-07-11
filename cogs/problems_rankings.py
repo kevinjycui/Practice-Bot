@@ -5,6 +5,7 @@ from cogs.problems import *
 class ProblemRankingCog(ProblemCog):
 
     update_dmoj_index = 0
+    update_cf_index = 0
     dmoj_ratings = {
         range(3000, 4000): ('Target', discord.Colour(int('ee0000', 16))),
         range(2200, 2999): ('Grandmaster', discord.Colour(int('ee0000', 16))),
@@ -274,6 +275,7 @@ class ProblemRankingCog(ProblemCog):
         if global_users == {}:
             self.update_dmoj_index = 0
         while global_users != {}:
+            global_users = query.get_user_by_row(self.update_dmoj_index)
             member_id = list(global_users.keys())[0]
             if global_users[member_id]['dmoj'] is not None:
                 break
@@ -315,38 +317,48 @@ class ProblemRankingCog(ProblemCog):
     async def update_dmoj_ranks_before(self):
         await self.bot.wait_until_ready()
 
-    @tasks.loop(minutes=5)
+    @tasks.loop(seconds=5)
     async def update_cf_ranks(self):
-        handles = query.get_cf_handles()
-        users_info = json_get('https://codeforces.com/api/user.info?handles=%s' % ';'.join(list(handles.keys())))['result']
-        for user_info in users_info:
-            member_id = handles[user_info['handle']]
-            for guild in self.bot.guilds:
-                self.check_existing_server(guild)
-                if int(guild.id) not in self.cf_server_roles:
-                    continue
-                names = []
-                for role in guild.roles:
-                    names.append(role.name)
-                for role in self.cf_ratings:
-                    if role[0] not in names:
-                        await guild.create_role(name=role[0], colour=role[1], mentionable=False)
-                try:
-                    for member in guild.members:
-                        if member_id == member.id:
-                            if 'rank' not in user_info:
-                                role = discord.utils.get(guild.roles, name='Unrated')
+        global_users = query.get_user_by_row(self.update_cf_index)
+        if global_users == {}:
+            self.update_cf_index = 0
+        while global_users != {}:
+            global_users = query.get_user_by_row(self.update_cf_index)
+            member_id = list(global_users.keys())[0]
+            if global_users[member_id]['codeforces'] is not None:
+                break
+            self.update_cf_index += 1
+        if global_users == {}:
+            return
+
+        user_info = json_get('https://codeforces.com/api/user.info?handles=%s' % global_users[member_id]['codeforces'])['result'][0]
+        member_id = handles[user_info['handle']]
+        for guild in self.bot.guilds:
+            self.check_existing_server(guild)
+            if int(guild.id) not in self.cf_server_roles:
+                continue
+            names = []
+            for role in guild.roles:
+                names.append(role.name)
+            for role in self.cf_ratings:
+                if role[0] not in names:
+                    await guild.create_role(name=role[0], colour=role[1], mentionable=False)
+            try:
+                for member in guild.members:
+                    if member_id == member.id:
+                        if 'rank' not in user_info:
+                            role = discord.utils.get(guild.roles, name='Unrated')
+                            await member.add_roles(role)
+                        for rolename in self.cf_ratings:
+                            role = discord.utils.get(guild.roles, name=rolename[0])
+                            if 'rank' in user_info and user_info['rank'].lower() == role.name.lower() and role not in member.roles:
                                 await member.add_roles(role)
-                            for rolename in self.cf_ratings:
-                                role = discord.utils.get(guild.roles, name=rolename[0])
-                                if 'rank' in user_info and user_info['rank'].lower() == role.name.lower() and role not in member.roles:
-                                    await member.add_roles(role)
-                                elif ('rank' not in user_info or user_info['rank'].lower() != role.name.lower()) and role in member.roles:
-                                    await member.remove_roles(role)
-                            break
-                except Exception as e:
-                    print(e)
-                    pass
+                            elif ('rank' not in user_info or user_info['rank'].lower() != role.name.lower()) and role in member.roles:
+                                await member.remove_roles(role)
+                        break
+            except Exception as e:
+                print(e)
+                pass
 
     @update_cf_ranks.before_loop
     async def update_cf_ranks_before(self):
