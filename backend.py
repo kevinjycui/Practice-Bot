@@ -100,12 +100,15 @@ class MySQLConnection(object):
             self.set_query(sql)
         return 0
 
-    def read_users(self):
-        sql = "SELECT * FROM users"
-        result = self.readall_query(sql)
-        users = {}
-        for row in result:
-            users[row[0]] = {
+    def get_user(self, user_id):
+        if not self.sanitize_id(user_id):
+            return -1
+        sql = "SELECT * FROM users WHERE user_id = %d" % user_id
+        row = self.readone_query(sql)
+        if row is None:
+            return {}
+        user = {
+            row[0]: {
                 'tea': row[1],
                 'dmoj': row[2],
                 'last_dmoj_problem': row[3],
@@ -113,7 +116,27 @@ class MySQLConnection(object):
                 'codeforces': row[5],
                 'country': row[6]
             }
-        return users
+        }
+        return user
+
+    def get_user_by_row(self, row):
+        if not self.sanitize_id(row):
+            return -1
+        sql = "SELECT * FROM users LIMIT %d,1" % row
+        row = self.readone_query(sql)
+        if row is None:
+            return {}
+        user = {
+            row[0]: {
+                'tea': row[1],
+                'dmoj': row[2],
+                'last_dmoj_problem': row[3],
+                'can_repeat': row[4],
+                'codeforces': row[5],
+                'country': row[6]
+            }
+        }
+        return user
 
     def var_to_sql(self, value):
         if value is None:

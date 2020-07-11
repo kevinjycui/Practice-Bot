@@ -140,8 +140,8 @@ async def on_member_join(member):
     join_message = query.get_join_message(member.guild.id)
     if not join_message:
         return
-    all_users = query.read_users()
-    if member.id not in all_users.keys():
+    this_user = query.get_user(member.id)
+    if this_user == {}:
         query.insert_ignore_user(member.id)
         server_prefix = await prefix_from_guild(member.guild)
         await member.send('Hello, %s, and welcome to %s! The default prefix for this server is `%s`, but in direct messaging, use the prefix `%s`. It would seem that you have yet to join a server that has Practice Bot! Using Practice Bot, you can link your DMOJ or Codeforces account to your Discord account to perform different commands. You may use one of the following formats:\n\n*Please use connect commands in this direct message chat only!*\n\n`%sconnect dmoj <dmoj-api-token>` (your DMOJ API token can be found by going to https://dmoj.ca/edit/profile/ and selecting the __Generate__ or __Regenerate__ option next to API Token)\n\n`%sconnect cf <codeforces-handle>`\n\nUse `%shelp` to see a full list of commands and more details.' % (member.display_name, member.guild.name, server_prefix, prefix, prefix, prefix, prefix))

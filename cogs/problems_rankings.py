@@ -59,16 +59,17 @@ class ProblemRankingCog(ProblemCog):
                 await ctx.send('Invalid query. Please use format `%sconnect dmoj <dmoj-api-token>` (your DMOJ API token can be found by going to https://dmoj.ca/edit/profile/ and selecting the __Generate__ or __Regenerate__ option next to API Token).' % prefix)
             else:
                 self.check_existing_user(ctx.message.author)
+                global_users = query.get_user(ctx.message.author.id)
                 try:
                     self.dmoj_sessions[ctx.message.author.id] = DMOJSession(token)
-                    self.global_users[ctx.message.author.id]['dmoj'] = str(self.dmoj_sessions[ctx.message.author.id])
-                    query.update_user(ctx.message.author.id, 'dmoj', self.global_users[ctx.message.author.id]['dmoj'])
+                    global_users[ctx.message.author.id]['dmoj'] = str(self.dmoj_sessions[ctx.message.author.id])
+                    query.update_user(ctx.message.author.id, 'dmoj', global_users[ctx.message.author.id]['dmoj'])
                     for guild in self.bot.guilds:
                         if guild.id in self.dmoj_server_nicks:
                             for member in guild.members:
                                 if member.id == ctx.message.author.id:
                                     try:
-                                        await member.edit(nick=self.global_users[ctx.message.author.id]['dmoj'])
+                                        await member.edit(nick=global_users[ctx.message.author.id]['dmoj'])
                                     except:
                                         pass
                     await ctx.send('Successfully logged in with submission permissions as %s on DMOJ! (Note that for security reasons, submission permissions will be automatically turned off after the cache resets or when you go offline. When this occurs, you will have to log in using your token again to submit, but your account will remain linked. You may delete the message containing your token now)' % self.dmoj_sessions[ctx.message.author.id])
@@ -77,6 +78,7 @@ class ProblemRankingCog(ProblemCog):
                 
         elif site.lower() == 'cf' or site.lower() == 'codeforces':               
             self.check_existing_user(ctx.message.author)
+            global_users = query.get_user(ctx.message.author.id)
             if token is None or (ctx.message.author.id in self.cf_sessions.keys() and token.lower() == str(self.cf_sessions[ctx.message.author.id]).lower()):
                 try:
                     if ctx.message.author.id in self.cf_sessions:
@@ -84,24 +86,24 @@ class ProblemRankingCog(ProblemCog):
                         if not validated:
                             raise NoSubmissionsException
                         query.update_user(ctx.message.author.id, 'codeforces', str(self.cf_sessions[ctx.message.author.id]))
-                        self.global_users[ctx.message.author.id]['codeforces'] = str(self.cf_sessions[ctx.message.author.id])
+                        global_users[ctx.message.author.id]['codeforces'] = str(self.cf_sessions[ctx.message.author.id])
                         for guild in self.bot.guilds:
                             if guild.id in self.cf_server_nicks:
                                 for member in guild.members:
                                     if member.id == ctx.message.author.id:
                                         try:
-                                            await member.edit(nick=self.global_users[ctx.message.author.id]['codeforces'])
+                                            await member.edit(nick=global_users[ctx.message.author.id]['codeforces'])
                                         except:
                                             pass
                         await ctx.send('Successfully linked your account as %s on Codeforces!' % str(self.cf_sessions[ctx.message.author.id]))
                         self.cf_sessions.pop(ctx.message.author.id)
-                        if self.global_users[ctx.message.author.id]['country'] is None:
-                            response = requests.get('https://codeforces.com/api/user.info?handles=' + self.global_users[ctx.message.author.id]['codeforces'])
+                        if global_users[ctx.message.author.id]['country'] is None:
+                            response = requests.get('https://codeforces.com/api/user.info?handles=' + global_users[ctx.message.author.id]['codeforces'])
                             if response.status_code == 200 and response.json()['status'] == 'OK':
                                 country = response.json()['result'][0].get('country', None)
                                 if country is None:
                                     return
-                                self.global_users[ctx.message.author.id]['country'] = country
+                                global_users[ctx.message.author.id]['country'] = country
                                 query.update_user(ctx.message.author.id, 'country', country)
                                 await ctx.send('Country detected as %s; set as your country.' % str(Country(country)))
                     else:
@@ -118,8 +120,8 @@ class ProblemRankingCog(ProblemCog):
                 except PrivateSubmissionException:
                     await ctx.send('The bot was unable to access your most recent submission. Ensure that your most recent submission is on a problem with public submissions (not a problem from ACMSGURU or in an ongoing contest)')
             else:
-                if self.global_users[ctx.message.author.id]['codeforces'] is not None and token.lower() == self.global_users[ctx.message.author.id]['codeforces'].lower():
-                    await ctx.send('The Codeforces account %s is already connected!' % self.global_users[ctx.message.author.id]['codeforces'])
+                if global_users[ctx.message.author.id]['codeforces'] is not None and token.lower() == global_users[ctx.message.author.id]['codeforces'].lower():
+                    await ctx.send('The Codeforces account %s is already connected!' % global_users[ctx.message.author.id]['codeforces'])
                     return
                 try:
                     self.cf_sessions[ctx.message.author.id] = CodeforcesSession(token, ctx.message.author)
@@ -145,24 +147,26 @@ class ProblemRankingCog(ProblemCog):
             await ctx.send(mention + 'Invalid query. Please use format `%sdisconnect <site>`.' % prefix)
         elif site.lower() == 'dmoj':
             self.check_existing_user(ctx.message.author)
-            if self.global_users[ctx.message.author.id]['dmoj'] is None:
+            global_users = query.get_user(ctx.message.author.id)
+            if global_users[ctx.message.author.id]['dmoj'] is None:
                 await ctx.send(mention + 'Your DMOJ account is already not connected!')
                 return
             if ctx.message.author.id in self.dmoj_sessions.keys():
                 self.dmoj_sessions.pop(ctx.message.author.id)
-            handle = self.global_users[ctx.message.author.id]['dmoj']
-            self.global_users[ctx.message.author.id]['dmoj'] = None
+            handle = global_users[ctx.message.author.id]['dmoj']
+            global_users[ctx.message.author.id]['dmoj'] = None
             query.update_user(ctx.message.author.id, 'dmoj', None)
             await ctx.send(mention + 'Successfully disconnected your DMOJ account: %s' % handle)
         elif site.lower() == 'cf' or site.lower() == 'codeforces':
             self.check_existing_user(ctx.message.author)
-            if self.global_users[ctx.message.author.id]['codeforces'] is None:
+            global_users = query.get_user(ctx.message.author.id)
+            if global_users[ctx.message.author.id]['codeforces'] is None:
                 await ctx.send(mention + 'Your Codeforces account is already not connected!')
                 return
             if ctx.message.author.id in self.dmoj_sessions.keys():
                 self.dmoj_sessions.pop(ctx.message.author.id)
-            handle = self.global_users[ctx.message.author.id]['codeforces']
-            self.global_users[ctx.message.author.id]['codeforces'] = None
+            handle = global_users[ctx.message.author.id]['codeforces']
+            global_users[ctx.message.author.id]['codeforces'] = None
             query.update_user(ctx.message.author.id, 'codeforces', None)
             await ctx.send(mention + 'Successfully disconnected your Codeforces account: %s' % handle)          
         else:
@@ -197,16 +201,17 @@ class ProblemRankingCog(ProblemCog):
                 self.dmoj_server_roles.append(ctx.message.guild.id)
                 query.update_server(ctx.message.guild.id, 'role_sync', True)
                 query.update_server(ctx.message.guild.id, 'sync_source', 'dmoj')
-                forbidden_users = []
+                forbidden_users = 0
                 for member in ctx.message.guild.members:
-                    if member.id in self.global_users.keys() and self.global_users[member.id]['dmoj'] is not None:
+                    global_users = query.get_user(member.id)
+                    if member.id in global_users.keys() and global_users[member.id]['dmoj'] is not None:
                         try:
-                            await member.edit(nick=self.global_users[member.id]['dmoj'])
+                            await member.edit(nick=global_users[member.id]['dmoj'])
                         except discord.errors.Forbidden:
-                            forbidden_users.append('%s#%s' % (member.name, member.discriminator))
+                            forbidden_users += 1
                 self.dmoj_server_nicks.append(ctx.message.guild.id)
                 query.update_server(ctx.message.guild.id, 'nickname_sync', True)
-                await ctx.send(ctx.message.author.display_name + ', DMOJ based nicknames and ranked roles set to `ON`. It may take some time for all roles to fully update. Skipped changing the nickname of %d members due to having lower permissions.' % len(forbidden_users))
+                await ctx.send(ctx.message.author.display_name + ', DMOJ based nicknames and ranked roles set to `ON`. It may take some time for all roles to fully update. Skipped changing the nickname of %d members due to having lower permissions.' % forbidden_users)
             except discord.errors.Forbidden:
                 await ctx.send(ctx.message.author.display_name + ', Toggle failed, make sure that the bot has the Manage Roles and Manage Roles permissions and try again.')
         elif site == 'cf' or site == 'codeforces':
@@ -230,9 +235,10 @@ class ProblemRankingCog(ProblemCog):
                 query.update_server(ctx.message.guild.id, 'sync_source', 'codeforces')
                 forbidden_users = []
                 for member in ctx.message.guild.members:
-                    if member.id in self.global_users.keys() and self.global_users[member.id]['codeforces'] is not None:
+                    global_users = query.get_user(member.id)
+                    if member.id in global_users.keys() and global_users[member.id]['codeforces'] is not None:
                         try:
-                            await member.edit(nick=self.global_users[member.id]['codeforces'])
+                            await member.edit(nick=global_users[member.id]['codeforces'])
                         except discord.errors.Forbidden:
                             forbidden_users.append('%s#%s' % (member.name, member.discriminator))
                 self.dmoj_server_nicks.append(ctx.message.guild.id)
@@ -264,17 +270,18 @@ class ProblemRankingCog(ProblemCog):
 
     @tasks.loop(minutes=5)
     async def update_dmoj_ranks(self):
-        if self.update_dmoj_index >= len(self.global_users):
+        global_users = query.get_user_by_row(self.update_dmoj_index)
+        if global_users == {}:
             self.update_dmoj_index = 0
-        while self.update_dmoj_index < len(self.global_users):
-            member_id = list(self.global_users.keys())[self.update_dmoj_index]
-            if self.global_users[member_id]['dmoj'] is not None:
+        while global_users != {}:
+            member_id = list(global_users.keys())[0]
+            if global_users[member_id]['dmoj'] is not None:
                 break
             self.update_dmoj_index += 1
-        if self.update_dmoj_index == len(self.global_users):
+        if global_users == {}:
             return
 
-        user_info = json_get('https://dmoj.ca/api/user/info/%s' % self.global_users[member_id]['dmoj'])
+        user_info = json_get('https://dmoj.ca/api/user/info/%s' % global_users[member_id]['dmoj'])
         current_rating = user_info['contests']['current_rating']
         for rating, role in list(self.dmoj_ratings.items()):
             if current_rating in rating:
