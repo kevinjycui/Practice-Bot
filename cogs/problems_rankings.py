@@ -317,7 +317,7 @@ class ProblemRankingCog(ProblemCog):
     async def update_dmoj_ranks_before(self):
         await self.bot.wait_until_ready()
 
-    @tasks.loop(seconds=5)
+    @tasks.loop(minutes=5)
     async def update_cf_ranks(self):
         global_users = query.get_user_by_row(self.update_cf_index)
         if global_users == {}:
