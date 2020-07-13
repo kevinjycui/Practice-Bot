@@ -382,10 +382,10 @@ class ProblemCog(commands.Cog):
 
         temp_dmoj_problems = {}
         temp_cf_problems = []
-        global_users = query.get_user(iden)
-        if iden is not None and not global_users[iden]['can_repeat']:
-            if oj == 'dmoj' and global_users[iden]['dmoj'] is not None:
-                user_response = json_get('https://dmoj.ca/api/user/info/%s' % global_users[iden]['dmoj'])
+        user_data = query.get_user(iden)
+        if iden is not None and not user_data[iden]['can_repeat']:
+            if oj == 'dmoj' and user_data[iden]['dmoj'] is not None:
+                user_response = json_get('https://dmoj.ca/api/user/info/%s' % user_data[iden]['dmoj'])
                 if user_response is not None:
                     if points is None:
                         for name, prob in list(self.dmoj_problems.items()):
@@ -401,7 +401,7 @@ class ProblemCog(commands.Cog):
                     if temp_dmoj_problems == {}:
                         raise InvalidParametersException()
             elif oj == 'codeforces':
-                response = requests.get('https://codeforces.com/api/user.status?handle=' + global_users[iden]['codeforces'])
+                response = requests.get('https://codeforces.com/api/user.status?handle=' + user_data[iden]['codeforces'])
                 if response.status_code != 200 or response.json()['status'] != 'OK':
                     return None
                 solved = []
@@ -460,7 +460,7 @@ class ProblemCog(commands.Cog):
             else:
                 raise InvalidParametersException()
             if iden is not None:
-                global_users[iden]['last_dmoj_problem'] = name
+                user_data[iden]['last_dmoj_problem'] = name
                 query.update_user(iden, 'last_dmoj_problem', name)
             return self.embed_dmoj_problem(name, prob)
             
@@ -577,13 +577,13 @@ class ProblemCog(commands.Cog):
     @commands.command(aliases=['toggleRepeat'])
     async def togglerepeat(self, ctx):
         self.check_existing_user(ctx.message.author)
-        global_users = query.get_user(ctx.message.author.id)
+        user_data = query.get_user(ctx.message.author.id)
         for account in self.onlineJudges.accounts:
-            if global_users[ctx.message.author.id][account] is not None:
-                global_users[ctx.message.author.id]['can_repeat'] = not global_users[ctx.message.author.id]['can_repeat']
-                query.update_user(ctx.message.author.id, 'can_repeat', global_users[ctx.message.author.id]['can_repeat'])
+            if user_data[ctx.message.author.id][account] is not None:
+                user_data[ctx.message.author.id]['can_repeat'] = not user_data[ctx.message.author.id]['can_repeat']
+                query.update_user(ctx.message.author.id, 'can_repeat', user_data[ctx.message.author.id]['can_repeat'])
                 prefix = await self.bot.command_prefix(self.bot, ctx.message)
-                await ctx.send(ctx.message.author.display_name + ', Repeat setting for command `%srandom` set to %s.' % (prefix, ('ON' if global_users[ctx.message.author.id]['can_repeat'] else 'OFF')))
+                await ctx.send(ctx.message.author.display_name + ', Repeat setting for command `%srandom` set to %s.' % (prefix, ('ON' if user_data[ctx.message.author.id]['can_repeat'] else 'OFF')))
                 return
         await ctx.send(ctx.message.author.display_name + ', You are not linked to any accounts')
 
@@ -591,10 +591,10 @@ class ProblemCog(commands.Cog):
     async def togglecountry(self, ctx, code=''):
         try:
             country_object = Country(code)
-            global_users = query.get_user(ctx.message.author.id)
-            prev_country = global_users[ctx.message.author.id]['country']
-            global_users[ctx.message.author.id]['country'] = country_object.country
-            query.update_user(ctx.message.author.id, 'country', global_users[ctx.message.author.id]['country'])
+            user_data = query.get_user(ctx.message.author.id)
+            prev_country = user_data[ctx.message.author.id]['country']
+            user_data[ctx.message.author.id]['country'] = country_object.country
+            query.update_user(ctx.message.author.id, 'country', user_data[ctx.message.author.id]['country'])
             if prev_country is not None and prev_country != country_object.country:
                 await ctx.send(ctx.message.author.display_name + ', Changed your country from %s to %s.' % (str(Country(prev_country)), str(country_object)))
             else:
@@ -608,18 +608,18 @@ class ProblemCog(commands.Cog):
         if user is None:
             user = ctx.message.author
         self.check_existing_user(user)
-        global_users = query.get_user(user.id)
+        user_data = query.get_user(user.id)
         embed = discord.Embed(title=user.display_name)
         embed.timestamp = datetime.utcnow()
         empty = True
-        if global_users[user.id]['dmoj'] is not None:
-            embed.add_field(name='DMOJ', value='https://dmoj.ca/user/%s' % global_users[user.id]['dmoj'], inline=False)
+        if user_data[user.id]['dmoj'] is not None:
+            embed.add_field(name='DMOJ', value='https://dmoj.ca/user/%s' % user_data[user.id]['dmoj'], inline=False)
             empty = False
-        if global_users[user.id]['codeforces'] is not None:
-            embed.add_field(name='Codeforces', value='https://codeforces.com/profile/%s' % global_users[user.id]['codeforces'], inline=False)
+        if user_data[user.id]['codeforces'] is not None:
+            embed.add_field(name='Codeforces', value='https://codeforces.com/profile/%s' % user_data[user.id]['codeforces'], inline=False)
             empty = False
-        if global_users[user.id]['country'] is not None:
-            embed.add_field(name='Country', value=str(Country(global_users[user.id]['country'])), inline=False)
+        if user_data[user.id]['country'] is not None:
+            embed.add_field(name='Country', value=str(Country(user_data[user.id]['country'])), inline=False)
             empty = False
         if empty:
             embed.description = 'No accounts linked...'
@@ -640,9 +640,9 @@ class ProblemCog(commands.Cog):
                 f = requests.get(ctx.message.attachments[0].url)
                 source = f.content
             self.check_existing_user(ctx.message.author)
-            global_users = query.get_user(ctx.message.author.id)
-            if problem == '^' and global_users[ctx.message.author.id]['last_dmoj_problem'] is not None:
-                problem = global_users[ctx.message.author.id]['last_dmoj_problem']
+            user_data = query.get_user(ctx.message.author.id)
+            if problem == '^' and user_data[ctx.message.author.id]['last_dmoj_problem'] is not None:
+                problem = user_data[ctx.message.author.id]['last_dmoj_problem']
             id = user_session.submit(problem, self.language.getId(lang), source)
             response = user_session.getTestcaseStatus(id)
             responseText = str(response)
@@ -718,11 +718,11 @@ class ProblemCog(commands.Cog):
     async def tea(self, ctx, user: discord.User=None):
         if user is None:
             self.check_existing_user(ctx.message.author)
-            global_users = query.get_user(ctx.message.author.id)
-            if global_users[ctx.message.author.id]['tea'] == 1:
+            user_data = query.get_user(ctx.message.author.id)
+            if user_data[ctx.message.author.id]['tea'] == 1:
                 await ctx.send(ctx.message.author.display_name + ', You have 1 cup of :tea:.')
             else:
-                await ctx.send(ctx.message.author.display_name + ', You have ' + str(global_users[ctx.message.author.id]['tea']) + ' cups of :tea:.')
+                await ctx.send(ctx.message.author.display_name + ', You have ' + str(user_data[ctx.message.author.id]['tea']) + ' cups of :tea:.')
             return
         if user.id == ctx.message.author.id:
             await ctx.send(ctx.message.author.display_name + ', Sorry, cannot send :tea: to yourself!')
@@ -731,9 +731,9 @@ class ProblemCog(commands.Cog):
             await ctx.send(ctx.message.author.display_name + ', Thanks for the :tea:!')
             return
         self.check_existing_user(user)
-        global_users += query.get_user(user.id)
-        global_users[user.id]['tea'] += 1
-        query.update_user(user.id, 'tea', global_users[user.id]['tea'])
+        user_data += query.get_user(user.id)
+        user_data[user.id]['tea'] += 1
+        query.update_user(user.id, 'tea', user_data[user.id]['tea'])
         await ctx.send(ctx.message.author.display_name + ', sent a cup of :tea: to ' + user.mention)
         
 def setup(bot):
