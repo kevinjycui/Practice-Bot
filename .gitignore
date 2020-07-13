@@ -7,8 +7,6 @@ data/*
 !data/.gitkeep 
 backup/
 
-.env
-.env.test
 env/
 
 *.bat
