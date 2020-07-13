@@ -117,7 +117,7 @@ class ProblemRankingCog(ProblemCog):
                 except SessionTimeoutException:
                     self.cf_sessions.pop(ctx.message.author.id)
                     prefix = await self.bot.command_prefix(self.bot, ctx.message)
-                    await ctx.send('Session timed out (submit within 1 minute of using the connect command). Try initialising another session `%sconnect cf <handle>`.' % prefix)
+                    await ctx.send('Session timed out (submit within 3 minutes of using the connect command). Try initialising another session `%sconnect cf <handle>`.' % prefix)
                 except PrivateSubmissionException:
                     await ctx.send('The bot was unable to access your most recent submission. Ensure that your most recent submission is on a problem with public submissions (not a problem from ACMSGURU or in an ongoing contest)')
             else:

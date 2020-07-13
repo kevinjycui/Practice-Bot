@@ -44,7 +44,7 @@ class Session:
         return self.handle
 
     def validate(self):
-        if time() - self.time > 60:
+        if time() - self.time > 180:
             raise SessionTimeoutException(self.time)
         response = requests.get('https://codeforces.com/api/user.status?handle=' + self.handle)
         if response.status_code != 200 and response.json()['status'] == 'OK':
