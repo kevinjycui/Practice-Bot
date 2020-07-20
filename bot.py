@@ -89,7 +89,7 @@ async def motivation(ctx):
 
 @tasks.loop(minutes=30)
 async def status_change():
-    await bot.change_presence(activity=discord.Game(name='with %s | %shelp' % (rand.choice(statuses), prefix)))
+    await bot.change_presence(activity=discord.Game(name='with %s on %d servers | %shelp' % (rand.choice(statuses), len(bot.guilds), prefix)))
 
 @status_change.before_loop
 async def status_change_before():
