@@ -91,7 +91,7 @@ async def status_change():
     await bot.change_presence(
         activity=discord.Activity(
             type=discord.ActivityType.watching, 
-            name='%d servers practising | %shelp' % (len(bot.guilds), prefix)
+            name='%d servers practise | %shelp' % (len(bot.guilds), prefix)
         )
     )
 
