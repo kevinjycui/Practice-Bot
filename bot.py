@@ -28,7 +28,6 @@ finally:
     bot_id = config['bot']['id']
     owner_id = config['bot']['owner_id']
 
-statuses = ('implementation', 'dynamic programming', 'graph theory', 'data structures', 'trees', 'geometry', 'strings', 'optimization')
 replies = ('Practice Bot believes that with enough practice, you can complete any goal!', 'Keep practicing! Practice Bot says that every great programmer starts somewhere!', 'Hey now, you\'re an All Star, get your game on, go play (and practice)!',
            'Stuck on a problem? Every logical problem has a solution. You just have to keep practicing!', ':heart:')
 
@@ -87,9 +86,14 @@ async def oj(ctx, oj: str):
 async def motivation(ctx):
     await ctx.send(ctx.message.author.display_name + ', ' + rand.choice(replies))
 
-@tasks.loop(minutes=30)
+@tasks.loop(minutes=1)
 async def status_change():
-    await bot.change_presence(activity=discord.Game(name='with %s on %d servers | %shelp' % (rand.choice(statuses), len(bot.guilds), prefix)))
+    await bot.change_presence(
+        activity=discord.Activity(
+            type=discord.ActivityType.watching, 
+            name='%d servers practising | %shelp' % (len(bot.guilds), prefix)
+        )
+    )
 
 @status_change.before_loop
 async def status_change_before():
