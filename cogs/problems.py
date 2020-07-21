@@ -414,10 +414,10 @@ class ProblemCog(commands.Cog):
                 if points is None:
                     temp_cf_problems = list(filter(lambda prob: (prob.get('contestId', prob.get('problemsetName')), prob['index']) not in solved, self.cf_problems))
                 else:
-                    temp_cf_problems = {'cf': {}}
+                    temp_cf_problems = {'codeforces': {}}
                     for point in list(self.problems_by_points['codeforces']):
-                        temp_cf_problems['cf'][point] = list(filter(lambda prob: (prob['contestId'], prob['index']) not in solved, self.problems_by_points['codeforces'][point]))
-                if temp_cf_problems == [] or (type(temp_cf_problems) is dict and temp_cf_problems['cf'] == {}):
+                        temp_cf_problems['codeforces'][point] = list(filter(lambda prob: (prob['contestId'], prob['index']) not in solved, self.problems_by_points['codeforces'][point]))
+                if temp_cf_problems == [] or (type(temp_cf_problems) is dict and temp_cf_problems['codeforces'] == {}):
                     raise InvalidParametersException()
 
         if temp_dmoj_problems != {}:
@@ -470,8 +470,8 @@ class ProblemCog(commands.Cog):
                 return
             if points is None:
                 prob = rand.choice(problem_list)
-            elif points in problem_list['cf']:
-                prob = rand.choice(problem_list['cf'][points])
+            elif points in problem_list['codeforces']:
+                prob = rand.choice(problem_list['codeforces'][points])
             else:
                 raise InvalidParametersException()
             return self.embed_cf_problem(prob)
