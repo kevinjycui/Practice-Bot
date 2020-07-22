@@ -176,12 +176,11 @@ class ProblemCog(commands.Cog):
                 self.problems_by_points['peg'][points].append(peg_data)
 
     def parse_szkopul_problems(self):
-        print(page)
         problems = requests.get('https://szkopul.edu.pl/problemset/?page=%d' % self.szkopul_page)
         if problems.status_code == 200:
             soup = bs.BeautifulSoup(problems.text, 'lxml')
             rows = soup.findAll('tr')
-            if page == 1:
+            if self.szkopul_page == 1:
                 self.szkopul_problems = {}
             if len(rows) == 1:
                 return

@@ -271,17 +271,14 @@ class ProblemRankingCog(ProblemCog):
 
     @tasks.loop(minutes=5)
     async def update_dmoj_ranks(self):
-        user_data = query.get_user_by_row(self.update_dmoj_index)
-        if user_data == {}:
+        user_response = query.get_next_user_by_row(self.update_dmoj_index, 'dmoj')
+        if user_response['status'] == 0:
             self.update_dmoj_index = 0
-        while user_data != {}:
-            user_data = query.get_user_by_row(self.update_dmoj_index)
-            member_id = list(user_data.keys())[0]
-            if user_data[member_id]['dmoj'] is not None:
-                break
-            self.update_dmoj_index += 1
-        if user_data == {}:
+        elif user_response['status'] == -1:
             return
+        else:
+            self.update_dmoj_index += 1
+        user_data = user_response['user']
 
         user_info = json_get('https://dmoj.ca/api/user/info/%s' % user_data[member_id]['dmoj'])
         current_rating = user_info['contests']['current_rating']
@@ -319,19 +316,16 @@ class ProblemRankingCog(ProblemCog):
 
     @tasks.loop(minutes=5)
     async def update_cf_ranks(self):
-        user_data = query.get_user_by_row(self.update_cf_index)
-        if user_data == {}:
-            self.update_cf_index = 0
-        while user_data != {}:
-            user_data = query.get_user_by_row(self.update_cf_index)
-            member_id = list(user_data.keys())[0]
-            if user_data[member_id]['codeforces'] is not None:
-                break
-            self.update_cf_index += 1
-        if user_data == {}:
+        user_response = query.get_next_user_by_row(self.update_dmoj_index, 'codeforces')
+        if user_response['status'] == 0:
+            self.update_dmoj_index = 0
+        elif user_response['status'] == -1:
             return
+        else:
+            self.update_dmoj_index += 1
+        user_data = user_response['user']
 
-        user_info = json_get('https://codeforces.com/api/user.info?handles=%s' % user_data[member_id]['codeforces'])['result'][0]
+        user_info = json_get('https://codeforces.com/api/user.info?handles=%s' % user_data['codeforces'])['result'][0]
         for guild in self.bot.guilds:
             self.check_existing_server(guild)
             if int(guild.id) not in self.cf_server_roles:
