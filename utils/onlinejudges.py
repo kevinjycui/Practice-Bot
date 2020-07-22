@@ -63,7 +63,7 @@ class OnlineJudges:
             (Moroccan Olympiad in Informatics) in 2017.'
             embed = discord.Embed(title='DMOJ: Modern Online Judge', description=about, inline=False)
             embed.add_field(name='Country', value=':flag_ca: Canada', inline=False)
-            embed.add_field(name='Abbreviations', value='`$random dmoj`', inline=False)
+            embed.add_field(name='Abbreviations', value='`$oj dmoj`', inline=False)
             embed.add_field(name='Random Problems', value='Yes', inline=False)
             embed.add_field(name='Contest Notifications', value='Yes', inline=False)
             embed.add_field(name='Rating Roles', value='Yes', inline=False)
@@ -83,7 +83,7 @@ class OnlineJudges:
             Programming.'
             embed = discord.Embed(title='Codeforces', description=about, inline=False)
             embed.add_field(name='Country', value=':flag_ru: Russia', inline=False)
-            embed.add_field(name='Abbreviations', value='`$random codeforces`, `$random cf`', inline=False)
+            embed.add_field(name='Abbreviations', value='`$oj codeforces`, `$oj cf`', inline=False)
             embed.add_field(name='Random Problems', value='Yes', inline=False)
             embed.add_field(name='Contest Notifications', value='Yes', inline=False)
             embed.add_field(name='Rating Roles', value='No', inline=False)
@@ -99,7 +99,7 @@ class OnlineJudges:
             a month, with other weeks consisting of both ARC and ABC. AtCoder is available in both \
             English and Japanese.'
             embed = discord.Embed(title='AtCoder', description=about, inline=False)
-            embed.add_field(name='Abbreviations', value='`$random atcoder`, `$random at`, `$random ac`', inline=False)
+            embed.add_field(name='Abbreviations', value='`$oj atcoder`, `$oj at`, `$oj ac`', inline=False)
             embed.add_field(name='Country', value=':flag_jp: Japan', inline=False)
             embed.add_field(name='Random Problems', value='Yes', inline=False)
             embed.add_field(name='Contest Notifications', value='Yes', inline=False)
@@ -114,7 +114,7 @@ class OnlineJudges:
             WCIPEG supported 15 programming languages. The site is in English.'
             embed = discord.Embed(title='PEG Online Judge', description=about, inline=False)
             embed.add_field(name='Country', value=':flag_ca: Canada', inline=False)
-            embed.add_field(name='Abbreviations', value='`$random wcipeg`, `$random peg`', inline=False)
+            embed.add_field(name='Abbreviations', value='`$oj wcipeg`, `$oj peg`', inline=False)
             embed.add_field(name='Random Problems', value='Yes', inline=False)
             embed.add_field(name='Contest Notifications', value='N/A', inline=False)
             embed.add_field(name='Rating Roles', value='No', inline=False)
@@ -128,7 +128,7 @@ class OnlineJudges:
             Finnish. As of 2020, the CSES Problem Set contains 200 tasks with 10, 000 users.'
             embed = discord.Embed(title='CSES', description=about, inline=False)
             embed.add_field(name='Country', value=':flag_fi: Finland', inline=False)
-            embed.add_field(name='Abbreviations', value='`$random cses`', inline=False)
+            embed.add_field(name='Abbreviations', value='`$oj cses`', inline=False)
             embed.add_field(name='Random Problems', value='Yes', inline=False)
             embed.add_field(name='Contest Notifications', value='N/A', inline=False)
             embed.add_field(name='Rating Roles', value='N/A', inline=False)
@@ -140,7 +140,7 @@ class OnlineJudges:
             POI, OIJ, and PA. The site is available in English and Polish.'
             embed = discord.Embed(title='Szkopuł', description=about, inline=False)
             embed.add_field(name='Country', value=':flag_pl: Poland', inline=False)
-            embed.add_field(name='Abbreviations', value='`$random szkopul`, `$random szkopuł`', inline=False)
+            embed.add_field(name='Abbreviations', value='`$oj szkopul`, `$oj szkopuł`', inline=False)
             embed.add_field(name='Random Problems', value='Yes', inline=False)
             embed.add_field(name='Contest Notifications', value='No', inline=False)
             embed.add_field(name='Rating Roles', value='N/A', inline=False)

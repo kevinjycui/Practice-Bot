@@ -75,12 +75,30 @@ async def setprefix(ctx, fix: str=None):
             await ctx.send(ctx.message.author.display_name + ', Server prefix changed from `%s` to `%s`' % (previous_prefix, fix))
 
 @bot.command()
-async def oj(ctx, oj: str):
-    try:
-        embed = onlineJudges.oj_to_embed(oj)
-        await ctx.send(embed=embed)
-    except NoSuchOJException:
-        await ctx.send(ctx.message.author.display_name + ', Sorry, no online judge found. Search only for online judges used by this bot ' + str(onlineJudges))
+async def oj(ctx, oj: str=''):
+    if oj == '':
+        await ctx.send('''```Available Online Judges
+dmoj -> [dmoj]
+    - random
+    - connect
+    - submit
+codeforces -> [codeforces] [cf]
+    - random
+    - connect
+atcoder -> [atcoder] [at] [ac]
+    -random
+cses -> [cses]
+    -random
+wcipeg -> [wcipeg] [peg]
+    -random
+szkopuł -> [szkopuł] [szkopul]
+    -random```''')
+    else:
+        try:
+            embed = onlineJudges.oj_to_embed(oj)
+            await ctx.send(embed=embed)
+        except NoSuchOJException:
+            await ctx.send(ctx.message.author.display_name + ', Sorry, no online judge found. Search only for online judges used by this bot ' + str(onlineJudges))
 
 @bot.command()
 async def motivation(ctx):
