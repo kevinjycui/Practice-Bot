@@ -730,9 +730,8 @@ class ProblemCog(commands.Cog):
             await ctx.send(ctx.message.author.display_name + ', Thanks for the :tea:!')
             return
         self.check_existing_user(user)
-        user_data += query.get_user(user.id)
-        user_data[user.id]['tea'] += 1
-        query.update_user(user.id, 'tea', user_data[user.id]['tea'])
+        user_data = query.get_user(user.id)
+        query.update_user(user.id, 'tea', user_data[user.id]['tea']+1)
         await ctx.send(ctx.message.author.display_name + ', sent a cup of :tea: to ' + user.mention)
         
 def setup(bot):
