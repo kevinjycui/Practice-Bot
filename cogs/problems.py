@@ -346,30 +346,22 @@ class ProblemCog(commands.Cog):
             return embed
 
     def get_problem_from_url(self, url):
-        regex = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
-        try:
-            valid_urls = [tuple(result for result in results if result) for results in re.findall(regex, url)][0]
-        except IndexError:
-            raise InvalidURLException
         components = url.split('/')
-        if len(valid_urls) == 1 and valid_urls[0] == url:
-            if url[:24] == 'https://dmoj.ca/problem/' and len(components) == 5:
-                return self.get_problem('dmoj', problem_id=components[4])
-            elif url[:42] == 'https://codeforces.com/problemset/problem/' and len(components) == 7:
-                return self.get_problem('codeforces', components[5], components[6])
-            elif url[:28] == 'https://atcoder.jp/contests/' and len(components) == 7 and components[5] == 'tasks':
-                return self.get_problem('atcoder', components[4], components[6])
-            elif url[:27] == 'https://wcipeg.com/problem/' and len(components) == 5:
-                return self.get_problem('peg', problem_id=components[4])
-            elif url[:32] == 'https://cses.fi/problemset/task/' and len(components) == 6:
-                return self.get_problem('cses', problem_id=components[5])
-            elif url[:42] == 'https://szkopul.edu.pl/problemset/problem/':
-                return self.get_problem('szkopul', szkopul_url=url)
-            else:
-                raise InvalidURLException
+        if url[:24] == 'https://dmoj.ca/problem/' and len(components) == 5:
+            return self.get_problem('dmoj', problem_id=components[4])
+        elif url[:42] == 'https://codeforces.com/problemset/problem/' and len(components) == 7:
+            return self.get_problem('codeforces', components[5], components[6])
+        elif url[:28] == 'https://atcoder.jp/contests/' and len(components) == 7 and components[5] == 'tasks':
+            return self.get_problem('atcoder', components[4], components[6])
+        elif url[:27] == 'https://wcipeg.com/problem/' and len(components) == 5:
+            return self.get_problem('peg', problem_id=components[4])
+        elif url[:32] == 'https://cses.fi/problemset/task/' and len(components) == 6:
+            return self.get_problem('cses', problem_id=components[5])
+        elif url[:42] == 'https://szkopul.edu.pl/problemset/problem/':
+            return self.get_problem('szkopul', szkopul_url=url)
         else:
             raise InvalidURLException
-
+            
     def get_random_problem(self, oj=None, points=None, maximum=None, iden=None):
         if oj is None:
             oj = rand.choice(self.onlineJudges.judges)
