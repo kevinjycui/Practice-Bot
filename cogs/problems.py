@@ -386,14 +386,15 @@ class ProblemCog(commands.Cog):
                 ) or (
                     oj == 'codeforces' and user_data[iden]['codeforces'] is not None
                 ))
-            if oj == 'dmoj' and suggestions_on:
-                if iden not in self.dmoj_user_suggests.keys():
-                    self.dmoj_user_suggests[iden] = DMOJUserSuggester(user_data[iden]['dmoj'])
-                points, maximum = self.dmoj_user_suggests[iden].get_pp_range()
-            elif oj == 'codeforces' and suggestions_on:
-                if iden not in self.cf_user_suggests.keys():
-                    self.cf_user_suggests[iden] = CodeforcesUserSuggester(user_data[iden]['codeforces'])
-                points, maximum = self.cf_user_suggests[iden].get_pp_range()
+            if suggestions_on:
+                if oj == 'dmoj':
+                    if iden not in self.dmoj_user_suggests.keys():
+                        self.dmoj_user_suggests[iden] = DMOJUserSuggester(user_data[iden]['dmoj'])
+                    points, maximum = self.dmoj_user_suggests[iden].get_pp_range()
+                elif oj == 'codeforces':
+                    if iden not in self.cf_user_suggests.keys():
+                        self.cf_user_suggests[iden] = CodeforcesUserSuggester(user_data[iden]['codeforces'])
+                    points, maximum = self.cf_user_suggests[iden].get_pp_range()
                 
             if not user_data[iden]['can_repeat']:
                 if oj == 'dmoj' and user_data[iden]['dmoj'] is not None:
@@ -551,6 +552,11 @@ class ProblemCog(commands.Cog):
     def check_existing_server(self, server):
         query.insert_ignore_server(server.id)
 
+    @commands.command(aliases=['p'])
+    async def problem(self, ctx, url: str):
+        prefix = await self.bot.command_prefix(self.bot, ctx.message)
+        await ctx.send(ctx.message.author.display_name + ', This command is no longer supported. To request for it again, feel free to leave a suggestion using the  `%ssuggest <suggestion>` command.' % prefix)
+
     # @commands.command(aliases=['p'])
     # async def problem(self, ctx, url: str):
     #     try:
@@ -571,6 +577,9 @@ class ProblemCog(commands.Cog):
             embed.title = title
             embed.description = description + ' (searched in %ss)' % str(round(self.bot.latency, 3))
             embed.timestamp = datetime.utcnow()
+            if rand.randint(0, 10) == 0 and (oj.lower() == 'dmoj' or oj.lower() == 'codeforces' or oj.lower() == 'cf'):
+                prefix = await self.bot.command_prefix(self.bot, ctx.message)
+                await ctx.send('Pro tip: Try out the new command, `%stogglesuggest` to turn on personalised suggested problems for DMOJ and Codeforces!' % prefix)
             await ctx.send('Requested problem for ' + ctx.message.author.display_name, embed=embed)
         except IndexError:
             await ctx.send(ctx.message.author.display_name + ', No problem was found. This may be due to the bot updating the problem cache. Please wait a moment, then try again.')
@@ -583,6 +592,11 @@ class ProblemCog(commands.Cog):
         except InvalidQueryException:
             await ctx.send(ctx.message.author.display_name + ', Invalid query. Make sure your points are positive integers.')
 
+    @commands.command(aliases=['d'])
+    async def daily(self, ctx):
+        prefix = await self.bot.command_prefix(self.bot, ctx.message)
+        await ctx.send(ctx.message.author.display_name + ', This command is no longer supported. To request for it again, feel free to leave a suggestion using the  `%ssuggest <suggestion>` command.' % prefix)
+    
     # @commands.command(aliases=['d'])
     # async def daily(self, ctx):
     #     if str(date.today()) not in self.daily_problems.keys():

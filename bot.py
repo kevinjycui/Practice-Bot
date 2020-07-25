@@ -144,7 +144,7 @@ async def on_command_error(ctx, error):
     elif isinstance(error, commands.errors.MissingPermissions):
         await ctx.send(ctx.message.author.display_name + ', Sorry, you are missing permissions to run this command!')
     else:
-        await ctx.send(ctx.message.author.display_name + ', An unexpected error occured. Please try again. If this error persists, you can report it using the `$suggest <suggestion>` command.')
+        await ctx.send(ctx.message.author.display_name + ', An unexpected error occured. Please try again. If this error persists, you can report it using the `%ssuggest <suggestion>` command.' % prefix_from_guild(ctx.message.guild))
         user = bot.get_user(bot.owner_id)
         await user.send('```%s\n%s```' % (repr(error), ctx.message.content))
         raise error
