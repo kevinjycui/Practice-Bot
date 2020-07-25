@@ -7,8 +7,10 @@ import bs4 as bs
 from dmoj.session import Session as DMOJSession
 from dmoj.session import InvalidSessionException
 from dmoj.language import Language
+from dmoj.usersuggester import UserSuggester as DMOJUserSuggester
 from codeforces.session import Session as CodeforcesSession
 from codeforces.session import InvalidCodeforcesSessionException, NoSubmissionsException, SessionTimeoutException, PrivateSubmissionException
+from codeforces.usersuggester import UserSuggester as CodeforcesUserSuggester
 from backend import mySQLConnection as query
 from utils.onlinejudges import OnlineJudges, NoSuchOJException
 from utils.country import Country, InvalidCountryException
@@ -72,6 +74,8 @@ class ProblemCog(commands.Cog):
     szkopul_problems = {}
     dmoj_sessions = {}
     cf_sessions = {}
+    dmoj_user_suggests = {}
+    cf_user_suggests = {}
     szkopul_page = 1
     language = Language()
     onlineJudges = OnlineJudges()
@@ -208,16 +212,16 @@ class ProblemCog(commands.Cog):
                 self.szkopul_problems[id] = problem_data
             self.szkopul_page += 1
 
-    def embed_dmoj_problem(self, name, prob):
+    def embed_dmoj_problem(self, name, prob, suggested=False):
         embed = discord.Embed()
         url = 'https://dmoj.ca/problem/' + name
         embed.set_thumbnail(url='https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/dmoj-thumbnail.png')
         embed.add_field(name='Points', value=prob['points'], inline=False)
         embed.add_field(name='Partials', value=('Yes' if prob['partial'] else 'No'), inline=False)
         embed.add_field(name='Group', value=prob['group'], inline=False)
-        return prob['name'], url, embed
+        return ('[:thumbsup: SUGGESTED] ' if suggested else '') + prob['name'], url, embed
 
-    def embed_cf_problem(self, prob):
+    def embed_cf_problem(self, prob, suggested=False):
         embed = discord.Embed()
         url = 'https://codeforces.com/problemset/problem/' + str(prob['contestId']) + '/' + str(prob['index'])
         embed.set_thumbnail(url='https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/cf-thumbnail.png')
@@ -227,7 +231,7 @@ class ProblemCog(commands.Cog):
         if 'rating' in prob.keys():
             embed.add_field(name='Rating', value=prob['rating'], inline=False)
         embed.add_field(name='Tags', value='||'+', '.join(prob['tags'])+'||', inline=False)
-        return prob['name'], url, embed
+        return ('[:thumbsup: SUGGESTED] ' if suggested else '') + prob['name'], url, embed
 
     def embed_atcoder_problem(self, prob):
         embed = discord.Embed()
@@ -361,7 +365,7 @@ class ProblemCog(commands.Cog):
             return self.get_problem('szkopul', szkopul_url=url)
         else:
             raise InvalidURLException
-            
+
     def get_random_problem(self, oj=None, points=None, maximum=None, iden=None):
         if oj is None:
             oj = rand.choice(self.onlineJudges.judges)
@@ -374,42 +378,59 @@ class ProblemCog(commands.Cog):
         temp_dmoj_problems = {}
         temp_cf_problems = []
         user_data = query.get_user(iden)
-        if iden is not None and not user_data[iden]['can_repeat']:
-            if oj == 'dmoj' and user_data[iden]['dmoj'] is not None:
-                user_response = json_get('https://dmoj.ca/api/user/info/%s' % user_data[iden]['dmoj'])
-                if user_response is not None:
-                    if points is None:
-                        for name, prob in list(self.dmoj_problems.items()):
-                            if name not in user_response['solved_problems']:
-                                temp_dmoj_problems[name] = prob
-                    else:
-                        temp_dmoj_problems['dmoj'] = {}
-                        for point in list(self.problems_by_points['dmoj']):
-                            temp_dmoj_problems['dmoj'][point] = {}
-                            for name, prob in list(self.problems_by_points['dmoj'][point].items()):
+        suggestions_on = False
+
+        if iden is not None:
+            suggestions_on = user_data[iden]['can_suggest'] and points is None and ((
+                    oj == 'dmoj' and user_data[iden]['dmoj'] is not None
+                ) or (
+                    oj == 'codeforces' and user_data[iden]['codeforces'] is not None
+                ))
+            if oj == 'dmoj' and suggestions_on:
+                if iden not in self.dmoj_user_suggests.keys():
+                    self.dmoj_user_suggests[iden] = DMOJUserSuggester(user_data[iden]['dmoj'])
+                points, maximum = self.dmoj_user_suggests[iden].get_pp_range()
+            elif oj == 'codeforces' and suggestions_on:
+                if iden not in self.cf_user_suggests.keys():
+                    self.cf_user_suggests[iden] = CodeforcesUserSuggester(user_data[iden]['codeforces'])
+                points, maximum = self.cf_user_suggests[iden].get_pp_range()
+                
+            if not user_data[iden]['can_repeat']:
+                if oj == 'dmoj' and user_data[iden]['dmoj'] is not None:
+                    user_response = json_get('https://dmoj.ca/api/user/info/%s' % user_data[iden]['dmoj'])
+                    if user_response is not None:
+                        if points is None:
+                            for name, prob in list(self.dmoj_problems.items()):
                                 if name not in user_response['solved_problems']:
-                                    temp_dmoj_problems['dmoj'][point][name] = prob
-                    if temp_dmoj_problems == {}:
+                                    temp_dmoj_problems[name] = prob
+                        else:
+                            temp_dmoj_problems['dmoj'] = {}
+                            for point in list(self.problems_by_points['dmoj']):
+                                temp_dmoj_problems['dmoj'][point] = {}
+                                for name, prob in list(self.problems_by_points['dmoj'][point].items()):
+                                    if name not in user_response['solved_problems']:
+                                        temp_dmoj_problems['dmoj'][point][name] = prob
+                        if temp_dmoj_problems == {}:
+                            raise InvalidParametersException()
+                elif oj == 'codeforces' and user_data[iden]['codeforces'] is not None:
+                    response = requests.get('https://codeforces.com/api/user.status?handle=' + user_data[iden]['codeforces'])
+                    if response.status_code != 200 or response.json()['status'] != 'OK':
+                        return None
+                    solved = []
+                    for sub in response.json()['result']:
+                        if sub['verdict'] == 'OK':
+                            if 'contestId' in sub['problem']:
+                                solved.append((sub['problem']['contestId'], sub['problem']['index']))
+                            elif 'problemsetName' in sub['problem']:
+                                solved.append((sub['problem']['problemsetName'], sub['problem']['index']))
+                    if points is None:
+                        temp_cf_problems = list(filter(lambda prob: (prob.get('contestId', prob.get('problemsetName')), prob['index']) not in solved, self.cf_problems))
+                    else:
+                        temp_cf_problems = {'codeforces': {}}
+                        for point in list(self.problems_by_points['codeforces']):
+                            temp_cf_problems['codeforces'][point] = list(filter(lambda prob: (prob['contestId'], prob['index']) not in solved, self.problems_by_points['codeforces'][point]))
+                    if temp_cf_problems == [] or (type(temp_cf_problems) is dict and temp_cf_problems['codeforces'] == {}):
                         raise InvalidParametersException()
-            elif oj == 'codeforces':
-                response = requests.get('https://codeforces.com/api/user.status?handle=' + user_data[iden]['codeforces'])
-                if response.status_code != 200 or response.json()['status'] != 'OK':
-                    return None
-                solved = []
-                for sub in response.json()['result']:
-                    if sub['verdict'] == 'OK':
-                        if 'contestId' in sub['problem']:
-                            solved.append((sub['problem']['contestId'], sub['problem']['index']))
-                        elif 'problemsetName' in sub['problem']:
-                            solved.append((sub['problem']['problemsetName'], sub['problem']['index']))
-                if points is None:
-                    temp_cf_problems = list(filter(lambda prob: (prob.get('contestId', prob.get('problemsetName')), prob['index']) not in solved, self.cf_problems))
-                else:
-                    temp_cf_problems = {'codeforces': {}}
-                    for point in list(self.problems_by_points['codeforces']):
-                        temp_cf_problems['codeforces'][point] = list(filter(lambda prob: (prob['contestId'], prob['index']) not in solved, self.problems_by_points['codeforces'][point]))
-                if temp_cf_problems == [] or (type(temp_cf_problems) is dict and temp_cf_problems['codeforces'] == {}):
-                    raise InvalidParametersException()
 
         if temp_dmoj_problems != {}:
             problem_list = temp_dmoj_problems
@@ -437,7 +458,26 @@ class ProblemCog(commands.Cog):
                 if point >= points and point <= maximum:
                     possibilities.append(point)
             if len(possibilities) == 0:
-                raise InvalidParametersException()
+                if suggestions_on and oj == 'dmoj':
+                    while len(possibilities) == 0:
+                        self.dmoj_user_suggests[iden].expand_pp_range()
+                        points, maximum = map(int, self.dmoj_user_suggests[iden].get_pp_range())
+                        for point in list(problem_list[oj].keys()):
+                            if point >= points and point <= maximum:
+                                possibilities.append(point)
+                        if points <= 1 and maximum >= 50 and len(possibilities) == 0:
+                            raise InvalidParametersException()
+                elif suggestions_on and oj == 'codeforces':
+                    while len(possibilities) == 0:
+                        self.cf_user_suggests[iden].expand_pp_range()
+                        points, maximum = map(int, self.cf_user_suggests[iden].get_pp_range())
+                        for point in list(problem_list[oj].keys()):
+                            if point >= points and point <= maximum:
+                                possibilities.append(point)
+                        if points <= 1 and maximum >= 50 and len(possibilities) == 0:
+                            raise InvalidParametersException()
+                else:
+                    raise InvalidParametersException()
             points = rand.choice(possibilities)
             
         if oj == 'dmoj':
@@ -453,7 +493,7 @@ class ProblemCog(commands.Cog):
             if iden is not None:
                 user_data[iden]['last_dmoj_problem'] = name
                 query.update_user(iden, 'last_dmoj_problem', name)
-            return self.embed_dmoj_problem(name, prob)
+            return self.embed_dmoj_problem(name, prob, suggestions_on)
             
         elif oj == 'codeforces':
             if not self.cf_problems:
@@ -465,7 +505,7 @@ class ProblemCog(commands.Cog):
                 prob = rand.choice(problem_list['codeforces'][points])
             else:
                 raise InvalidParametersException()
-            return self.embed_cf_problem(prob)
+            return self.embed_cf_problem(prob, suggestions_on)
 
         elif oj == 'atcoder':
             if not self.atcoder_problems:
@@ -511,15 +551,15 @@ class ProblemCog(commands.Cog):
     def check_existing_server(self, server):
         query.insert_ignore_server(server.id)
 
-    @commands.command(aliases=['p'])
-    async def problem(self, ctx, url: str):
-        try:
-            embed = self.get_problem_from_url(url)
-            await ctx.send('Requested problem for ' + ctx.message.author.display_name, embed=embed)
-        except InvalidURLException:
-            await ctx.send(ctx.message.author.display_name + ', Sorry, the problem URL was not recognised.')
-        except ProblemNotFoundException as e:
-            await ctx.send(ctx.message.author.display_name + ', Sorry, the problem was not found. ' + str(e))
+    # @commands.command(aliases=['p'])
+    # async def problem(self, ctx, url: str):
+    #     try:
+    #         embed = self.get_problem_from_url(url)
+    #         await ctx.send('Requested problem for ' + ctx.message.author.display_name, embed=embed)
+    #     except InvalidURLException:
+    #         await ctx.send(ctx.message.author.display_name + ', Sorry, the problem URL was not recognised.')
+    #     except ProblemNotFoundException as e:
+    #         await ctx.send(ctx.message.author.display_name + ', Sorry, the problem was not found. ' + str(e))
 
     @commands.command(aliases=['r'])
     async def random(self, ctx, oj=None, points=None, maximum=None):
@@ -543,27 +583,27 @@ class ProblemCog(commands.Cog):
         except InvalidQueryException:
             await ctx.send(ctx.message.author.display_name + ', Invalid query. Make sure your points are positive integers.')
 
-    @commands.command(aliases=['d'])
-    async def daily(self, ctx):
-        if str(date.today()) not in self.daily_problems.keys():
-            try:
-                title, description, embed = self.get_random_problem()
-            except IndexError:
-                await ctx.send(ctx.message.author.display_name + ', No problem was found. This may be due to the bot updating the problem cache. Please wait a moment, then try again.')
-            thumbnail = 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/logo.png'
-            for url, tn in list(self.onlineJudges.url_to_thumbnail.items()):
-                if url in description:
-                    thumbnail = tn
-                    break
-            self.daily_problems[str(date.today())] = {
-                'title': title,
-                'description': description,
-                'thumbnail': thumbnail
-            }
-            self.update_daily()
-        problem_data = self.daily_problems[str(date.today())]
-        embed = self.get_problem_from_url(problem_data['description'])
-        await ctx.send(ctx.message.author.display_name + ', Hello! Here\'s today\'s problem of the day!', embed=embed)
+    # @commands.command(aliases=['d'])
+    # async def daily(self, ctx):
+    #     if str(date.today()) not in self.daily_problems.keys():
+    #         try:
+    #             title, description, embed = self.get_random_problem()
+    #         except IndexError:
+    #             await ctx.send(ctx.message.author.display_name + ', No problem was found. This may be due to the bot updating the problem cache. Please wait a moment, then try again.')
+    #         thumbnail = 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/logo.png'
+    #         for url, tn in list(self.onlineJudges.url_to_thumbnail.items()):
+    #             if url in description:
+    #                 thumbnail = tn
+    #                 break
+    #         self.daily_problems[str(date.today())] = {
+    #             'title': title,
+    #             'description': description,
+    #             'thumbnail': thumbnail
+    #         }
+    #         self.update_daily()
+    #     problem_data = self.daily_problems[str(date.today())]
+    #     embed = self.get_problem_from_url(problem_data['description'])
+    #     await ctx.send(ctx.message.author.display_name + ', Hello! Here\'s today\'s problem of the day!', embed=embed)
 
     @commands.command(aliases=['toggleRepeat'])
     async def togglerepeat(self, ctx):
@@ -574,10 +614,29 @@ class ProblemCog(commands.Cog):
                 user_data[ctx.message.author.id]['can_repeat'] = not user_data[ctx.message.author.id]['can_repeat']
                 query.update_user(ctx.message.author.id, 'can_repeat', user_data[ctx.message.author.id]['can_repeat'])
                 prefix = await self.bot.command_prefix(self.bot, ctx.message)
-                await ctx.send(ctx.message.author.display_name + ', Repeat setting for command `%srandom` set to %s.' % (prefix, ('ON' if user_data[ctx.message.author.id]['can_repeat'] else 'OFF')))
+                if user_data[ctx.message.author.id]['can_repeat']:
+                    await ctx.send(ctx.message.author.display_name + ', random problems will now contain already solved problems')
+                else:
+                    await ctx.send(ctx.message.author.display_name + ', random problems will no longer contain already solved problems')
                 return
         await ctx.send(ctx.message.author.display_name + ', You are not linked to any accounts')
 
+    @commands.command(aliases=['toggleSuggest'])
+    async def togglesuggest(self, ctx):
+        self.check_existing_user(ctx.message.author)
+        user_data = query.get_user(ctx.message.author.id)
+        for account in self.onlineJudges.accounts:
+            if user_data[ctx.message.author.id][account] is not None:
+                user_data[ctx.message.author.id]['can_suggest'] = not user_data[ctx.message.author.id]['can_suggest']
+                query.update_user(ctx.message.author.id, 'can_suggest', user_data[ctx.message.author.id]['can_suggest'])
+                prefix = await self.bot.command_prefix(self.bot, ctx.message)
+                if user_data[ctx.message.author.id]['can_suggest']:
+                    await ctx.send(ctx.message.author.display_name + ', random problems will now be suggested based on your existing solves')
+                else:
+                    await ctx.send(ctx.message.author.display_name + ', random problems will no longer be suggested based on your existing solves')
+                return
+        await ctx.send(ctx.message.author.display_name + ', You are not linked to any accounts')
+        
     @commands.command(aliases=['toggleCountry'])
     async def togglecountry(self, ctx, code=''):
         try:

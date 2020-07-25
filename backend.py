@@ -40,6 +40,7 @@ db = pymysql.connect('localhost', user, password, database)
 #         last_dmoj_problem VARCHAR(255),
 #         can_repeat BOOLEAN,
 #         country VARCHAR(255),
+#         can_suggest BOOLEAN,
 #         PRIMARY KEY (user_id))""")
 #     cursor.execute("SHOW TABLES")
 #     result = cursor.fetchall()
@@ -92,8 +93,8 @@ class MySQLConnection(object):
     def insert_ignore_user(self, user_id):
         if not self.sanitize_id(user_id):
             return -1
-        sql = "INSERT IGNORE INTO users(user_id, tea, dmoj, last_dmoj_problem, can_repeat, codeforces, country) \
-            VALUES (%d, 0, NULL, NULL, TRUE, NULL, NULL)" % \
+        sql = "INSERT IGNORE INTO users(user_id, tea, dmoj, last_dmoj_problem, can_repeat, codeforces, country, can_suggest) \
+            VALUES (%d, 0, NULL, NULL, TRUE, NULL, NULL, TRUE)" % \
             (user_id)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -114,7 +115,8 @@ class MySQLConnection(object):
                 'last_dmoj_problem': row[3],
                 'can_repeat': row[4],
                 'codeforces': row[5],
-                'country': row[6]
+                'country': row[6],
+                'can_suggest': row[7]
             }
         }
         return user
@@ -136,7 +138,8 @@ class MySQLConnection(object):
                 'last_dmoj_problem': user[3],
                 'can_repeat': user[4],
                 'codeforces': user[5],
-                'country': user[6]
+                'country': user[6],
+                'can_suggest': row[7]
             }
         }
         return user_data
