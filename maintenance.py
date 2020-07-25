@@ -33,7 +33,7 @@ bot = commands.Bot(command_prefix=determine_prefix,
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.CommandNotFound):
-        ctx.send(ctx.message.author.display_name + ' the bot is currently under scheduled maintenance. Please be patient as we try to bring it back up as soon as possible.')
+        await ctx.send(ctx.message.author.display_name + ' the bot is currently under scheduled maintenance. Please be patient as we try to bring it back up as soon as possible.')
 
 @bot.event
 async def on_ready():
