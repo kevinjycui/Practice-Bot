@@ -15,20 +15,21 @@ Support this bot by voting for it [here](https://top.gg/bot/691416325557452861/v
 ## What's New \[BETA\]
  * Added connection support for Codeforces
  * Added problem support for Szkopuł
+ * Added suggested problems
  * Changed some command names. See [commands](https://github.com/kevinjycui/Practice-Bot/wiki/Commands) for more details
 
 ## Commands
 [Full list of commands here](https://github.com/kevinjycui/Practice-Bot/wiki/Commands)
 
 ## Online Judges
-| | Random Problems | Contest Notifications | Rating Roles | Account Link | Submission |
-|---|---|---|---|---|---|
-| DMOJ | ✔ | ✔ | ✔ | ✔ | ✔ |
-| Codeforces | ✔ | ✔ | ✔ | ✔ | ❌ |
-| AtCoder | ✔ | ✔ | ❌ | ❌ | ❌ |
-| WCIPEG | ✔ | ➖ | ❌ | ❌ | ❌ |
-| CSES | ✔ | ➖ | ➖ | ❌ | ❌ |
-| Szkopuł | ✔ | ❌ | ❌ | ❌ | ❌ |
+| | Random Problems | Suggested Problems | Contest Notifications | Rating Roles | Account Link | Submission |
+|---|---|---|---|---|---|---|
+| DMOJ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
+| Codeforces | ✔ | ✔ | ✔ | ✔ | ✔ | ❌ |
+| AtCoder | ✔ | ❌ | ✔ | ❌ | ❌ | ❌ |
+| WCIPEG | ✔ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| CSES | ✔ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Szkopuł | ✔ | ❌ | ❌ | ❌ | ❌ | ❌ |
 
 ## Tools
  - discord.py
