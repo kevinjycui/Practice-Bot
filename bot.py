@@ -23,8 +23,9 @@ finally:
     bot_token, dev_token = config['bot']['token'], config['bot']['dev_token']
     DEBUG = bot_token == dev_token
     dbl_tokens = {}
-    for dbl, dbl_token in list(config['dbl'].items()):
-        dbl_tokens[dbl] = dbl_token
+    if 'dbl' in config:
+        for dbl, dbl_token in list(config['dbl'].items()):
+            dbl_tokens[dbl] = dbl_token
     bot_id = config['bot']['id']
     owner_id = config['bot']['owner_id']
 
