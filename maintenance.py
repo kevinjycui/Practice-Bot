@@ -29,11 +29,10 @@ bot = commands.Bot(command_prefix=determine_prefix,
                    description='The all-competitive-programming-purpose Discord bot!',
                    owner_id=owner_id)
 
-
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.CommandNotFound):
-        await ctx.send(ctx.message.author.display_name + ' the bot is currently under scheduled maintenance. Please be patient as we try to bring it back up as soon as possible.')
+        await ctx.send(ctx.message.author.display_name + ', The bot is currently under scheduled maintenance. Please be patient as we try to bring it back up as soon as possible.')
 
 @bot.event
 async def on_ready():
