@@ -577,7 +577,7 @@ class ProblemCog(commands.Cog):
             embed.title = title
             embed.description = description + ' (searched in %ss)' % str(round(self.bot.latency, 3))
             embed.timestamp = datetime.utcnow()
-            if rand.randint(0, 10) == 0 and (oj.lower() == 'dmoj' or oj.lower() == 'codeforces' or oj.lower() == 'cf'):
+            if rand.randint(0, 10) == 0 and isinstance(oj, str) and (oj.lower() == 'dmoj' or oj.lower() == 'codeforces' or oj.lower() == 'cf'):
                 prefix = await self.bot.command_prefix(self.bot, ctx.message)
                 await ctx.send('Pro tip: Try out the new command, `%stogglesuggest` to turn on personalised suggested problems for DMOJ and Codeforces!' % prefix)
             await ctx.send('Requested problem for ' + ctx.message.author.display_name, embed=embed)
