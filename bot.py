@@ -144,7 +144,7 @@ async def on_command_error(ctx, error):
         await ctx.send(ctx.message.author.display_name + ', Invalid query. Please do not place any unnecessary quotation marks in your command.')
     elif isinstance(error, commands.errors.MissingPermissions):
         await ctx.send(ctx.message.author.display_name + ', Sorry, you are missing permissions to run this command!')
-    elif isinstance(errror, discord.errors.Forbidden):
+    elif isinstance(error, discord.errors.Forbidden):
         await ctx.send(ctx.message.author.display_name + ', It would seem that the bot is missing permissions to run this command! See here for a list of required permissions: https://github.com/kevinjycui/Practice-Bot/wiki/Permissions')
     else:
         server_prefix = await prefix_from_guild(ctx.message.guild)
