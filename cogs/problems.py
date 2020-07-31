@@ -568,6 +568,7 @@ class ProblemCog(commands.Cog):
     #         await ctx.send(ctx.message.author.display_name + ', Sorry, the problem was not found. ' + str(e))
 
     @commands.command(aliases=['r'])
+    @commands.bot_has_permissions(embed_links=True)
     async def random(self, ctx, oj=None, points=None, maximum=None):
         self.check_existing_user(ctx.message.author)
         if isinstance(oj, str) and (oj.lower() == 'peg' or oj.lower() == 'wcipeg'):
@@ -668,6 +669,7 @@ class ProblemCog(commands.Cog):
             await ctx.send(ctx.message.author.display_name + ', Sorry, could not find that country. Search for a country using the name (e.g. `%stogglecountry Finland`, `%stogglecountry "United States"`) or the 2 character ISO code (e.g. `%stogglecountry FI`))' % (prefix, prefix, prefix))
 
     @commands.command(aliases=['u', 'profile', 'whois'])
+    @commands.bot_has_permissions(embed_links=True)
     async def user(self, ctx, user: discord.User=None):
         if user is None:
             user = ctx.message.author

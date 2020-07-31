@@ -204,6 +204,7 @@ class ContestCog(commands.Cog):
             json.dump(prev_contest_data, json_file)
 
     @commands.command(aliases=['c'])
+    @commands.bot_has_permissions(embed_links=True)
     async def contests(self, ctx, numstr='1'):
         try:
             if numstr == 'all':
@@ -234,10 +235,12 @@ class ContestCog(commands.Cog):
     @commands.has_permissions(manage_channels=True)
     @commands.guild_only()
     async def sub(self, ctx, channel: discord.TextChannel=None):
+        determiner = 'That'
         if channel is None:
             channel = ctx.message.channel
+            determiner = 'This'
         if query.exists('subscriptions_contests', 'channel_id', channel.id):
-            await ctx.send(ctx.message.author.display_name + ', That channel is already subscribed to contest notifications.')
+            await ctx.send(ctx.message.author.display_name + ', %s channel is already subscribed to contest notifications.' % determiner)
             return
         query.sub_channel(channel.id)
         await ctx.send(ctx.message.author.display_name + ', ' + channel.mention + ' subscribed to contest notifications.')
@@ -258,10 +261,12 @@ class ContestCog(commands.Cog):
     @commands.has_permissions(manage_channels=True)
     @commands.guild_only()
     async def unsub(self, ctx, channel: discord.TextChannel=None):
+        determiner = 'That'
         if channel is None:
             channel = ctx.message.channel
+            determiner = 'This'
         if not query.exists('subscriptions_contests', 'channel_id', channel.id):
-            await ctx.send(ctx.message.author.display_name + ', That channel is already not subscribed to contest notifications.')
+            await ctx.send(ctx.message.author.display_name + ', %s channel is already not subscribed to contest notifications.' % determiner)
             return
         query.unsub_channel(channel.id)
         await ctx.send(ctx.message.author.display_name + ', ' + channel.mention + ' is no longer a contest notification channel.')
