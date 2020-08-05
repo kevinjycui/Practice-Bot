@@ -656,6 +656,7 @@ class ProblemCog(commands.Cog):
     async def togglecountry(self, ctx, code=''):
         try:
             country_object = Country(code)
+            self.check_existing_user(ctx.message.author)
             user_data = query.get_user(ctx.message.author.id)
             prev_country = user_data[ctx.message.author.id]['country']
             user_data[ctx.message.author.id]['country'] = country_object.country
