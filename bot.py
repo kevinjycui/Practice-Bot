@@ -108,12 +108,22 @@ async def motivation(ctx):
 
 @tasks.loop(minutes=1)
 async def status_change():
-    await bot.change_presence(
-        activity=discord.Activity(
-            type=discord.ActivityType.watching, 
-            name='%d servers practise | %shelp' % (len(bot.guilds), prefix)
+    try:
+        await bot.change_presence(
+            activity=discord.Activity(
+                type=discord.ActivityType.watching, 
+                name='%d servers practise | %shelp' % (len(bot.guilds), prefix)
+            )
         )
-    )
+    except Exception as e:
+        await bot.change_presence(
+            activity=discord.Activity(
+                type=discord.ActivityType.watching, 
+                name='you practise | %shelp' % prefix
+            )
+        )
+        with open('../log.txt', 'w+') as f:
+            f.write(repr(e))
 
 @status_change.before_loop
 async def status_change_before():
