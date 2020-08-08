@@ -106,28 +106,18 @@ szkopuł -> [szkopuł] [szkopul]
 async def motivation(ctx):
     await ctx.send(ctx.message.author.display_name + ', ' + rand.choice(replies))
 
-@tasks.loop(minutes=1)
-async def status_change():
-    try:
-        await bot.change_presence(
-            activity=discord.Activity(
-                type=discord.ActivityType.watching, 
-                name='%d servers practise | %shelp' % (len(bot.guilds), prefix)
-            )
-        )
-    except Exception as e:
-        await bot.change_presence(
-            activity=discord.Activity(
-                type=discord.ActivityType.watching, 
-                name='you practise | %shelp' % prefix
-            )
-        )
-        with open('../log.txt', 'w+') as f:
-            f.write(repr(e))
+# @tasks.loop(minutes=1)
+# async def status_change():
+#     await bot.change_presence(
+#         activity=discord.Activity(
+#             type=discord.ActivityType.watching, 
+#             name='%d servers practise | %shelp' % (len(bot.guilds), prefix)
+#         )
+#     )
 
-@status_change.before_loop
-async def status_change_before():
-    await bot.wait_until_ready()
+# @status_change.before_loop
+# async def status_change_before():
+#     await bot.wait_until_ready()
 
 bot.remove_command('help')
 
@@ -185,6 +175,12 @@ async def on_member_join(member):
 
 @bot.event
 async def on_ready():
+    await bot.change_presence(
+        activity=discord.Activity(
+            type=discord.ActivityType.watching, 
+            name='you practise | %shelp' % prefix
+        )
+    )
     print('Logged in as')
     print(bot.user.name)
     print(bot.user.id)
@@ -194,7 +190,7 @@ async def on_ready():
         await user.send('Bot Online!')
 
 if __name__ == '__main__':
-    status_change.start()
+    # status_change.start()
     problems_rankings.setup(bot)
     contests.setup(bot)
     feedback.setup(bot)
