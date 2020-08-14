@@ -161,6 +161,12 @@ async def togglejoin(ctx):
     query.update_server(ctx.message.guild.id, 'join_message', not join_message)
     await ctx.send(ctx.message.author.display_name + ', on-join direct messages for the bot turned `%s`.' % ('ON' if not join_message else 'OFF'))
 
+
+@bot.command()
+@commands.is_owner()
+async def server_count(ctx):
+    await ctx.send('Server count: `%s`' % len(bot.guilds))
+
 @bot.event
 async def on_member_join(member):
     global prefix
