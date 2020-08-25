@@ -4,9 +4,9 @@ import warnings
 
 
 try:
-    config_file = open('config.yaml')
+    config_file = open('config.yml')
 except FileNotFoundError:
-    config_file = open('example_config.yaml')
+    config_file = open('example_config.yml')
 finally:
     config = yaml.load(config_file, Loader=yaml.FullLoader)
     user, password, database = config['mysql']['user'], config['mysql']['pass'], config['mysql']['database']
@@ -139,7 +139,7 @@ class MySQLConnection(object):
                 'can_repeat': user[4],
                 'codeforces': user[5],
                 'country': user[6],
-                'can_suggest': row[7]
+                'can_suggest': user[7]
             }
         }
         return user_data
@@ -206,6 +206,13 @@ class MySQLConnection(object):
         for row in result:
             server_to_prefix[row[0]] = row[4]
         return server_to_prefix
+
+    def get_prefix(self, server_id):
+        if not self.sanitize_id(server_id):
+            return None
+        sql = "SELECT prefix FROM servers \
+        WHERE server_id=%d" % server_id
+        return self.readone_query(sql)[0]
 
     def get_all_sync_source(self):
         sql = "SELECT server_id, sync_source from servers"

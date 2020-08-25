@@ -11,7 +11,7 @@ from dmoj.usersuggester import UserSuggester as DMOJUserSuggester
 from codeforces.session import Session as CodeforcesSession
 from codeforces.session import InvalidCodeforcesSessionException, NoSubmissionsException, SessionTimeoutException, PrivateSubmissionException
 from codeforces.usersuggester import UserSuggester as CodeforcesUserSuggester
-from backend import mySQLConnection as query
+from connector import mySQLConnection as query
 from utils.onlinejudges import OnlineJudges, NoSuchOJException
 from utils.country import Country, InvalidCountryException
 import json
@@ -70,7 +70,7 @@ class ProblemCog(commands.Cog):
     cf_problems = None
     at_problems = None
     cses_problems = {}
-    peg_problems = {}
+    # peg_problems = {}
     szkopul_problems = {}
     dmoj_sessions = {}
     cf_sessions = {}
@@ -90,7 +90,7 @@ class ProblemCog(commands.Cog):
         self.refresh_cf_problems.start()
         self.refresh_atcoder_problems.start()
         self.refresh_cses_problems.start()
-        self.refresh_peg_problems.start()
+        # self.refresh_peg_problems.start()
         self.refresh_szkopul_problems.start()
         self.logout_offline.start()
 
@@ -149,35 +149,35 @@ class ProblemCog(commands.Cog):
                     }
                     self.cses_problems[id] = cses_data
 
-    def parse_peg_problems(self, problems):
-        if problems.status_code == 200:
-            soup = bs.BeautifulSoup(problems.text, 'lxml')
-            table = soup.find('table', attrs={'class' : 'nicetable stripes'}).findAll('tr')
-            self.peg_problems = {}
-            self.problems_by_points['peg'] = {}
-            for prob in range(1, len(table)):
-                values = table[prob].findAll('td')
-                name = values[0].find('a').contents[0]
-                url = 'https://wcipeg.com/problem/' + values[1].contents[0]
-                points_value = values[2].contents[0]
-                partial = 'p' in points_value
-                points = int(points_value.replace('p', ''))
-                p_users = values[3].find('a').contents[0]
-                ac_rate = values[4].contents[0]
-                date = values[5].contents[0]
-                peg_data = {
-                    'name': name,
-                    'url': url,
-                    'partial': partial,
-                    'points': points,
-                    'users': p_users,
-                    'ac_rate': ac_rate,
-                    'date': date
-                }
-                self.peg_problems[name] = peg_data
-                if points not in self.problems_by_points['peg']:
-                    self.problems_by_points['peg'][points] = []
-                self.problems_by_points['peg'][points].append(peg_data)
+    # def parse_peg_problems(self, problems):
+    #     if problems.status_code == 200:
+    #         soup = bs.BeautifulSoup(problems.text, 'lxml')
+    #         table = soup.find('table', attrs={'class' : 'nicetable stripes'}).findAll('tr')
+    #         self.peg_problems = {}
+    #         self.problems_by_points['peg'] = {}
+    #         for prob in range(1, len(table)):
+    #             values = table[prob].findAll('td')
+    #             name = values[0].find('a').contents[0]
+    #             url = 'https://wcipeg.com/problem/' + values[1].contents[0]
+    #             points_value = values[2].contents[0]
+    #             partial = 'p' in points_value
+    #             points = int(points_value.replace('p', ''))
+    #             p_users = values[3].find('a').contents[0]
+    #             ac_rate = values[4].contents[0]
+    #             date = values[5].contents[0]
+    #             peg_data = {
+    #                 'name': name,
+    #                 'url': url,
+    #                 'partial': partial,
+    #                 'points': points,
+    #                 'users': p_users,
+    #                 'ac_rate': ac_rate,
+    #                 'date': date
+    #             }
+    #             self.peg_problems[name] = peg_data
+    #             if points not in self.problems_by_points['peg']:
+    #                 self.problems_by_points['peg'][points] = []
+    #             self.problems_by_points['peg'][points].append(peg_data)
 
     def parse_szkopul_problems(self):
         problems = requests.get('https://szkopul.edu.pl/problemset/?page=%d' % self.szkopul_page)
@@ -249,15 +249,15 @@ class ProblemCog(commands.Cog):
         embed.add_field(name='Group', value='||' + prob['group'] + '||', inline=False)
         return prob['name'], prob['url'], embed
 
-    def embed_peg_problem(self, prob):
-        embed = discord.Embed()
-        embed.set_thumbnail(url='https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/peg-thumbnail.png')
-        embed.add_field(name='Points', value=prob['points'], inline=False)
-        embed.add_field(name='Partials', value=('Yes' if prob['partial'] else 'No'), inline=False)
-        embed.add_field(name='Users', value=prob['users'], inline=False)
-        embed.add_field(name='AC Rate', value=prob['ac_rate'], inline=False)
-        embed.add_field(name='Date Added', value=prob['date'], inline=False)
-        return prob['name'], prob['url'], embed
+    # def embed_peg_problem(self, prob):
+    #     embed = discord.Embed()
+    #     embed.set_thumbnail(url='https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/peg-thumbnail.png')
+    #     embed.add_field(name='Points', value=prob['points'], inline=False)
+    #     embed.add_field(name='Partials', value=('Yes' if prob['partial'] else 'No'), inline=False)
+    #     embed.add_field(name='Users', value=prob['users'], inline=False)
+    #     embed.add_field(name='AC Rate', value=prob['ac_rate'], inline=False)
+    #     embed.add_field(name='Date Added', value=prob['date'], inline=False)
+    #     return prob['name'], prob['url'], embed
 
     def embed_szkopul_problem(self, prob):
         embed = discord.Embed()
@@ -314,17 +314,17 @@ class ProblemCog(commands.Cog):
             embed.timestamp = datetime.utcnow()
             return embed
 
-        elif oj == 'peg':
-            def is_problem(prob):
-                return prob['url'] == 'https://wcipeg.com/problem/' + problem_id
-            problist = list(filter(is_problem, list(self.peg_problems.values())))
-            if len(problist) == 0:
-                raise ProblemNotFoundException
-            title, description, embed = self.embed_peg_problem(problist[0])
-            embed.title = title
-            embed.description = description + ' (searched in %ss)' % str(round(self.bot.latency, 3))
-            embed.timestamp = datetime.utcnow()
-            return embed
+        # elif oj == 'peg':
+        #     def is_problem(prob):
+        #         return prob['url'] == 'https://wcipeg.com/problem/' + problem_id
+        #     problist = list(filter(is_problem, list(self.peg_problems.values())))
+        #     if len(problist) == 0:
+        #         raise ProblemNotFoundException
+        #     title, description, embed = self.embed_peg_problem(problist[0])
+        #     embed.title = title
+        #     embed.description = description + ' (searched in %ss)' % str(round(self.bot.latency, 3))
+        #     embed.timestamp = datetime.utcnow()
+        #     return embed
 
         elif oj == 'cses':
             if problem_id not in self.cses_problems.keys():
@@ -520,16 +520,16 @@ class ProblemCog(commands.Cog):
                 raise InvalidParametersException()
             return self.embed_atcoder_problem(prob)
 
-        elif oj == 'peg':
-            if not self.peg_problems:
-                raise OnlineJudgeHTTPException('WCIPEG')
-            if points is None:
-                prob = rand.choice(list(self.peg_problems.values()))
-            elif points in self.problems_by_points['peg']:
-                prob = rand.choice(list(self.problems_by_points['peg'][points]))
-            else:
-                raise InvalidParametersException()
-            return self.embed_peg_problem(prob)
+        # elif oj == 'peg':
+        #     if not self.peg_problems:
+        #         raise OnlineJudgeHTTPException('WCIPEG')
+        #     if points is None:
+        #         prob = rand.choice(list(self.peg_problems.values()))
+        #     elif points in self.problems_by_points['peg']:
+        #         prob = rand.choice(list(self.problems_by_points['peg'][points]))
+        #     else:
+        #         raise InvalidParametersException()
+        #     return self.embed_peg_problem(prob)
 
         elif oj == 'cses':
             prob = rand.choice(list(self.cses_problems.values()))
@@ -572,15 +572,16 @@ class ProblemCog(commands.Cog):
     async def random(self, ctx, oj=None, points=None, maximum=None):
         self.check_existing_user(ctx.message.author)
         if isinstance(oj, str) and (oj.lower() == 'peg' or oj.lower() == 'wcipeg'):
-            await ctx.send(ctx.message.author.display_name + ', Notice: Starting from July 31, 2020 support for WCIPEG may be discontinued as **PEG Judge will shut down at the end of July**\nhttps://wcipeg.com/announcement/9383')
+            await ctx.send(ctx.message.author.display_name + ', Notice: Support for WCIPEG has been discontinued as **PEG Judge shut down at the end of July 2020**\nhttps://wcipeg.com/announcement/9383')
+            return
         try:
             title, description, embed = self.get_random_problem(oj, points, maximum, ctx.message.author.id)
             embed.title = title
             embed.description = description + ' (searched in %ss)' % str(round(self.bot.latency, 3))
             embed.timestamp = datetime.utcnow()
-            if rand.randint(0, 10) == 0 and isinstance(oj, str) and (oj.lower() == 'dmoj' or oj.lower() == 'codeforces' or oj.lower() == 'cf'):
-                prefix = await self.bot.command_prefix(self.bot, ctx.message)
-                await ctx.send('Pro tip: Try out the new command, `%stogglesuggest` to turn on personalised suggested problems for DMOJ and Codeforces!' % prefix)
+            # if rand.randint(0, 30) == 0 and isinstance(oj, str) and (oj.lower() == 'dmoj' or oj.lower() == 'codeforces' or oj.lower() == 'cf'):
+            #     prefix = await self.bot.command_prefix(self.bot, ctx.message)
+            #     await ctx.send('Pro tip: Try out the new command, `%stogglesuggest` to turn on personalised suggested problems for DMOJ and Codeforces!' % prefix)
             await ctx.send('Requested problem for ' + ctx.message.author.display_name, embed=embed)
         except IndexError:
             await ctx.send(ctx.message.author.display_name + ', No problem was found. This may be due to the bot updating the problem cache. Please wait a moment, then try again.')
@@ -764,13 +765,13 @@ class ProblemCog(commands.Cog):
     async def refresh_cses_problems_before(self):
         await self.bot.wait_until_ready()
 
-    @tasks.loop(hours=3)
-    async def refresh_peg_problems(self):
-        self.parse_peg_problems(requests.get('https://wcipeg.com/problems/show%3D999999'))
+    # @tasks.loop(hours=3)
+    # async def refresh_peg_problems(self):
+    #     self.parse_peg_problems(requests.get('https://wcipeg.com/problems/show%3D999999'))
 
-    @refresh_peg_problems.before_loop
-    async def refresh_peg_problems_before(self):
-        await self.bot.wait_until_ready()
+    # @refresh_peg_problems.before_loop
+    # async def refresh_peg_problems_before(self):
+    #     await self.bot.wait_until_ready()
 
     @tasks.loop(hours=3)
     async def refresh_szkopul_problems(self):

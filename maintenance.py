@@ -2,15 +2,15 @@ import discord
 from discord.ext import commands, tasks
 import random as rand
 import yaml
-from backend import mySQLConnection as query
+from connector import mySQLConnection as query
 
 
 custom_prefixes = query.get_prefixes()
 
 try:
-    config_file = open('config.yaml')
+    config_file = open('config.yml')
 except FileNotFoundError:
-    config_file = open('example_config.yaml')
+    config_file = open('example_config.yml')
 finally:
     config = yaml.load(config_file, Loader=yaml.FullLoader)
     prefix = config['bot']['prefix']

@@ -7,16 +7,16 @@ import cogs.feedback as feedback
 import cogs.problems_rankings as problems_rankings
 import cogs.contests as contests
 import cogs.searcher as searcher
-from backend import mySQLConnection as query
+from connector import mySQLConnection as query
 from utils.onlinejudges import OnlineJudges, NoSuchOJException
 
 
 onlineJudges = OnlineJudges()
 
 try:
-    config_file = open('config.yaml')
+    config_file = open('config.yml')
 except FileNotFoundError:
-    config_file = open('example_config.yaml')
+    config_file = open('example_config.yml')
 finally:
     config = yaml.load(config_file, Loader=yaml.FullLoader)
     prefix = config['bot']['prefix']
@@ -46,7 +46,8 @@ bot = commands.Bot(command_prefix=determine_prefix,
 
 async def prefix_from_guild(guild):
     if guild:
-        return custom_prefixes.get(guild.id, prefix)
+        custom = query.get_prefix(guild.id)
+        return prefix if custom is None else custom
     return prefix
 
 @bot.command()

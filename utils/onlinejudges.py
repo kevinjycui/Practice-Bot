@@ -5,7 +5,7 @@ class NoSuchOJException(Exception):
         self.oj = oj
 
 class OnlineJudges:
-    judges = ('dmoj', 'codeforces', 'atcoder', 'cses', 'peg', 'szkopul')
+    judges = ('dmoj', 'codeforces', 'atcoder', 'cses', 'szkopul')
     contest_judges = ('dmoj', 'codeforces', 'atcoder')
     accounts = ('dmoj', 'codeforces')
     formal_names = {
@@ -13,21 +13,18 @@ class OnlineJudges:
         'codeforces': 'Codeforces',
         'atcoder': 'AtCoder',
         'cses': 'CSES',
-        'peg': 'PEG',
         'szkopul': 'Szkopuł'
     }
     aliases = {
         'cf': 'codeforces',
         'at': 'atcoder',
         'ac': 'atcoder',
-        'wcipeg': 'peg',
         'szkopuł': 'szkopul'
     }
     url_to_thumbnail = {
         'https://dmoj.ca/problem/': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/dmoj-thumbnail.png',
         'https://codeforces.com/problemset/problem/': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/cf-thumbnail.png',
         'https://atcoder.jp/contests/': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/at-thumbnail.png',
-        'https://wcipeg.com/problem/': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/peg-thumbnail.png',
         'https://cses.fi/problemset/': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/cses-thumbnail.png',
         'https://szkopul.edu.pl/problemset/': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/szkopul-thumbnail.png'
     }
@@ -107,20 +104,20 @@ class OnlineJudges:
             embed.add_field(name='Account Link', value='No', inline=False)
             embed.add_field(name='Submission', value='No', inline=False)
             return embed
-        elif oj == 'peg':
-            about = 'WCIPEG, PEG Online Judge, or Woburn Collegiate Institute Programming Enrichment Group is a Canadian online \
-            programming problem archive made in 2007 by students at Woburn Collegiate Institute based in Toronto. The site later \
-            inspired DMOJ in 2014, and merged into DMOJ in 2020. WCIPEG held contests such as the Woburn Challenge annually. Before closing, \
-            WCIPEG supported 15 programming languages. The site is in English.'
-            embed = discord.Embed(title='PEG Online Judge', description=about, inline=False)
-            embed.add_field(name='Country', value=':flag_ca: Canada', inline=False)
-            embed.add_field(name='Abbreviations', value='`$oj wcipeg`, `$oj peg`', inline=False)
-            embed.add_field(name='Random Problems', value='Yes', inline=False)
-            embed.add_field(name='Contest Notifications', value='N/A', inline=False)
-            embed.add_field(name='Rating Roles', value='No', inline=False)
-            embed.add_field(name='Account Link', value='No', inline=False)
-            embed.add_field(name='Submission', value='No', inline=False)
-            return embed
+        # elif oj == 'peg':
+        #     about = 'WCIPEG, PEG Online Judge, or Woburn Collegiate Institute Programming Enrichment Group is a Canadian online \
+        #     programming problem archive made in 2007 by students at Woburn Collegiate Institute based in Toronto. The site later \
+        #     inspired DMOJ in 2014, and merged into DMOJ in 2020. WCIPEG held contests such as the Woburn Challenge annually. Before closing, \
+        #     WCIPEG supported 15 programming languages. The site is in English.'
+        #     embed = discord.Embed(title='PEG Online Judge', description=about, inline=False)
+        #     embed.add_field(name='Country', value=':flag_ca: Canada', inline=False)
+        #     embed.add_field(name='Abbreviations', value='`$oj wcipeg`, `$oj peg`', inline=False)
+        #     embed.add_field(name='Random Problems', value='Yes', inline=False)
+        #     embed.add_field(name='Contest Notifications', value='N/A', inline=False)
+        #     embed.add_field(name='Rating Roles', value='No', inline=False)
+        #     embed.add_field(name='Account Link', value='No', inline=False)
+        #     embed.add_field(name='Submission', value='No', inline=False)
+        #     return embed
         elif oj == 'cses':
             about = 'CSES or Code Submission Evaluation System is a Finnish programming problem archive made by Antti Laaksonen and Topi Talvitie \
             in 2013 based in Helsinki. The site is most well-known for its CSES Problem Set, but also archives problems from the \
