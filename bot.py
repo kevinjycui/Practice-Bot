@@ -63,6 +63,8 @@ async def setprefix(ctx, fix: str=None):
         await ctx.send(ctx.message.author.display_name + ', Sorry, prefix cannot contain quotation charaters `\'` or `"`')
     elif fix is not None and (' ' in fix or '\n' in fix or '\r' in fix or '\t' in fix):
         await ctx.send(ctx.message.author.display_name + ', Sorry, prefix cannot contain any whitespace')
+    elif fix is not None and '\\' in fix:
+        await ctx.send(ctx.message.author.display_name + ', Sorry, prefix cannot contain contain backslash characters `\`')
     else:
         default = fix is None
         if default:
@@ -72,7 +74,7 @@ async def setprefix(ctx, fix: str=None):
         query.insert_ignore_server(ctx.message.guild.id)
         query.update_server_prefix(ctx.message.guild.id, fix)
         if default:
-            await ctx.send(ctx.message.author.display_name + ', No prefix given, defaulting to %s. Server prefix changed from `%s` to `%s`' % (prefix, previous_prefix, fix))
+            await ctx.send(ctx.message.author.display_name + ', No prefix given, defaulting to `%s`. Server prefix changed from `%s` to `%s`' % (prefix, previous_prefix, fix))
         else:
             await ctx.send(ctx.message.author.display_name + ', Server prefix changed from `%s` to `%s`' % (previous_prefix, fix))
 
