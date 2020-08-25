@@ -1,0 +1,125 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-08-24 20:10-0400\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: bot.py:59
+#, python-format
+msgid "Pong! (ponged in %ss)"
+msgstr ""
+
+#: bot.py:65
+msgid "Sorry, prefix is too long (maximum of 255 characters)"
+msgstr ""
+
+#: bot.py:67
+msgid "Sorry, prefix cannot contain quotation charaters `'` or `\"`"
+msgstr ""
+
+#: bot.py:69
+msgid "Sorry, prefix cannot contain any whitespace"
+msgstr ""
+
+#: bot.py:79
+msgid ""
+"No prefix given, defaulting to %(prefix). Server prefix changed from `"
+"%(old)` to `%(prefix)`"
+msgstr ""
+
+#: bot.py:81
+msgid "Server prefix changed from `%(old)` to `%(new)`"
+msgstr ""
+
+#: bot.py:87
+msgid ""
+"```Available Online Judges\n"
+"dmoj -> [dmoj]\n"
+"    - random\n"
+"    - connect\n"
+"    - submit\n"
+"codeforces -> [codeforces] [cf]\n"
+"    - random\n"
+"    - connectt = gettext.translation('practice_bot', 'locale', "
+"fallback=True)\n"
+"_ = t.ugettext\n"
+"atcoder -> [atcoder] [at] [ac]\n"
+"    -random\n"
+"cses -> [cses]\n"
+"    -random\n"
+"wcipeg -> [wcipeg] [peg]\n"
+"    -random\n"
+"szkopuł -> [szkopuł] [szkopul]\n"
+"    -random```"
+msgstr ""
+
+#: bot.py:109
+msgid ""
+"Sorry, no online judge found. Search only for online judges used by this bot "
+msgstr ""
+
+#: bot.py:132
+msgid "Here is a full list of my commands!"
+msgstr ""
+
+#: bot.py:151
+msgid ""
+"Invalid query. Please do not place any unnecessary quotation marks in your "
+"command."
+msgstr ""
+
+#: bot.py:153
+msgid "Sorry, you are missing permissions to run this command!"
+msgstr ""
+
+#: bot.py:155
+msgid ""
+"It would seem that the bot is missing permissions to run this command! Be "
+"sure that all the required permissions are set to on: both for the bot and "
+"the channel. See here for a list of required permissions:"
+msgstr ""
+
+#: bot.py:158
+#, python-format
+msgid ""
+"An unexpected error occured. Please try again. If this error persists, you "
+"can report it using the `%ssuggest <suggestion>` command."
+msgstr ""
+
+#: bot.py:168
+#, python-format
+msgid "on-join direct messages for the bot turned `%s`."
+msgstr ""
+
+#: bot.py:186
+msgid ""
+"Hello, %(name), and welcome to %(guild)! The default prefix for this server "
+"is `%(server_prefix)`, but in direct messaging, use the prefix `%(prefix)`. "
+"It would seem that you have yet to join a server that has Practice Bot! "
+"Using Practice Bot, you can link your DMOJ or Codeforces account to your "
+"Discord account to perform different commands. You may use one of the "
+"following formats:\n"
+"\n"
+"*Please use connect commands in this direct message chat only!*\n"
+"\n"
+"`%(prefix)connect dmoj <dmoj-api-token>` (your DMOJ API token can be found "
+"by going to https://dmoj.ca/edit/profile/ and selecting the __Generate__ or "
+"__Regenerate__ option next to API Token)\n"
+"\n"
+"`%(prefix)connect cf <codeforces-handle>`\n"
+"\n"
+"Use `%(prefix)help` to see a full list of commands and more details."
+msgstr ""

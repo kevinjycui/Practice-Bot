@@ -1,22 +1,42 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 import discord
 from discord.ext import commands, tasks
 import random as rand
 import yaml
+import gettext
 import cogs.dblapi as dblapi
 import cogs.feedback as feedback
 import cogs.problems_rankings as problems_rankings
 import cogs.contests as contests
 import cogs.searcher as searcher
-from backend import mySQLConnection as query
+from connector import mySQLConnection as query
 from utils.onlinejudges import OnlineJudges, NoSuchOJException
 
+lc_codes = frozenset('en', 'zh_CN')
+lc = {}
+for code in lc_codes:
+    if locale == 'en':
+        continue
+    lc[code] = gettext.translation('messages', localedir='locale', languages=[code+':en'])
+    lc[code].install()
+
+def _(message, ctx={message: {guild: {id: 0}}}):
+    if ctx.message.guild.id == 0:
+        return message
+    locale = query.get_locale(ctx.message.guild.id)
+    try:
+        return lc[locale].gettext(message)
+    except KeyError:
+        return message
 
 onlineJudges = OnlineJudges()
 
 try:
-    config_file = open('config.yaml')
+    config_file = open('config.yml')
 except FileNotFoundError:
-    config_file = open('example_config.yaml')
+    config_file = open('example_config.yml')
 finally:
     config = yaml.load(config_file, Loader=yaml.FullLoader)
     prefix = config['bot']['prefix']
@@ -51,17 +71,17 @@ async def prefix_from_guild(guild):
 
 @bot.command()
 async def ping(ctx):
-    await ctx.send('Pong! (ponged in %ss)' % str(round(bot.latency, 3)))
+    await ctx.send(_('Pong! (ponged in %ss)' % str(round(bot.latency, 3))))
 
 @bot.command()
 @commands.has_permissions(manage_guild=True)
 async def setprefix(ctx, fix: str=None):
     if fix is not None and len(fix) > 255:
-        await ctx.send(ctx.message.author.display_name + ', Sorry, prefix is too long (maximum of 255 characters)')
+        await ctx.send(ctx.message.author.display_name + ', ' + _('Sorry, prefix is too long (maximum of 255 characters)'))
     elif fix is not None and ('"' in fix or '\'' in fix):
-        await ctx.send(ctx.message.author.display_name + ', Sorry, prefix cannot contain quotation charaters `\'` or `"`')
+        await ctx.send(ctx.message.author.display_name + ', ' + _('Sorry, prefix cannot contain quotation charaters `\'` or `"`'))
     elif fix is not None and (' ' in fix or '\n' in fix or '\r' in fix or '\t' in fix):
-        await ctx.send(ctx.message.author.display_name + ', Sorry, prefix cannot contain any whitespace')
+        await ctx.send(ctx.message.author.display_name + ', ' + _('Sorry, prefix cannot contain any whitespace'))
     else:
         default = fix is None
         if default:
@@ -71,22 +91,23 @@ async def setprefix(ctx, fix: str=None):
         query.insert_ignore_server(ctx.message.guild.id)
         query.update_server_prefix(ctx.message.guild.id, fix)
         if default:
-            await ctx.send(ctx.message.author.display_name + ', No prefix given, defaulting to %s. Server prefix changed from `%s` to `%s`' % (prefix, previous_prefix, fix))
+            await ctx.send(ctx.message.author.display_name + ', ' + _('No prefix given, defaulting to %(prefix). Server prefix changed from `%(old)` to `%(prefix)`') % ({'prefix': prefix, 'old': previous_prefix}))
         else:
-            await ctx.send(ctx.message.author.display_name + ', Server prefix changed from `%s` to `%s`' % (previous_prefix, fix))
+            await ctx.send(ctx.message.author.display_name + ', ' + _('Server prefix changed from `%(old)` to `%(new)`') % ({'old': previous_prefix, 'new': fix}))
 
 @bot.command()
 @commands.bot_has_permissions(embed_links=True)
 async def oj(ctx, oj: str=''):
     if oj == '':
-        await ctx.send('''```Available Online Judges
+        await ctx.send(_('''```Available Online Judges
 dmoj -> [dmoj]
     - random
     - connect
     - submit
 codeforces -> [codeforces] [cf]
     - random
-    - connect
+    - connectt = gettext.translation('practice_bot', 'locale', fallback=True)
+_ = t.ugettext
 atcoder -> [atcoder] [at] [ac]
     -random
 cses -> [cses]
@@ -94,17 +115,17 @@ cses -> [cses]
 wcipeg -> [wcipeg] [peg]
     -random
 szkopuł -> [szkopuł] [szkopul]
-    -random```''')
+    -random```'''))
     else:
         try:
             embed = onlineJudges.oj_to_embed(oj)
             await ctx.send(embed=embed)
         except NoSuchOJException:
-            await ctx.send(ctx.message.author.display_name + ', Sorry, no online judge found. Search only for online judges used by this bot ' + str(onlineJudges))
+            await ctx.send(ctx.message.author.display_name + ', ' + _('Sorry, no online judge found. Search only for online judges used by this bot ') + str(onlineJudges))
 
 @bot.command()
 async def motivation(ctx):
-    await ctx.send(ctx.message.author.display_name + ', ' + rand.choice(replies))
+    await ctx.send(ctx.message.author.display_name + ', ' + _(rand.choice(replies)))
 
 # @tasks.loop(minutes=1)
 # async def status_change():
@@ -123,7 +144,7 @@ bot.remove_command('help')
 
 @bot.command()
 async def help(ctx):
-    await ctx.send(ctx.message.author.display_name + ', Here is a full list of my commands! https://github.com/kevinjycui/Practice-Bot/wiki/Commands')
+    await ctx.send(ctx.message.author.display_name + ', ' + _('Here is a full list of my commands!') + ' https://github.com/kevinjycui/Practice-Bot/wiki/Commands')
 
 @bot.event
 async def on_command_error(ctx, error):
@@ -142,14 +163,14 @@ async def on_command_error(ctx, error):
             commands.errors.ExpectedClosingQuoteError
         )
     ):
-        await ctx.send(ctx.message.author.display_name + ', Invalid query. Please do not place any unnecessary quotation marks in your command.')
+        await ctx.send(ctx.message.author.display_name + ', ' + _('Invalid query. Please do not place any unnecessary quotation marks in your command.'))
     elif isinstance(error, commands.errors.MissingPermissions):
-        await ctx.send(ctx.message.author.display_name + ', Sorry, you are missing permissions to run this command!')
+        await ctx.send(ctx.message.author.display_name + ', ' + _('Sorry, you are missing permissions to run this command!'))
     elif isinstance(error, commands.BotMissingPermissions):
-        await ctx.send(ctx.message.author.display_name + ', It would seem that the bot is missing permissions to run this command! Be sure that all the required permissions are set to on: both for the bot and the channel. See here for a list of required permissions: https://github.com/kevinjycui/Practice-Bot/wiki/Permissions')
+        await ctx.send(ctx.message.author.display_name + ', ' + _('It would seem that the bot is missing permissions to run this command! Be sure that all the required permissions are set to on: both for the bot and the channel. See here for a list of required permissions:') + ' https://github.com/kevinjycui/Practice-Bot/wiki/Permissions')
     else:
         server_prefix = await prefix_from_guild(ctx.message.guild)
-        await ctx.send(ctx.message.author.display_name + ', An unexpected error occured. Please try again. If this error persists, you can report it using the `%ssuggest <suggestion>` command.' % server_prefix)
+        await ctx.send(ctx.message.author.display_name + ', ' + _('An unexpected error occured. Please try again. If this error persists, you can report it using the `%ssuggest <suggestion>` command.') % server_prefix)
         user = bot.get_user(bot.owner_id)
         await user.send('```%s\n%s```' % (repr(error), ctx.message.content))
         raise error
@@ -159,7 +180,7 @@ async def on_command_error(ctx, error):
 async def togglejoin(ctx):
     join_message = query.get_join_message(ctx.message.guild.id)
     query.update_server(ctx.message.guild.id, 'join_message', not join_message)
-    await ctx.send(ctx.message.author.display_name + ', on-join direct messages for the bot turned `%s`.' % ('ON' if not join_message else 'OFF'))
+    await ctx.send(ctx.message.author.display_name + ', ' _('on-join direct messages for the bot turned `%s`.') % ('ON' if not join_message else 'OFF'))
 
 
 @bot.command()
@@ -177,7 +198,23 @@ async def on_member_join(member):
     if this_user == {}:
         query.insert_ignore_user(member.id)
         server_prefix = await prefix_from_guild(member.guild)
-        await member.send('Hello, %s, and welcome to %s! The default prefix for this server is `%s`, but in direct messaging, use the prefix `%s`. It would seem that you have yet to join a server that has Practice Bot! Using Practice Bot, you can link your DMOJ or Codeforces account to your Discord account to perform different commands. You may use one of the following formats:\n\n*Please use connect commands in this direct message chat only!*\n\n`%sconnect dmoj <dmoj-api-token>` (your DMOJ API token can be found by going to https://dmoj.ca/edit/profile/ and selecting the __Generate__ or __Regenerate__ option next to API Token)\n\n`%sconnect cf <codeforces-handle>`\n\nUse `%shelp` to see a full list of commands and more details.' % (member.display_name, member.guild.name, server_prefix, prefix, prefix, prefix, prefix))
+        await member.send(_('Hello, %(name), and welcome to %(guild)! \
+The default prefix for this server is `%(server_prefix)`, but in direct messaging, \
+use the prefix `%(prefix)`. It would seem that you have yet to join a server \
+that has Practice Bot! Using Practice Bot, you can link your DMOJ or \
+Codeforces account to your Discord account to perform different commands. \
+You may use one of the following formats:\n\n*Please use connect commands \
+in this direct message chat only!*\n\n`%(prefix)connect dmoj <dmoj-api-token>` \
+(your DMOJ API token can be found by going to https://dmoj.ca/edit/profile/ \
+and selecting the __Generate__ or __Regenerate__ option next to API Token)\n\n\
+`%(prefix)connect cf <codeforces-handle>`\n\nUse `%(prefix)help` to see a full list of commands \
+and more details.') % \
+        ({
+            'name': member.display_name, 
+            'guild': member.guild.name,
+            'server_prefix': server_prefix, 
+            'prefix': prefix
+        }))
 
 @bot.event
 async def on_ready():

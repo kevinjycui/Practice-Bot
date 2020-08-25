@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 import json
 import requests
 import pytz
-from backend import mySQLConnection as query
+from connector import mySQLConnection as query
 from utils.onlinejudges import OnlineJudges, NoSuchOJException
 
 

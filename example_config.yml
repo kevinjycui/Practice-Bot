@@ -1,4 +1,4 @@
-# example_config.yaml file
+# example_config.yml file
 
 mysql:
   database: practice

@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands, tasks
 import random as rand
 import yaml
-from backend import mySQLConnection as query
+from connector import mySQLConnection as query
 
 
 custom_prefixes = query.get_prefixes()

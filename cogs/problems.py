@@ -11,7 +11,7 @@ from dmoj.usersuggester import UserSuggester as DMOJUserSuggester
 from codeforces.session import Session as CodeforcesSession
 from codeforces.session import InvalidCodeforcesSessionException, NoSubmissionsException, SessionTimeoutException, PrivateSubmissionException
 from codeforces.usersuggester import UserSuggester as CodeforcesUserSuggester
-from backend import mySQLConnection as query
+from connector import mySQLConnection as query
 from utils.onlinejudges import OnlineJudges, NoSuchOJException
 from utils.country import Country, InvalidCountryException
 import json

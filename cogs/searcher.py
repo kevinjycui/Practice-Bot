@@ -13,7 +13,7 @@ from bs4.element import Comment
 
 
 try:
-    config_file = open('config.yaml')
+    config_file = open('config.yml')
 except FileNotFoundError:
     config_file = open('example_config.yaml')
 finally:

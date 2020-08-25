@@ -4,9 +4,9 @@ import warnings
 
 
 try:
-    config_file = open('config.yaml')
+    config_file = open('config.yml')
 except FileNotFoundError:
-    config_file = open('example_config.yaml')
+    config_file = open('example_config.yml')
 finally:
     config = yaml.load(config_file, Loader=yaml.FullLoader)
     user, password, database = config['mysql']['user'], config['mysql']['pass'], config['mysql']['database']
@@ -25,6 +25,7 @@ db = pymysql.connect('localhost', user, password, database)
 #         role_sync BOOLEAN,
 #         sync_source VARCHAR(20),
 #         join_message BOOLEAN DEFAULT FALSE,
+#         locale VARCHAR(5) DEFAULT 'en_GB',
 #         PRIMARY KEY (server_id))""")
 #     cursor.execute("DROP TABLE IF EXISTS subscriptions_contests")
 #     cursor.execute("""CREATE TABLE subscriptions_contests (
@@ -176,8 +177,8 @@ class MySQLConnection(object):
     def insert_ignore_server(self, server_id):
         if not self.sanitize_id(server_id):
             return -1
-        sql = "INSERT IGNORE INTO servers(server_id, nickname_sync, role_sync, sync_source, join_message) \
-            VALUES (%d, FALSE, FALSE, 'dmoj', FALSE)" % \
+        sql = "INSERT IGNORE INTO servers(server_id, nickname_sync, role_sync, sync_source, join_message, locale) \
+            VALUES (%d, FALSE, FALSE, 'dmoj', FALSE, 'en_GB')" % \
             (server_id)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -206,6 +207,13 @@ class MySQLConnection(object):
         for row in result:
             server_to_prefix[row[0]] = row[4]
         return server_to_prefix
+
+    def get_locale(self, server_id):
+        if not self.sanitize_id(server_id):
+            return -1
+        sql = "SELECT locale FROM servers \
+        WHERE server_id = %s" % server_id
+        return self.readone_query(sql)[0]
 
     def get_all_sync_source(self):
         sql = "SELECT server_id, sync_source from servers"
