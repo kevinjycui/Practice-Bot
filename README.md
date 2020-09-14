@@ -43,7 +43,7 @@ Support this bot by voting for it [here](https://top.gg/bot/691416325557452861/v
  - [CSES](https://cses.fi/)
  - [Szkopuł](https://szkopul.edu.pl/)
 
- Not affiliated with DMOJ, Codeforces, AtCoder, WCIPEG, CSES, or Szkopuł. Sites are only used as tools for this bot.
+ **Not affiliated with DMOJ, Codeforces, AtCoder, WCIPEG, CSES, or Szkopuł. Sites are only used as tools for this bot.*
 
 ## Contributions
 Contributions are welcomed and encouraged!
