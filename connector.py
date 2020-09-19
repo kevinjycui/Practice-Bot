@@ -13,41 +13,41 @@ finally:
 
 db = pymysql.connect('localhost', user, password, database)
 
-# def make_db():
-#     """
-#     DANGER: RESETS ALL DATA IN DATABASE
-#     """
-#     cursor = db.cursor()
-#     cursor.execute("DROP TABLE IF EXISTS servers")
-#     cursor.execute("""CREATE TABLE servers (
-#         server_id BIGINT NOT NULL,
-#         nickname_sync BOOLEAN,
-#         role_sync BOOLEAN,
-#         sync_source VARCHAR(20),
-#         join_message BOOLEAN DEFAULT FALSE,
-#         prefix VARCHAR(255),
-#         PRIMARY KEY (server_id))""")
-#     cursor.execute("DROP TABLE IF EXISTS subscriptions_contests")
-#     cursor.execute("""CREATE TABLE subscriptions_contests (
-#         channel_id BIGINT NOT NULL,
-#         PRIMARY KEY (channel_id))""")
-#     cursor.execute("DROP TABLE IF EXISTS users")
-#     cursor.execute("""CREATE TABLE users (
-#         user_id BIGINT NOT NULL,
-#         tea INT,
-#         dmoj VARCHAR(255),
-#         codeforces VARCHAR(255),
-#         atcoder VARCHAR(255),
-#         last_dmoj_problem VARCHAR(255),
-#         can_repeat BOOLEAN,
-#         country VARCHAR(255),
-#         can_suggest BOOLEAN,
-#         PRIMARY KEY (user_id))""")
-#     cursor.execute("SHOW TABLES")
-#     result = cursor.fetchall()
-#     print("Tables:")
-#     for data in result:
-#         print(data[0])
+def make_db():
+    """
+    DANGER: RESETS ALL DATA IN DATABASE
+    """
+    cursor = db.cursor()
+    cursor.execute("DROP TABLE IF EXISTS servers")
+    cursor.execute("""CREATE TABLE servers (
+        server_id BIGINT NOT NULL,
+        nickname_sync BOOLEAN,
+        role_sync BOOLEAN,
+        sync_source VARCHAR(20),
+        join_message BOOLEAN DEFAULT FALSE,
+        prefix VARCHAR(255),
+        PRIMARY KEY (server_id))""")
+    cursor.execute("DROP TABLE IF EXISTS subscriptions_contests")
+    cursor.execute("""CREATE TABLE subscriptions_contests (
+        channel_id BIGINT NOT NULL,
+        PRIMARY KEY (channel_id))""")
+    cursor.execute("DROP TABLE IF EXISTS users")
+    cursor.execute("""CREATE TABLE users (
+        user_id BIGINT NOT NULL,
+        tea INT,
+        dmoj VARCHAR(255),
+        codeforces VARCHAR(255),
+        atcoder VARCHAR(255),
+        last_dmoj_problem VARCHAR(255),
+        can_repeat BOOLEAN,
+        country VARCHAR(255),
+        can_suggest BOOLEAN,
+        PRIMARY KEY (user_id))""")
+    cursor.execute("SHOW TABLES")
+    result = cursor.fetchall()
+    print("Tables:")
+    for data in result:
+        print(data[0])
 
 class MySQLConnection(object):
     def sanitize_id(self, id):
