@@ -13,18 +13,7 @@ from utils.onlinejudges import OnlineJudges, NoSuchOJException
 
 onlineJudges = OnlineJudges()
 
-def is_ascii(text):
-    if isinstance(text, unicode):
-        try:
-            text.encode('ascii')
-        except UnicodeEncodeError:
-            return False
-    else:
-        try:
-            text.decode('ascii')
-        except UnicodeDecodeError:
-            return False
-    return True
+is_Ascii = lambda s: re.match('^[\x00-\x7F]+$', s) != None
 
 try:
     config_file = open('config.yml')
@@ -167,7 +156,7 @@ async def on_command_error(ctx, error):
         await ctx.send(ctx.message.author.display_name + ', It would seem that the bot is missing permissions to run this command! Be sure that all the required permissions are set to on: both for the bot and the channel. See here for a list of required permissions: https://github.com/kevinjycui/Practice-Bot/wiki/Permissions')
     else:
         server_prefix = await prefix_from_guild(ctx.message.guild)
-        await ctx.send(ctx.message.author.display_name + ', An unexpected error occured. Please try again. If this error persists, you can report it using the `%ssuggest <suggestion>` command.' % server_prefix)
+        await ctx.send(ctx.message.author.display_name + ', An unexpected error occurred. Please try again. If this error persists, you can report it using the `%ssuggest <suggestion>` command.' % server_prefix)
         user = bot.get_user(bot.owner_id)
         await user.send('```%s\n%s```' % (repr(error), ctx.message.content))
         raise error
