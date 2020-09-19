@@ -1,3 +1,4 @@
+import re
 import discord
 from discord.ext import commands, tasks
 import random as rand
@@ -12,6 +13,8 @@ from utils.onlinejudges import OnlineJudges, NoSuchOJException
 
 
 onlineJudges = OnlineJudges()
+
+is_ascii = lambda s: re.match('^[\x00-\x7F]+$', s) != None
 
 try:
     config_file = open('config.yml')
@@ -65,6 +68,8 @@ async def setprefix(ctx, fix: str=None):
         await ctx.send(ctx.message.author.display_name + ', Sorry, prefix cannot contain any whitespace')
     elif fix is not None and '\\' in fix:
         await ctx.send(ctx.message.author.display_name + ', Sorry, prefix cannot contain contain backslash characters `\`')
+    elif fix is not None and not is_ascii(fix):
+        await ctx.send(ctx.message.author.display_name + ', Sorry, prefix cannot contain non-ASCII characters')
     else:
         default = fix is None
         if default:
@@ -152,7 +157,7 @@ async def on_command_error(ctx, error):
         await ctx.send(ctx.message.author.display_name + ', It would seem that the bot is missing permissions to run this command! Be sure that all the required permissions are set to on: both for the bot and the channel. See here for a list of required permissions: https://github.com/kevinjycui/Practice-Bot/wiki/Permissions')
     else:
         server_prefix = await prefix_from_guild(ctx.message.guild)
-        await ctx.send(ctx.message.author.display_name + ', An unexpected error occured. Please try again. If this error persists, you can report it using the `%ssuggest <suggestion>` command.' % server_prefix)
+        await ctx.send(ctx.message.author.display_name + ', An unexpected error occurred. Please try again. If this error persists, you can report it using the `%ssuggest <suggestion>` command.' % server_prefix)
         user = bot.get_user(bot.owner_id)
         await user.send('```%s\n%s```' % (repr(error), ctx.message.content))
         raise error
