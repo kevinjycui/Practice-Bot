@@ -83,9 +83,6 @@ class ProblemCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-        with open('data/daily.json', 'r', encoding='utf8', errors='ignore') as f:
-            self.daily_problems = json.load(f)
-
         self.refresh_dmoj_problems.start()
         self.refresh_cf_problems.start()
         self.refresh_atcoder_problems.start()
@@ -541,10 +538,6 @@ class ProblemCog(commands.Cog):
         
         else:
             raise NoSuchOJException(oj)
-
-    def update_daily(self):
-        with open('data/daily.json', 'w') as json_file:
-            json.dump(self.daily_problems, json_file)
 
     def check_existing_user(self, user):
         query.insert_ignore_user(user.id)
