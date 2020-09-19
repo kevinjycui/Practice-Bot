@@ -14,7 +14,7 @@ from utils.onlinejudges import OnlineJudges, NoSuchOJException
 
 onlineJudges = OnlineJudges()
 
-is_Ascii = lambda s: re.match('^[\x00-\x7F]+$', s) != None
+is_ascii = lambda s: re.match('^[\x00-\x7F]+$', s) != None
 
 try:
     config_file = open('config.yml')
