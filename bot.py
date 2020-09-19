@@ -13,19 +13,6 @@ from utils.onlinejudges import OnlineJudges, NoSuchOJException
 
 onlineJudges = OnlineJudges()
 
-def is_ascii(text):
-    if isinstance(text, unicode):
-        try:
-            text.encode('ascii')
-        except UnicodeEncodeError:
-            return False
-    else:
-        try:
-            text.decode('ascii')
-        except UnicodeDecodeError:
-            return False
-    return True
-
 try:
     config_file = open('config.yml')
 except FileNotFoundError:
@@ -78,8 +65,6 @@ async def setprefix(ctx, fix: str=None):
         await ctx.send(ctx.message.author.display_name + ', Sorry, prefix cannot contain any whitespace')
     elif fix is not None and '\\' in fix:
         await ctx.send(ctx.message.author.display_name + ', Sorry, prefix cannot contain contain backslash characters `\`')
-    elif is_ascii(fix) == False:
-        await ctx.send(ctx.message.author.display_name + ', Sorry, prefix cannot use non-ASCII characters `\`')
     else:
         default = fix is None
         if default:
