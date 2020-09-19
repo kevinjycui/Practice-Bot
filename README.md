@@ -14,10 +14,13 @@ Support this bot by voting for it [here](https://top.gg/bot/691416325557452861/v
 
 ## What's New 
 
-### \[August 2020\]
+### September 2020 \[BETA\]
+ * Improved contest display
+
+### August 2020
  * Removed support for WCIPEG
 
-### \[July 2020\]
+### July 2020
  * Added connection support for Codeforces
  * Added problem support for Szkopuł
  * Added suggested problems
