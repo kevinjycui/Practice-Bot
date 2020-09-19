@@ -25,6 +25,7 @@ db = pymysql.connect('localhost', user, password, database)
 #         role_sync BOOLEAN,
 #         sync_source VARCHAR(20),
 #         join_message BOOLEAN DEFAULT FALSE,
+#         prefix VARCHAR(255),
 #         PRIMARY KEY (server_id))""")
 #     cursor.execute("DROP TABLE IF EXISTS subscriptions_contests")
 #     cursor.execute("""CREATE TABLE subscriptions_contests (
@@ -132,15 +133,13 @@ class MySQLConnection(object):
             return {}
         user = result[row]
         user_data = {
-            user[0]: {
-                'tea': user[1],
-                'dmoj': user[2],
-                'last_dmoj_problem': user[3],
-                'can_repeat': user[4],
-                'codeforces': user[5],
-                'country': user[6],
-                'can_suggest': user[7]
-            }
+            'tea': user[1],
+            'dmoj': user[2],
+            'last_dmoj_problem': user[3],
+            'can_repeat': user[4],
+            'codeforces': user[5],
+            'country': user[6],
+            'can_suggest': user[7]
         }
         return user_data
 

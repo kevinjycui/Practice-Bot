@@ -10,7 +10,7 @@ mysql:
     - users
 bot:
   token: secret # retrive token from Discord Developer Portal https://discord.com/developers/applications/
-  dev_token: secret # optional for checking if running in development (set to same value as token to set as development)
+  debug: true # set to false for production
   id: id # The bot's Discord ID
   owner_id: id # your Discord ID
   prefix: $

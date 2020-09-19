@@ -27,8 +27,11 @@ class Contest(object):
     def __eq__(self, other):
         return self.data['description'] == other.data['description']
 
+    def __gt__(self, other):
+        return self.data['description'] > other.data['description']
+
     def __str__(self):
-        return str(self.data)
+        return self.data['description']
 
     def __hash__(self):
         return hash(str(self))
@@ -46,7 +49,6 @@ class NoContestsAvailableException(Exception):
         return 'Sorry, there are not upcoming contests from %s currently available.' % self.onlineJudges.formal_names[self.oj]
 
 class ContestCog(commands.Cog):
-    all_contest_embeds = []
     fetch_time = 0
 
     dmoj_contests = []
@@ -73,27 +75,22 @@ class ContestCog(commands.Cog):
         self.refresh_contests.start()
 
     def get_random_contests(self, number):
-        if len(self.all_contest_embeds) == 0:
+        if len(self.contest_cache) == 0:
             raise NoContestsAvailableException()
-        rand.shuffle(self.all_contest_embeds)
+        rand.shuffle(self.contest_cache)
         result = []
-        for i in range(min(number, len(self.all_contest_embeds))):
-            result.append(self.all_contest_embeds[i])
-        return result
+        for i in range(min(number, len(self.contest_cache))):
+            result.append(self.contest_cache[i])
+        return self.embed_multiple_contests(result)
 
     def get_contests_of_oj(self, oj):
         result = []
-        oj_url = ''
-        for site_url in list(self.onlineJudges.url_to_thumbnail.keys()):
-            if oj in site_url:
-                oj_url = self.onlineJudges.url_to_thumbnail[site_url]
-                break
-        for contest_embed in self.all_contest_embeds:
-            if oj_url == contest_embed.thumbnail.url:
-                result.append(contest_embed)
+        for contest_object in self.contest_cache:
+            if oj == contest_object.asdict()['oj']:
+                result.append(contest_object)
         if len(result) == 0:
             raise NoContestsAvailableException(oj)
-        return result
+        return self.embed_multiple_contests(result, oj)
 
     def reset_contest(self, oj):
         if oj == 'dmoj':
@@ -119,6 +116,7 @@ class ContestCog(commands.Cog):
                     contest_data = {
                         'title': ':trophy: %s' % details['name'],
                         'description': url,
+                        'oj': 'dmoj',
                         'thumbnail': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/dmoj-thumbnail.png',
                         'Start Time': datetime.strptime(details['start_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z').strftime('%Y-%m-%d %H:%M:%S'),
                         'End Time': datetime.strptime(details['end_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z').strftime('%Y-%m-%d %H:%M:%S')
@@ -143,6 +141,7 @@ class ContestCog(commands.Cog):
                     contest_data = {
                         'title': ':trophy: %s' % details['name'],
                         'description': url,
+                        'oj': 'codeforces',
                         'thumbnail': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/cf-thumbnail.png',
                         'Type': details['type'],
                         'Start Time': datetime.utcfromtimestamp(details['startTimeSeconds']).strftime('%Y-%m-%d %H:%M:%S'),
@@ -162,6 +161,7 @@ class ContestCog(commands.Cog):
                     contest_data = {
                         'title': ':trophy: %s' % details['title'].replace('\n', '').replace('\t', '').replace('◉', ''),
                         'description': url,
+                        'oj': 'atcoder',
                         'thumbnail': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/at-thumbnail.png',
                         'Start Time': datetime.utcfromtimestamp(details['startTimeSeconds']).strftime('%Y-%m-%d %H:%M:%S'),
                         'Time Limit': '%s:%s:%s' % (str(details['durationSeconds']//(24*3600)).zfill(2), str(details['durationSeconds']%(24*3600)//3600).zfill(2), str(details['durationSeconds']%3600//60).zfill(2)),
@@ -173,28 +173,29 @@ class ContestCog(commands.Cog):
             self.atcoder_contests = list(set(self.atcoder_contests))
 
     def embed_contest(self, contest):
-        embed = discord.Embed(title=contest['title'], description=contest['description'])
-        embed.timestamp = datetime.utcnow()
-        embed.set_thumbnail(url=contest['thumbnail'])
-        for key in list(contest.keys()):
-            if key != key.lower():
-                embed.add_field(name=key, value=contest[key], inline=False)
+        embed = discord.Embed(title=contest.asdict()['title'], description=contest.asdict()['description'])
+        embed.set_thumbnail(url=contest.asdict()['thumbnail'])
+        for key in list(contest.asdict().keys()):
+            if key not in ('title', 'description', 'thumbnail', 'oj'):
+                embed.add_field(name=key, value=contest.asdict()[key], inline=False)
         return embed
 
+    def embed_multiple_contests(self, contests, oj=None, new=False):
+        if len(contests) == 0:
+            return None
+        if len(contests) == 1:
+            return self.embed_contest(contests[0])
+        if oj is not None:
+            embed = discord.Embed(title='%d %s%s Contests' % (len(contests), ' New' if new else '', self.onlineJudges.formal_names[oj]))
+            embed.set_thumbnail(url=self.onlineJudges.thumbnails[oj])
+        else:
+            embed = discord.Embed(title='%d%s Contests' % (len(contests), ' New' if new else ''))
+        for contest in sorted(contests):
+            embed.add_field(name=contest.asdict()['title'], value=contest.asdict()['description'], inline=(len(contests) > 6))
+        return embed
+        
     def generate_stream(self):
-        self.all_contest_embeds = []
-        self.contest_objects = []
-        for contest in self.dmoj_contests:
-            self.all_contest_embeds.append(self.embed_contest(contest.asdict()))
-            self.contest_objects.append(contest)
-        for contest in self.cf_contests:
-            self.all_contest_embeds.append(self.embed_contest(contest.asdict()))
-            self.contest_objects.append(contest)
-        for contest in self.atcoder_contests:
-            self.all_contest_embeds.append(self.embed_contest(contest.asdict()))
-            self.contest_objects.append(contest)
-        self.all_contest_embeds = list(set(self.all_contest_embeds))
-        self.contest_objects = list(set(self.contest_objects))
+        self.contest_objects = list(set(self.dmoj_contests + self.cf_contests + self.atcoder_contests))
 
     def update_contest_cache(self):
         with open('data/contests.json', 'w') as json_file:
@@ -208,7 +209,10 @@ class ContestCog(commands.Cog):
     async def contests(self, ctx, numstr='1'):
         try:
             if numstr == 'all':
-                number = len(self.all_contest_embeds)
+                number = len(self.contest_cache)
+                contestList = self.get_random_contests(number)
+            elif numstr.isdigit():
+                number = int(numstr)
                 contestList = self.get_random_contests(number)
             elif self.onlineJudges.oj_exists(numstr):
                 oj = self.onlineJudges.get_oj(numstr)
@@ -216,16 +220,7 @@ class ContestCog(commands.Cog):
                     await ctx.send(ctx.message.author.display_name + ', Sorry, contests for that site are not available yet or contests are not applicable to that site.')
                     return
                 contestList = self.get_contests_of_oj(oj)
-            elif not numstr.isdigit():
-                prefix = await self.bot.command_prefix(self.bot, ctx.message)
-                await ctx.send(ctx.message.author.display_name + ', Invalid query. Please use format `%scontests <# of contests>`' % prefix)
-                return
-            else:
-                number = int(numstr)
-                contestList = self.get_random_contests(number)
-            await ctx.send(ctx.message.author.display_name + ', Sending %d random upcoming contest(s). Last fetched, %d minutes ago' % (len(contestList), (time()-self.fetch_time)//60))
-            for contest in contestList:
-                await ctx.send(embed=contest)
+            await ctx.send(ctx.message.author.display_name + ', Here are %d upcoming contest(s). Last fetched, %d minutes ago' % (1 if numstr == '1' else len(contestList.fields), (time()-self.fetch_time)//60), embed=contestList)
         except NoContestsAvailableException as e:
             await ctx.send(ctx.message.author.display_name + ', ' + str(e))
         except NoSuchOJException:
@@ -302,8 +297,7 @@ class ContestCog(commands.Cog):
         for channel_id in query.get_all_subs():
             try:
                 channel = self.bot.get_channel(channel_id)
-                for contest in new_contests:
-                    await channel.send(embed=self.embed_contest(contest.asdict()))
+                await channel.send(embed=self.embed_multiple_contests(new_contests, new=True))
             except:
                 pass
 

@@ -552,21 +552,6 @@ class ProblemCog(commands.Cog):
     def check_existing_server(self, server):
         query.insert_ignore_server(server.id)
 
-    @commands.command(aliases=['p'])
-    async def problem(self, ctx, url: str):
-        prefix = await self.bot.command_prefix(self.bot, ctx.message)
-        await ctx.send(ctx.message.author.display_name + ', This command is no longer supported. To request for it again, feel free to leave a suggestion using the  `%ssuggest <suggestion>` command.' % prefix)
-
-    # @commands.command(aliases=['p'])
-    # async def problem(self, ctx, url: str):
-    #     try:
-    #         embed = self.get_problem_from_url(url)
-    #         await ctx.send('Requested problem for ' + ctx.message.author.display_name, embed=embed)
-    #     except InvalidURLException:
-    #         await ctx.send(ctx.message.author.display_name + ', Sorry, the problem URL was not recognised.')
-    #     except ProblemNotFoundException as e:
-    #         await ctx.send(ctx.message.author.display_name + ', Sorry, the problem was not found. ' + str(e))
-
     @commands.command(aliases=['r'])
     @commands.bot_has_permissions(embed_links=True)
     async def random(self, ctx, oj=None, points=None, maximum=None):
@@ -593,33 +578,6 @@ class ProblemCog(commands.Cog):
             await ctx.send(ctx.message.author.display_name + ', There seems to be a problem with %s. Please try again later :shrug:' % str(e))
         except InvalidQueryException:
             await ctx.send(ctx.message.author.display_name + ', Invalid query. Make sure your points are positive integers.')
-
-    @commands.command(aliases=['d'])
-    async def daily(self, ctx):
-        prefix = await self.bot.command_prefix(self.bot, ctx.message)
-        await ctx.send(ctx.message.author.display_name + ', This command is no longer supported. To request for it again, feel free to leave a suggestion using the  `%ssuggest <suggestion>` command.' % prefix)
-    
-    # @commands.command(aliases=['d'])
-    # async def daily(self, ctx):
-    #     if str(date.today()) not in self.daily_problems.keys():
-    #         try:
-    #             title, description, embed = self.get_random_problem()
-    #         except IndexError:
-    #             await ctx.send(ctx.message.author.display_name + ', No problem was found. This may be due to the bot updating the problem cache. Please wait a moment, then try again.')
-    #         thumbnail = 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/logo.png'
-    #         for url, tn in list(self.onlineJudges.url_to_thumbnail.items()):
-    #             if url in description:
-    #                 thumbnail = tn
-    #                 break
-    #         self.daily_problems[str(date.today())] = {
-    #             'title': title,
-    #             'description': description,
-    #             'thumbnail': thumbnail
-    #         }
-    #         self.update_daily()
-    #     problem_data = self.daily_problems[str(date.today())]
-    #     embed = self.get_problem_from_url(problem_data['description'])
-    #     await ctx.send(ctx.message.author.display_name + ', Hello! Here\'s today\'s problem of the day!', embed=embed)
 
     @commands.command(aliases=['toggleRepeat'])
     async def togglerepeat(self, ctx):

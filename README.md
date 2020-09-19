@@ -12,7 +12,12 @@ Discord to DMOJ/Codeforces/AtCoder/WCIPEG/CSES/Szkopuł integration. Handles pro
 
 Support this bot by voting for it [here](https://top.gg/bot/691416325557452861/vote)
 
-## What's New \[BETA\]
+## What's New 
+
+### \[August 2020\]
+ * Removed support for WCIPEG
+
+### \[July 2020\]
  * Added connection support for Codeforces
  * Added problem support for Szkopuł
  * Added suggested problems

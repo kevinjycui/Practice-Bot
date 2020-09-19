@@ -14,8 +14,8 @@ except FileNotFoundError:
 finally:
     config = yaml.load(config_file, Loader=yaml.FullLoader)
     prefix = config['bot']['prefix']
-    bot_token, dev_token = config['bot']['token'], config['bot']['dev_token']
-    DEBUG = bot_token == dev_token
+    bot_token = config['bot']['token']
+    DEBUG = config['bot']['debug']
     bot_id = config['bot']['id']
     owner_id = config['bot']['owner_id']
 

@@ -275,12 +275,13 @@ class ProblemRankingCog(ProblemCog):
         if user_response['status'] == 0:
             self.update_dmoj_index = 0
         elif user_response['status'] == -1:
+            self.update_dmoj_index = 0
             return
         else:
             self.update_dmoj_index += 1
         user_data = user_response['user']
 
-        user_info = json_get('https://dmoj.ca/api/user/info/%s' % user_data[member_id]['dmoj'])
+        user_info = json_get('https://dmoj.ca/api/user/info/%s' % user_data['dmoj'])
         current_rating = user_info['contests']['current_rating']
         for rating, role in list(self.dmoj_ratings.items()):
             if current_rating in rating:
@@ -316,13 +317,14 @@ class ProblemRankingCog(ProblemCog):
 
     @tasks.loop(minutes=5)
     async def update_cf_ranks(self):
-        user_response = query.get_next_user_by_row(self.update_dmoj_index, 'codeforces')
+        user_response = query.get_next_user_by_row(self.update_cf_index, 'codeforces')
         if user_response['status'] == 0:
-            self.update_dmoj_index = 0
+            self.update_cf_index = 0
         elif user_response['status'] == -1:
+            self.update_cf_index = 0
             return
         else:
-            self.update_dmoj_index += 1
+            self.update_cf_index += 1
         user_data = user_response['user']
 
         user_info = json_get('https://codeforces.com/api/user.info?handles=%s' % user_data['codeforces'])['result'][0]
@@ -351,6 +353,8 @@ class ProblemRankingCog(ProblemCog):
                         break
             except:
                 pass
+
+        self.update_dmoj_index += 1
 
     @update_cf_ranks.before_loop
     async def update_cf_ranks_before(self):
