@@ -68,7 +68,7 @@ async def setprefix(ctx, fix: str=None):
         await ctx.send(ctx.message.author.display_name + ', Sorry, prefix cannot contain any whitespace')
     elif fix is not None and '\\' in fix:
         await ctx.send(ctx.message.author.display_name + ', Sorry, prefix cannot contain contain backslash characters `\`')
-    elif not is_ascii(fix):
+    elif fix is not None and not is_ascii(fix):
         await ctx.send(ctx.message.author.display_name + ', Sorry, prefix cannot contain non-ASCII characters')
     else:
         default = fix is None
