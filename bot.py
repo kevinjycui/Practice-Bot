@@ -50,14 +50,13 @@ bot = commands.Bot(command_prefix=determine_prefix,
 
 async def changenick(ctx, member: discord.Member, fix):
     name = ctx.message.guild.get_member(bot.user.id).display_name
-    arr = name.split(" ")
+    arr = name.split(' ')
     prefix = arr[-1]
     
     if prefix[0] == '[' and prefix[-1] == ']':
-        sep = " "
-        await member.edit(nick=f"{sep.join(arr[:-1])} [{fix}]")
+        await member.edit(nick=f'{' '.join(arr[:-1])} [{fix}]')
     else:
-        await member.edit(nick=f"{name} [{fix}]")
+        await member.edit(nick=f'{name} [{fix}]')
 
 async def prefix_from_guild(guild):
     if guild:
@@ -96,7 +95,7 @@ async def setprefix(ctx, fix: str=None):
             await ctx.send(ctx.message.author.display_name + ', No prefix given, defaulting to `%s`. Server prefix changed from `%s` to `%s`' % (prefix, previous_prefix, fix))
         else:
             await ctx.send(ctx.message.author.display_name + ', Server prefix changed from `%s` to `%s`' % (previous_prefix, fix))
-            await changenick(ctx, ctx.message.guild.get_member(bot.user.id), fix)
+        await changenick(ctx, ctx.message.guild.get_member(bot.user.id), fix)
 
 
 @bot.command()
