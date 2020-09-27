@@ -54,7 +54,7 @@ async def changenick(ctx, member: discord.Member, fix):
     prefix = arr[-1]
     
     if prefix[0] == '[' and prefix[-1] == ']':
-        await member.edit(nick=f'{' '.join(arr[:-1])} [{fix}]')
+        await member.edit(nick=f"{' '.join(arr[:-1])} [{fix}]")
     else:
         await member.edit(nick=f'{name} [{fix}]')
 
