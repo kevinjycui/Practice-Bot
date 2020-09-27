@@ -11,7 +11,6 @@ import cogs.searcher as searcher
 from connector import mySQLConnection as query
 from utils.onlinejudges import OnlineJudges, NoSuchOJException
 
-
 onlineJudges = OnlineJudges()
 
 is_ascii = lambda s: re.match('^[\x00-\x7F]+$', s) != None
@@ -37,15 +36,28 @@ replies = ('Practice Bot believes that with enough practice, you can complete an
 
 custom_prefixes = query.get_prefixes()
 
+
 async def determine_prefix(bot, message):
     guild = message.guild
     if guild:
         return custom_prefixes.get(guild.id, prefix)
     return prefix
 
+
 bot = commands.Bot(command_prefix=determine_prefix,
                    description='The all-competitive-programming-purpose Discord bot!',
                    owner_id=owner_id)
+
+async def changenick(ctx, member: discord.Member, fix):
+    name = ctx.message.guild.get_member(bot.user.id).display_name
+    arr = name.split(" ")
+    prefix = arr[-1]
+    
+    if prefix[0] == '[' and prefix[-1] == ']':
+        sep = " "
+        await member.edit(nick=f"{sep.join(arr[:-1])} [{fix}]")
+    else:
+        await member.edit(nick=f"{name} [{fix}]")
 
 async def prefix_from_guild(guild):
     if guild:
@@ -53,9 +65,11 @@ async def prefix_from_guild(guild):
         return prefix if custom is None else custom
     return prefix
 
+
 @bot.command()
 async def ping(ctx):
     await ctx.send('Pong! (ponged in %ss)' % str(round(bot.latency, 3)))
+
 
 @bot.command()
 @commands.has_permissions(manage_guild=True)
@@ -82,6 +96,8 @@ async def setprefix(ctx, fix: str=None):
             await ctx.send(ctx.message.author.display_name + ', No prefix given, defaulting to `%s`. Server prefix changed from `%s` to `%s`' % (prefix, previous_prefix, fix))
         else:
             await ctx.send(ctx.message.author.display_name + ', Server prefix changed from `%s` to `%s`' % (previous_prefix, fix))
+            await changenick(ctx, ctx.message.guild.get_member(bot.user.id), fix)
+
 
 @bot.command()
 @commands.bot_has_permissions(embed_links=True)
@@ -110,6 +126,7 @@ szkopuł -> [szkopuł] [szkopul]
         except NoSuchOJException:
             await ctx.send(ctx.message.author.display_name + ', Sorry, no online judge found. Search only for online judges used by this bot ' + str(onlineJudges))
 
+
 @bot.command()
 async def motivation(ctx):
     await ctx.send(ctx.message.author.display_name + ', ' + rand.choice(replies))
@@ -127,17 +144,20 @@ async def motivation(ctx):
 # async def status_change_before():
 #     await bot.wait_until_ready()
 
+
 bot.remove_command('help')
+
 
 @bot.command()
 async def help(ctx):
     await ctx.send(ctx.message.author.display_name + ', Here is a full list of my commands! https://github.com/kevinjycui/Practice-Bot/wiki/Commands')
 
+
 @bot.event
 async def on_command_error(ctx, error):
     if any(
         isinstance(error, CommonError) for CommonError in (
-            commands.CommandNotFound, 
+            commands.CommandNotFound,
             commands.errors.MissingRequiredArgument,
             commands.errors.NoPrivateMessage,
             commands.errors.BadArgument
@@ -162,6 +182,7 @@ async def on_command_error(ctx, error):
         await user.send('```%s\n%s```' % (repr(error), ctx.message.content))
         raise error
 
+
 @bot.command(aliases=['toggleJoin'])
 @commands.has_permissions(administrator=True)
 async def togglejoin(ctx):
@@ -175,6 +196,7 @@ async def togglejoin(ctx):
 async def server_count(ctx):
     await ctx.send('Server count: `%s`' % len(bot.guilds))
 
+
 @bot.event
 async def on_member_join(member):
     global prefix
@@ -187,11 +209,12 @@ async def on_member_join(member):
         server_prefix = await prefix_from_guild(member.guild)
         await member.send('Hello, %s, and welcome to %s! The default prefix for this server is `%s`, but in direct messaging, use the prefix `%s`. It would seem that you have yet to join a server that has Practice Bot! Using Practice Bot, you can link your DMOJ or Codeforces account to your Discord account to perform different commands. You may use one of the following formats:\n\n*Please use connect commands in this direct message chat only!*\n\n`%sconnect dmoj <dmoj-api-token>` (your DMOJ API token can be found by going to https://dmoj.ca/edit/profile/ and selecting the __Generate__ or __Regenerate__ option next to API Token)\n\n`%sconnect cf <codeforces-handle>`\n\nUse `%shelp` to see a full list of commands and more details.' % (member.display_name, member.guild.name, server_prefix, prefix, prefix, prefix, prefix))
 
+
 @bot.event
 async def on_ready():
     await bot.change_presence(
         activity=discord.Activity(
-            type=discord.ActivityType.watching, 
+            type=discord.ActivityType.watching,
             name='you practise | %shelp' % prefix
         )
     )
@@ -202,6 +225,7 @@ async def on_ready():
     if DEBUG:
         user = bot.get_user(bot.owner_id)
         await user.send('Bot Online!')
+
 
 if __name__ == '__main__':
     # status_change.start()
