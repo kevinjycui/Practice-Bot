@@ -9,7 +9,7 @@ class InvalidSessionException(Exception):
     def __init__(self, code):
         self.code = code
 
-class MismatchingHandleException(Exception):
+class UserScriptException(Exception):
     
     def __init__(self):
         pass
@@ -20,14 +20,23 @@ class Session:
 
     def __init__(self, token):
         self.token = token
-        req = requests.get(self.BASE_URL + '/user', headers={'Authorization': 'Bearer %s' % token})
+        req = requests.get(self.BASE_URL + '/edit/profile/', headers={'Authorization': 'Bearer %s' % token})
         if req.status_code == 400 or req.status_code == 401:
             raise InvalidSessionException(req.status_code)
         doc = req.text
         soup = bs.BeautifulSoup(doc, 'lxml')
+        self.verifyUserScript(soup)
         self.user = soup.find('span', attrs={'id' : 'user-links'}).find('b').contents[0]
-        if req != requests.get(self.BASE_URL + '/user/' + self.user):
-            raise MismatchingHandleException
+
+    def verifyUserScript(self, soup):
+        layer1 = soup.findAll('div', attrs={'class': 'django-ace-editor'})
+        if len(layer1) != 1:
+            raise UserScriptException
+        layer2 = layer1[0].findAll('textarea')
+        if len(layer2) != 1:
+            raise UserScriptException
+        if len(layer2[0].contents) != 0:
+            raise UserScriptException
 
     def __str__(self):
         return self.user

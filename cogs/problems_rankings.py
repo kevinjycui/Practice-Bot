@@ -76,10 +76,10 @@ class ProblemRankingCog(ProblemCog):
                     await ctx.send('Successfully logged in with submission permissions as %s on DMOJ! (Note that for security reasons, submission permissions will be automatically turned off after the cache resets or when you go offline. When this occurs, you will have to log in using your token again to submit, but your account will remain linked. You may delete the message containing your token now)' % self.dmoj_sessions[ctx.message.author.id])
                 except InvalidSessionException:
                     await ctx.send('Token invalid, failed to log in (your DMOJ API token can be found by going to https://dmoj.ca/edit/profile/ and selecting the __Generate__ or __Regenerate__ option next to API Token).')
-                except MismatchingHandleException:
-                    await ctx.send('Failed to login. Check that you do not have any user scripts that may modify your identity on DMOJ.')
+                except UserScriptException:
+                    await ctx.send('Failed to login. Please remove any user scripts and try again.')
 
-        elif site.lower() == 'cf' or site.lower() == 'codeforces':               
+        elif site.lower() == 'cf' or site.lower() == 'codeforces':             
             self.check_existing_user(ctx.message.author)
             user_data = query.get_user(ctx.message.author.id)
             if token is None or (ctx.message.author.id in self.cf_sessions.keys() and token.lower() == str(self.cf_sessions[ctx.message.author.id]).lower()):
