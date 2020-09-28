@@ -9,6 +9,11 @@ class InvalidSessionException(Exception):
     def __init__(self, code):
         self.code = code
 
+class MismatchingHandleException(Exception):
+    
+    def __init__(self):
+        pass
+
 class Session:
     BASE_URL = 'https://dmoj.ca'
     gradingStatuses = ['QU', 'P', 'G']
@@ -20,6 +25,8 @@ class Session:
             raise InvalidSessionException(req.status_code)
         doc = req.text
         soup = bs.BeautifulSoup(doc, 'lxml')
+        if len(soup.findAll('span', attrs={'id' : 'user-links'})) != 1:
+            raise MismatchingHandleException
         self.user = soup.find('span', attrs={'id' : 'user-links'}).find('b').contents[0]
 
     def __str__(self):

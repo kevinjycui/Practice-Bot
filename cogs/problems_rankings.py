@@ -76,7 +76,9 @@ class ProblemRankingCog(ProblemCog):
                     await ctx.send('Successfully logged in with submission permissions as %s on DMOJ! (Note that for security reasons, submission permissions will be automatically turned off after the cache resets or when you go offline. When this occurs, you will have to log in using your token again to submit, but your account will remain linked. You may delete the message containing your token now)' % self.dmoj_sessions[ctx.message.author.id])
                 except InvalidSessionException:
                     await ctx.send('Token invalid, failed to log in (your DMOJ API token can be found by going to https://dmoj.ca/edit/profile/ and selecting the __Generate__ or __Regenerate__ option next to API Token).')
-                
+                except MismatchingHandleException:
+                    await ctx.send('Failed to login. Check that you do not have any user scripts that may modify your identity on DMOJ.')
+
         elif site.lower() == 'cf' or site.lower() == 'codeforces':               
             self.check_existing_user(ctx.message.author)
             user_data = query.get_user(ctx.message.author.id)
@@ -137,7 +139,7 @@ class ProblemRankingCog(ProblemCog):
             prefix = await self.bot.command_prefix(self.bot, ctx.message)
             await ctx.send('Invalid query. Please use one of the following formats:\n\n`%sconnect dmoj <dmoj-api-token>` (your DMOJ API token can be found by going to https://dmoj.ca/edit/profile/ and selecting the __Generate__ or __Regenerate__ option next to API Token)\n\n`%sconnect cf <codeforces-handle>`' % (prefix, prefix))
 
-    @commands.command(aliases=['logout'])
+    @commands.command(aliases=['dc', 'logout'])
     async def disconnect(self, ctx, site=None):
         if ctx.guild is not None:
             mention = ctx.message.author.display_name + ', '
@@ -173,7 +175,7 @@ class ProblemRankingCog(ProblemCog):
         else:
             await ctx.send(mention + 'Sorry, that site does not exist or logins to that site are not available yet')
 
-    @commands.command(aliases=['toggleSync', 'toggleRanks', 'toggleNicks', 'toggleranks', 'togglenicks'])
+    @commands.command(aliases=['toggleSync', 'toggleRanks', 'toggleNicks', 'toggleranks', 'togglenicks', 'setsync', 'setSync'])
     @commands.has_permissions(manage_roles=True, manage_nicknames=True)
     @commands.guild_only()
     async def togglesync(self, ctx, site=None):

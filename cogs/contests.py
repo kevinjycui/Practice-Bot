@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands, tasks
+import os
 from time import time
 import random as rand
 from datetime import datetime, timedelta
@@ -65,6 +66,10 @@ class ContestCog(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+
+        if not os.path.isfile('data/contests.json'):
+            with open('data/contests.json', 'w+', encoding='utf8', errors='ignore') as f:
+                json.dump([], f)
 
         with open('data/contests.json', 'r', encoding='utf8', errors='ignore') as f:
             prev_contest_data = json.load(f)
