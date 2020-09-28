@@ -77,7 +77,7 @@ class ProblemRankingCog(ProblemCog):
                 except InvalidSessionException:
                     await ctx.send('Token invalid, failed to log in (your DMOJ API token can be found by going to https://dmoj.ca/edit/profile/ and selecting the __Generate__ or __Regenerate__ option next to API Token).')
                 except VerificationException as e:
-                    await ctx.send('Due to security reasons, we now must ask you to place the following token as a comment in your user script (you can edit your user script here https://dmoj.ca/edit/profile/)\nThis is just an extra precaution to confirm your identity.\n```// %s```Once this is done, run the command that you just ran again to connect to your DMOJ account!' % e.hash)
+                    await ctx.send('Due to security reasons, we now must ask you to place the following token in your self-description (you can edit your self-description here https://dmoj.ca/edit/profile/)\nThis is just an extra precaution to confirm your identity.\n```%s```Once this is done, run the command that you just ran again to connect to your DMOJ account!' % e.hash)
 
         elif site.lower() == 'cf' or site.lower() == 'codeforces':             
             self.check_existing_user(ctx.message.author)

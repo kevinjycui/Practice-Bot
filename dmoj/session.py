@@ -27,8 +27,11 @@ class Session:
         doc = req.text
         soup = bs.BeautifulSoup(doc, 'lxml')
         self.handle = soup.find('span', attrs={'id' : 'user-links'}).find('b').contents[0]
+        noAuthReq = requests.get(self.BASE_URL + '/user/' + self.handle)
+        if noAuthReq.status_code == 400 or noAuthReq.status_code == 401:
+            raise InvalidSessionException(noAuthReq.status_code)
         self.hash = hashlib.sha256((str(user.id) + self.handle).encode('utf-8')).hexdigest()
-        if self.hash not in doc:
+        if self.hash not in noAuthReq.text:
             raise VerificationException(self.hash)
 
     def __str__(self):
