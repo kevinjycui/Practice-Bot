@@ -25,9 +25,9 @@ class Session:
             raise InvalidSessionException(req.status_code)
         doc = req.text
         soup = bs.BeautifulSoup(doc, 'lxml')
-        if len(soup.findAll('span', attrs={'id' : 'user-links'})) != 1:
-            raise MismatchingHandleException
         self.user = soup.find('span', attrs={'id' : 'user-links'}).find('b').contents[0]
+        if req != requests.get(self.BASE_URL + '/user/' + self.user):
+            raise MismatchingHandleException
 
     def __str__(self):
         return self.user
