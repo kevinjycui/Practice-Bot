@@ -62,7 +62,7 @@ class ProblemRankingCog(ProblemCog):
                 self.check_existing_user(ctx.message.author)
                 user_data = query.get_user(ctx.message.author.id)
                 try:
-                    self.dmoj_sessions[ctx.message.author.id] = DMOJSession(token)
+                    self.dmoj_sessions[ctx.message.author.id] = DMOJSession(token, ctx.message.author)
                     user_data[ctx.message.author.id]['dmoj'] = str(self.dmoj_sessions[ctx.message.author.id])
                     query.update_user(ctx.message.author.id, 'dmoj', user_data[ctx.message.author.id]['dmoj'])
                     for guild in self.bot.guilds:
@@ -76,8 +76,8 @@ class ProblemRankingCog(ProblemCog):
                     await ctx.send('Successfully logged in with submission permissions as %s on DMOJ! (Note that for security reasons, submission permissions will be automatically turned off after the cache resets or when you go offline. When this occurs, you will have to log in using your token again to submit, but your account will remain linked. You may delete the message containing your token now)' % self.dmoj_sessions[ctx.message.author.id])
                 except InvalidSessionException:
                     await ctx.send('Token invalid, failed to log in (your DMOJ API token can be found by going to https://dmoj.ca/edit/profile/ and selecting the __Generate__ or __Regenerate__ option next to API Token).')
-                except UserScriptException:
-                    await ctx.send('Failed to login. Please remove any user scripts and try again.')
+                except VerificationException as e:
+                    await ctx.send('Due to security reasons, we now must ask you to place the following token as a comment in your user script (you can edit your user script here https://dmoj.ca/edit/profile/)\nThis is just an extra precaution to confirm your identity.\n```// %s```Once this is done, run the command that you just ran again to connect to your DMOJ account!' % e.hash)
 
         elif site.lower() == 'cf' or site.lower() == 'codeforces':             
             self.check_existing_user(ctx.message.author)

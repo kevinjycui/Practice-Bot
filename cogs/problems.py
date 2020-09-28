@@ -5,7 +5,7 @@ import random as rand
 import requests
 import bs4 as bs
 from dmoj.session import Session as DMOJSession
-from dmoj.session import InvalidSessionException, UserScriptException
+from dmoj.session import InvalidSessionException, VerificationException
 from dmoj.language import Language
 from dmoj.usersuggester import UserSuggester as DMOJUserSuggester
 from codeforces.session import Session as CodeforcesSession

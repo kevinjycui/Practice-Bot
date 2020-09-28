@@ -1,5 +1,6 @@
 import requests
 import bs4 as bs
+import hashlib
 from dmoj.language import Language
 from dmoj.result import Result
 from dmoj.testcase import Testcase
@@ -9,37 +10,29 @@ class InvalidSessionException(Exception):
     def __init__(self, code):
         self.code = code
 
-class UserScriptException(Exception):
+class VerificationException(Exception):
     
-    def __init__(self):
-        pass
+    def __init__(self, hash):
+        self.hash = hash
 
 class Session:
     BASE_URL = 'https://dmoj.ca'
     gradingStatuses = ['QU', 'P', 'G']
 
-    def __init__(self, token):
+    def __init__(self, token, user):
         self.token = token
         req = requests.get(self.BASE_URL + '/edit/profile/', headers={'Authorization': 'Bearer %s' % token})
         if req.status_code == 400 or req.status_code == 401:
             raise InvalidSessionException(req.status_code)
         doc = req.text
         soup = bs.BeautifulSoup(doc, 'lxml')
-        self.verifyUserScript(soup)
-        self.user = soup.find('span', attrs={'id' : 'user-links'}).find('b').contents[0]
-
-    def verifyUserScript(self, soup):
-        layer1 = soup.findAll('div', attrs={'class': 'django-ace-editor'})
-        if len(layer1) != 1:
-            raise UserScriptException
-        layer2 = layer1[0].findAll('textarea')
-        if len(layer2) != 1:
-            raise UserScriptException
-        if len(layer2[0].contents) != 0:
-            raise UserScriptException
+        self.handle = soup.find('span', attrs={'id' : 'user-links'}).find('b').contents[0]
+        self.hash = hashlib.sha256((str(user.id) + self.handle).encode('utf-8')).hexdigest()
+        if self.hash not in doc:
+            raise VerificationException(self.hash)
 
     def __str__(self):
-        return self.user
+        return self.handle
 
     def getAuthRequest(self, url):
         return requests.get(url, headers={'Authorization': 'Bearer %s' % self.token})
