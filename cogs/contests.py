@@ -225,7 +225,7 @@ class ContestCog(commands.Cog):
                     await ctx.send(ctx.message.author.display_name + ', Sorry, contests for that site are not available yet or contests are not applicable to that site.')
                     return
                 contestList = self.get_contests_of_oj(oj)
-            await ctx.send(ctx.message.author.display_name + ', Here are some upcoming contest(s). Last fetched, %d minutes ago' % (time()-self.fetch_time)//60, embed=contestList)
+            await ctx.send(ctx.message.author.display_name + ', Here are some upcoming contest(s). Last fetched, %d minutes ago' % ((time()-self.fetch_time)//60), embed=contestList)
         except NoContestsAvailableException as e:
             await ctx.send(ctx.message.author.display_name + ', ' + str(e))
         except NoSuchOJException:
