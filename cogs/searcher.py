@@ -113,7 +113,7 @@ class SearcherCog(commands.Cog):
             return
         embed = discord.Embed(title=page.title, description=page.url+' (searched in %ss)' % str(round(self.bot.latency, 3)))
         embed.timestamp = datetime.utcnow()
-        embed.add_field(name='Summary', value=summary, inline=False)
+        embed.add_field(name='Summary', value=summary[-1024:], inline=False)
         await ctx.send(ctx.message.author.display_name + ', Here\'s what I found!', embed=embed)
 
     # @commands.command()
