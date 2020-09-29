@@ -89,7 +89,6 @@ class ProblemCog(commands.Cog):
         self.refresh_cses_problems.start()
         # self.refresh_peg_problems.start()
         self.refresh_szkopul_problems.start()
-        self.logout_offline.start()
 
     def parse_dmoj_problems(self, problems):
         if problems is not None:
@@ -673,16 +672,10 @@ class ProblemCog(commands.Cog):
         except:
             await ctx.send(ctx.message.author.display_name + ', Error submitting to the problem. Report this using command `$suggest Submission to DMOJ failed`.')
 
-    @tasks.loop(seconds=30)
-    async def logout_offline(self):
-        for guild in self.bot.guilds:
-            for member in guild.members:
-                if member.id in self.dmoj_sessions.keys() and member.status == discord.Status.offline:
-                    await member.send('Attention! You have been logged out of the account %s due to being offline (Note that your account will still be linked to your Discord account, but will now be unable to submit to problems)' % self.dmoj_sessions.pop(member.id))
-
-    @logout_offline.before_loop
-    async def logout_offline_before(self):
-        await self.bot.wait_until_ready()
+    @commands.Cog.listener()
+    async def on_member_update(self, before, after):
+        if str(after.status) == 'offline' and member.id in self.dmoj_sessions.keys():
+            await member.send('Attention! You have been logged out of the account %s due to being offline (Note that your account will still be linked to your Discord account, but will now be unable to submit to problems)' % self.dmoj_sessions.pop(member.id))
 
     @tasks.loop(hours=3)
     async def refresh_dmoj_problems(self):
