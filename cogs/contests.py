@@ -78,6 +78,8 @@ class ContestCog(commands.Cog):
             for data in prev_contest_data:
                 self.contest_cache.append(Contest(data))
 
+        self.parse_dmoj_contests(json_get('https://dmoj.ca/api/contest/list'))
+
         self.refresh_contests.start()
 
     def get_random_contests(self, number):
@@ -116,7 +118,7 @@ class ContestCog(commands.Cog):
         if contests is not None:
             for contest in range(len(contests)):
                 name, details = list(contests.items())[contest]
-                if datetime.strptime(details['start_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z') > datetime.now(pytz.utc):
+                if datetime.strptime(details['start_time'], '%Y-%m-%dT%H:%M:%S%z').timestamp() > time():
                     spec = json_get('https://dmoj.ca/api/contest/info/' + name)
                     url = 'https://dmoj.ca/contest/' + name
                     contest_data = {
@@ -124,8 +126,8 @@ class ContestCog(commands.Cog):
                         'description': url,
                         'oj': 'dmoj',
                         'thumbnail': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/dmoj-thumbnail.png',
-                        'Start Time': datetime.strptime(details['start_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z').strftime('%Y-%m-%d %H:%M:%S'),
-                        'End Time': datetime.strptime(details['end_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z').strftime('%Y-%m-%d %H:%M:%S')
+                        'Start Time': datetime.strptime(details['start_time'], '%Y-%m-%dT%H:%M:%S%z').strftime('%Y-%m-%d %H:%M:%S%z'),
+                        'End Time': datetime.strptime(details['start_time'], '%Y-%m-%dT%H:%M:%S%z').strftime('%Y-%m-%d %H:%M:%S%z')
                     }
                     if details['time_limit']:
                         contest_data['Time Limit'] = details['time_limit']
