@@ -78,8 +78,6 @@ class ContestCog(commands.Cog):
             for data in prev_contest_data:
                 self.contest_cache.append(Contest(data))
 
-        self.parse_atcoder_contests(requests.get('https://atcoder.jp/contests/?lang=en'))
-
         self.refresh_contests.start()
 
     def get_random_contests(self, number):
