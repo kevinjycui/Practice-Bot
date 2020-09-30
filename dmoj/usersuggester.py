@@ -18,7 +18,7 @@ class UserSuggester(object):
             return
         self.time = time()
         soup = bs.BeautifulSoup(response.text, 'lxml')
-        points = soup.findAll('div', attrs={'class': 'pp'})
+        points = soup.find_all('div', attrs={'class': 'pp'})
         if len(points) == 0:
             self.points_min = 1
             self.points_max = 3

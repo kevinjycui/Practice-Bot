@@ -125,11 +125,11 @@ class ProblemCog(commands.Cog):
     def parse_cses_problems(self, problems):
         if problems.status_code == 200:
             soup = bs.BeautifulSoup(problems.text, 'lxml')
-            task_lists = soup.findAll('ul', attrs={'class' : 'task-list'})
-            task_groups = soup.findAll('h2')
+            task_lists = soup.find_all('ul', attrs={'class' : 'task-list'})
+            task_groups = soup.find_all('h2')
             self.cses_problems = {}
             for index in range(1, len(task_groups)):
-                tasks = task_lists[index].findAll('li', attrs={'class' : 'task'})
+                tasks = task_lists[index].find_all('li', attrs={'class' : 'task'})
                 for task in tasks:
                     name = task.find('a').contents[0]
                     url = 'https://cses.fi' + task.find('a').attrs['href']
@@ -148,11 +148,11 @@ class ProblemCog(commands.Cog):
     # def parse_peg_problems(self, problems):
     #     if problems.status_code == 200:
     #         soup = bs.BeautifulSoup(problems.text, 'lxml')
-    #         table = soup.find('table', attrs={'class' : 'nicetable stripes'}).findAll('tr')
+    #         table = soup.find('table', attrs={'class' : 'nicetable stripes'}).find_all('tr')
     #         self.peg_problems = {}
     #         self.problems_by_points['peg'] = {}
     #         for prob in range(1, len(table)):
-    #             values = table[prob].findAll('td')
+    #             values = table[prob].find_all('td')
     #             name = values[0].find('a').contents[0]
     #             url = 'https://wcipeg.com/problem/' + values[1].contents[0]
     #             points_value = values[2].contents[0]
@@ -179,20 +179,20 @@ class ProblemCog(commands.Cog):
         problems = requests.get('https://szkopul.edu.pl/problemset/?page=%d' % self.szkopul_page)
         if problems.status_code == 200:
             soup = bs.BeautifulSoup(problems.text, 'lxml')
-            rows = soup.findAll('tr')
+            rows = soup.find_all('tr')
             if self.szkopul_page == 1:
                 self.szkopul_problems = {}
             if len(rows) == 1:
                 return
             for row in rows:
-                data = row.findAll('td')
+                data = row.find_all('td')
                 if data == []:
                     continue
                 id = data[0].contents[0]
                 title = data[1].find('a').contents[0]
                 url = 'https://szkopul.edu.pl' + data[1].find('a').attrs['href']
                 tags = []
-                for tag in data[2].findAll('a'):
+                for tag in data[2].find_all('a'):
                     tags.append(tag.contents[0])
                 submitters = data[3].contents[0]
                 problem_data = {

@@ -86,7 +86,7 @@ class SearcherCog(commands.Cog):
                 soup = bs.BeautifulSoup(wiki_response, 'lxml')
                 scan = True
                 title = soup.find('h1', attrs={'id': 'firstHeading'}).contents[0]
-                texts = soup.find('div', attrs={'id': 'mw-content-text'}).find('p').findAll(text=True)
+                texts = soup.find('div', attrs={'id': 'mw-content-text'}).find('p').find_all(text=True)
                 visible_texts = filter(self.tag_visible, texts)  
                 summary = ' '.join(t.strip() for t in visible_texts)
                 return title, summary, url

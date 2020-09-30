@@ -57,9 +57,9 @@ class Session:
         if req.status_code == 401:
             raise InvalidSessionException(req.status_code)
         soup = bs.BeautifulSoup(req.text, 'lxml')
-        status = soup.findAll('span', attrs={'class' : 'status'})[0].contents[0]
-        time = soup.findAll('div',  attrs={'class' : 'time'})[-1].contents[0].strip()
-        memory = soup.findAll('div',  attrs={'class' : 'memory'})[0].contents[0]
+        status = soup.find_all('span', attrs={'class' : 'status'})[0].contents[0]
+        time = soup.find_all('div',  attrs={'class' : 'time'})[-1].contents[0].strip()
+        memory = soup.find_all('div',  attrs={'class' : 'memory'})[0].contents[0]
         done = status not in self.gradingStatuses
 
         if memory == '---':
@@ -67,7 +67,7 @@ class Session:
         if time == '---':
             time = None
 
-        problemName = soup.findAll('div',  attrs={'class' : 'name'})[0].find('a').contents[0]
+        problemName = soup.find_all('div',  attrs={'class' : 'name'})[0].find('a').contents[0]
 
         req = self.getAuthRequest(self.BASE_URL + '/widgets/submission_testcases?id=' + str(id))
         if req.status_code == 401:
@@ -78,17 +78,17 @@ class Session:
         cases = []
 
         try:
-            caseTable = soup.findAll('table', attrs={'class': 'submissions-status-table'})[0]
+            caseTable = soup.find_all('table', attrs={'class': 'submissions-status-table'})[0]
         except IndexError:
             return Result(cases, raw_result, status, problemName, time, memory, done)
 
-        for row in caseTable.findAll('tr'):
+        for row in caseTable.find_all('tr'):
             testcase = Testcase()
             try:
                 testcase.id = int(row.get('id'))
             except ValueError:
                 continue
-            children = row.findAll('td')
+            children = row.find_all('td')
             testcase.descriptor = children[0].find('b').contents[0]
             testcase.status = children[1].find('span').contents[0]
             testcase.details = {

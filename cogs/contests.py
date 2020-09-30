@@ -6,6 +6,7 @@ import random as rand
 from datetime import datetime, timedelta
 import json
 import requests
+import bs4 as bs
 import pytz
 from connector import mySQLConnection as query
 from utils.onlinejudges import OnlineJudges, NoSuchOJException
@@ -76,6 +77,8 @@ class ContestCog(commands.Cog):
             self.contest_cache = []
             for data in prev_contest_data:
                 self.contest_cache.append(Contest(data))
+
+        self.parse_atcoder_contests(requests.get('https://atcoder.jp/contests/?lang=en'))
 
         self.refresh_contests.start()
 
@@ -158,19 +161,19 @@ class ContestCog(commands.Cog):
             self.cf_contests = list(set(self.cf_contests))
 
     def parse_atcoder_contests(self, contests):
-        if contests is not None:
-            for contest in range(len(contests)):
-                details = contests[contest]
-                if details['startTimeSeconds'] > time():
-                    url = 'https://atcoder.jp/contests/' + details['id']
+        if contests.status_code == 200:
+            soup = bs.BeautifulSoup(contests.text, 'lxml')
+            for contest in soup.find_all('table')[1].find('tbody').find_all('tr'):
+                details = contest.find_all('td')
+                if datetime.strptime(details[0].find('a').find('time').contents[0], '%Y-%m-%d %H:%M:%S%z').timestamp() > time():
                     contest_data = {
-                        'title': ':trophy: %s' % details['title'].replace('\n', '').replace('\t', '').replace('◉', ''),
-                        'description': url,
+                        'title': details[1].find('a').contents[0],
+                        'description': 'https://atcoder.jp' + details[1].find('a')['href'],
                         'oj': 'atcoder',
                         'thumbnail': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/at-thumbnail.png',
-                        'Start Time': datetime.utcfromtimestamp(details['startTimeSeconds']).strftime('%Y-%m-%d %H:%M:%S'),
-                        'Time Limit': '%s:%s:%s' % (str(details['durationSeconds']//(24*3600)).zfill(2), str(details['durationSeconds']%(24*3600)//3600).zfill(2), str(details['durationSeconds']%3600//60).zfill(2)),
-                        'Rated Range': details['ratedRange']
+                        'Start Time': datetime.strptime(details[0].find('a').find('time').contents[0], '%Y-%m-%d %H:%M:%S%z').strftime('%Y-%m-%d %H:%M:%S%z'),
+                        'Time Limit':  details[2].contents[0] + ':00',
+                        'Rated Range': details[3].contents[0]
                     }
                     if contest_data['title'] not in self.atcoder_contest_titles:
                         self.atcoder_contest_titles.append(contest_data['title'])
@@ -290,7 +293,7 @@ class ContestCog(commands.Cog):
 
         try:
             self.reset_contest('atcoder')
-            self.parse_atcoder_contests(json_get('https://atcoder-api.appspot.com/contests'))
+            self.parse_atcoder_contests(requests.get('https://atcoder.jp/contests/?lang=en'))
         except:
             pass
 
