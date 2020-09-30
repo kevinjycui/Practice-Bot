@@ -78,8 +78,6 @@ class ContestCog(commands.Cog):
             for data in prev_contest_data:
                 self.contest_cache.append(Contest(data))
 
-        self.parse_dmoj_contests(json_get('https://dmoj.ca/api/contest/list'))
-
         self.refresh_contests.start()
 
     def get_random_contests(self, number):
