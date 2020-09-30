@@ -273,6 +273,8 @@ class ContestCog(commands.Cog):
         await ctx.send(ctx.message.author.display_name + ', ' + channel.mention + ' is no longer a contest notification channel.')
 
     def is_upcoming(self, contest):
+        if '+' in contest.asdict()['Start Time']:
+            return datetime.strptime(contest.asdict()['Start Time'], '%Y-%m-%d %H:%M:%S%z') > datetime.now(pytz.UTC) - timedelta(days=7)
         return datetime.strptime(contest.asdict()['Start Time'], '%Y-%m-%d %H:%M:%S') > datetime.now() - timedelta(days=7)
 
     @tasks.loop(minutes=5)
