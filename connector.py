@@ -36,10 +36,9 @@ db = pymysql.connect('localhost', user, password, database)
 #         user_id BIGINT NOT NULL,
 #         tea INT,
 #         dmoj VARCHAR(255),
-#         codeforces VARCHAR(255),
-#         atcoder VARCHAR(255),
 #         last_dmoj_problem VARCHAR(255),
 #         can_repeat BOOLEAN,
+#         codeforces VARCHAR(255),
 #         country VARCHAR(255),
 #         can_suggest BOOLEAN,
 #         PRIMARY KEY (user_id))""")

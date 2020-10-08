@@ -190,7 +190,7 @@ async def togglejoin(ctx):
     await ctx.send(ctx.message.author.display_name + ', on-join direct messages for the bot turned `%s`.' % ('ON' if not join_message else 'OFF'))
 
 
-@bot.command()
+@bot.command(aliases=['sc'])
 @commands.is_owner()
 async def server_count(ctx):
     await ctx.send('Server count: `%s`' % len(bot.guilds))

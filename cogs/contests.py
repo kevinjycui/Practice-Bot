@@ -81,17 +81,19 @@ class ContestCog(commands.Cog):
         self.refresh_contests.start()
 
     def get_random_contests(self, number):
-        if len(self.contest_cache) == 0:
+        upcoming_contests = list(filter(self.is_upcoming, self.contest_cache))
+        if len(upcoming_contests) == 0:
             raise NoContestsAvailableException()
-        rand.shuffle(self.contest_cache)
+        rand.shuffle(upcoming_contests)
         result = []
-        for i in range(min(number, len(self.contest_cache))):
-            result.append(self.contest_cache[i])
+        for i in range(min(number, len(upcoming_contests))):
+            result.append(upcoming_contests[i])
         return self.embed_multiple_contests(result)
 
     def get_contests_of_oj(self, oj):
+        upcoming_contests = list(filter(self.is_upcoming, self.contest_cache))
         result = []
-        for contest_object in self.contest_cache:
+        for contest_object in upcoming_contests:
             if oj == contest_object.asdict()['oj']:
                 result.append(contest_object)
         if len(result) == 0:
@@ -125,7 +127,7 @@ class ContestCog(commands.Cog):
                         'oj': 'dmoj',
                         'thumbnail': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/dmoj-thumbnail.png',
                         'Start Time': datetime.strptime(details['start_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z').strftime('%Y-%m-%d %H:%M:%S%z'),
-                        'End Time': datetime.strptime(details['start_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z').strftime('%Y-%m-%d %H:%M:%S%z')
+                        'End Time': datetime.strptime(details['end_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z').strftime('%Y-%m-%d %H:%M:%S%z')
                     }
                     if details['time_limit']:
                         contest_data['Time Limit'] = details['time_limit']
@@ -165,7 +167,7 @@ class ContestCog(commands.Cog):
                 details = contest.find_all('td')
                 if datetime.strptime(details[0].find('a').find('time').contents[0], '%Y-%m-%d %H:%M:%S%z').timestamp() > time():
                     contest_data = {
-                        'title': details[1].find('a').contents[0],
+                        'title': ':trophy: %s' % details[1].find('a').contents[0],
                         'description': 'https://atcoder.jp' + details[1].find('a')['href'],
                         'oj': 'atcoder',
                         'thumbnail': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/at-thumbnail.png',
@@ -274,6 +276,11 @@ class ContestCog(commands.Cog):
 
     def is_upcoming(self, contest):
         if '+' in contest.asdict()['Start Time']:
+            return datetime.strptime(contest.asdict()['Start Time'], '%Y-%m-%d %H:%M:%S%z') > datetime.now(pytz.UTC)
+        return datetime.strptime(contest.asdict()['Start Time'], '%Y-%m-%d %H:%M:%S') > datetime.now()
+
+    def is_recent(self, contest):
+        if '+' in contest.asdict()['Start Time']:
             return datetime.strptime(contest.asdict()['Start Time'], '%Y-%m-%d %H:%M:%S%z') > datetime.now(pytz.UTC) - timedelta(days=7)
         return datetime.strptime(contest.asdict()['Start Time'], '%Y-%m-%d %H:%M:%S') > datetime.now() - timedelta(days=7)
 
@@ -309,7 +316,7 @@ class ContestCog(commands.Cog):
             except:
                 pass
 
-        self.contest_cache = list(filter(self.is_upcoming, list(set(self.contest_objects).union(set(self.contest_cache)))))
+        self.contest_cache = list(filter(self.is_recent, list(set(self.contest_objects).union(set(self.contest_cache)))))
         self.update_contest_cache()
 
     @refresh_contests.before_loop
