@@ -43,10 +43,14 @@ async def determine_prefix(bot, message):
         return custom_prefixes.get(guild.id, prefix)
     return prefix
 
-
+intents = discord.Intents.default()
+intents.members = True
 bot = commands.Bot(command_prefix=determine_prefix,
                    description='The all-competitive-programming-purpose Discord bot!',
-                   owner_id=owner_id)
+                   owner_id=owner_id,
+                #    intents=intents, # TO BE ENABLED ONCE VERIFICATION PROCESS FINISHED
+                #    fetch_offline_members=True
+                )
 
 async def changenick(ctx, member: discord.Member, fix):
     name = ctx.message.guild.get_member(bot.user.id).display_name

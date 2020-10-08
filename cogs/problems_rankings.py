@@ -271,26 +271,18 @@ class ProblemRankingCog(ProblemCog):
             except discord.errors.Forbidden:
                 await ctx.send(ctx.message.author.display_name + ', Toggle failed, make sure that the bot has the Manage Roles and Manage Roles permissions and try again.')
 
-    @tasks.loop(minutes=5)
+    @tasks.loop(seconds=5)
     async def update_dmoj_ranks(self):
-        user_response = query.get_next_user_by_row(self.update_dmoj_index, 'dmoj')
-        if user_response['status'] == 0:
-            self.update_dmoj_index = 0
-        elif user_response['status'] == -1:
-            self.update_dmoj_index = 0
+        self.update_dmoj_index, user_data = query.get_next_user_by_row(self.update_dmoj_index, 'dmoj')
+        if user_data == {}:
             return
-        else:
-            self.update_dmoj_index += 1
-        user_data = user_response['user']
-
         user_info = json_get('https://dmoj.ca/api/user/info/%s' % user_data['dmoj'])
         current_rating = user_info['contests']['current_rating']
         for rating, role in list(self.dmoj_ratings.items()):
             if current_rating in rating:
                 rating_name = role[0]
         for guild in self.bot.guilds:
-            self.check_existing_server(guild)
-            if int(guild.id) not in self.dmoj_server_roles:
+            if guild.id not in self.dmoj_server_roles:
                 continue
             names = []
             for role in guild.roles:
@@ -299,36 +291,27 @@ class ProblemRankingCog(ProblemCog):
                 if role[0] not in names:
                     await guild.create_role(name=role[0], colour=role[1], mentionable=False)
             try:
-                for member in guild.members:
-                    if member_id == member.id:
-                        for rating, rolename in list(self.dmoj_ratings.items()):
-                            role = discord.utils.get(guild.roles, name=rolename[0])
-                            if current_rating in rating and role not in member.roles:
-                                await member.add_roles(role)
-                            elif current_rating not in rating and role in member.roles:
-                                await member.remove_roles(role)
-                        break
+                member = guild.get_member(user_data['user_id'])
+                if member is None:
+                    continue
+                for rating, rolename in list(self.dmoj_ratings.items()):
+                    role = discord.utils.get(guild.roles, name=rolename[0])
+                    if current_rating in rating and role not in member.roles:
+                        await member.add_roles(role)
+                    elif current_rating not in rating and role in member.roles:
+                        await member.remove_roles(role)
             except:
                 pass
-
-        self.update_dmoj_index += 1
 
     @update_dmoj_ranks.before_loop
     async def update_dmoj_ranks_before(self):
         await self.bot.wait_until_ready()
 
-    @tasks.loop(minutes=5)
+    @tasks.loop(minutes=1)
     async def update_cf_ranks(self):
-        user_response = query.get_next_user_by_row(self.update_cf_index, 'codeforces')
-        if user_response['status'] == 0:
-            self.update_cf_index = 0
-        elif user_response['status'] == -1:
-            self.update_cf_index = 0
+        self.update_cf_index, user_data = query.get_next_user_by_row(self.update_cf_index, 'codeforces')
+        if user_data == {}:
             return
-        else:
-            self.update_cf_index += 1
-        user_data = user_response['user']
-
         user_info = json_get('https://codeforces.com/api/user.info?handles=%s' % user_data['codeforces'])['result'][0]
         for guild in self.bot.guilds:
             self.check_existing_server(guild)
@@ -341,22 +324,18 @@ class ProblemRankingCog(ProblemCog):
                 if role[0] not in names:
                     await guild.create_role(name=role[0], colour=role[1], mentionable=False)
             try:
-                for member in guild.members:
-                    if member_id == member.id:
-                        if 'rank' not in user_info:
-                            role = discord.utils.get(guild.roles, name='Unrated')
-                            await member.add_roles(role)
-                        for rolename in self.cf_ratings:
-                            role = discord.utils.get(guild.roles, name=rolename[0])
-                            if 'rank' in user_info and user_info['rank'].lower() == role.name.lower() and role not in member.roles:
-                                await member.add_roles(role)
-                            elif ('rank' not in user_info or user_info['rank'].lower() != role.name.lower()) and role in member.roles:
-                                await member.remove_roles(role)
-                        break
+                member = guild.get_member(user_data['user_id'])
+                if 'rank' not in user_info:
+                    role = discord.utils.get(guild.roles, name='Unrated')
+                    await member.add_roles(role)
+                for rolename in self.cf_ratings:
+                    role = discord.utils.get(guild.roles, name=rolename[0])
+                    if 'rank' in user_info and user_info['rank'].lower() == role.name.lower() and role not in member.roles:
+                        await member.add_roles(role)
+                    elif ('rank' not in user_info or user_info['rank'].lower() != role.name.lower()) and role in member.roles:
+                        await member.remove_roles(role)
             except:
                 pass
-
-        self.update_dmoj_index += 1
 
     @update_cf_ranks.before_loop
     async def update_cf_ranks_before(self):

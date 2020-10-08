@@ -84,6 +84,11 @@ class MySQLConnection(object):
         cursor.execute(sql)
         return cursor.fetchone()
 
+    def table_size(self, table):
+        if not self.sanitize_alnum(table):
+            return -1
+        return self.readone_query("SELECT COUNT(*) FROM %s" % table)[0]
+
     def exists(self, table, id_name, id):
         if not self.sanitize_alnum(table, id_name, id):
             return -1
@@ -126,30 +131,24 @@ class MySQLConnection(object):
             return -1
         if not self.sanitize_alnum(key):
             return -1
-        sql = "SELECT * FROM users WHERE %s IS NOT NULL" % key
-        result = self.readall_query(sql)
-        if row >= len(result):
-            return {}
-        user = result[row]
+        sql = "SELECT user_id, %s FROM (SELECT * FROM users LIMIT %d, %d) AS u WHERE u.%s IS NOT NULL" % \
+            (key, row, self.table_size('users')-row, key)
+        result = self.readone_query(sql)
+        if result is None:
+            return 0, {}
+        sql2 = "SELECT * FROM  (SELECT ROW_NUMBER() OVER ( ORDER BY user_id ) AS row_num, user_id FROM users) \
+                AS eu WHERE user_id='%s'" % (result[0])
+        new_row = self.readone_query(sql2)[0] + 1
         user_data = {
-            'tea': user[1],
-            'dmoj': user[2],
-            'last_dmoj_problem': user[3],
-            'can_repeat': user[4],
-            'codeforces': user[5],
-            'country': user[6],
-            'can_suggest': user[7]
+            'user_id': int(result[0]),
+            key: result[1]
         }
-        return user_data
+        return new_row, user_data
 
     def get_next_user_by_row(self, row, key):
-        user = self.get_user_by_row(row, key)
-        if user == {}:
-            user = self.get_user_by_row(0, key)
-            if user == {}:
-                return {'status': -1, 'user': user}
-            return {'status': 0, 'user': user}
-        return {'status': 1, 'user': user}
+        if row >= self.table_size('users'):
+            row = 0
+        return self.get_user_by_row(row, key)
 
     def var_to_sql(self, value):
         if value is None:
