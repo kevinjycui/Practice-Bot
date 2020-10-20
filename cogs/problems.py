@@ -642,7 +642,7 @@ class ProblemCog(commands.Cog):
             embed.description = 'No accounts linked...'
         elif user.id == ctx.message.author.id:
             embed.add_field(name='CAN_REPEAT', value=str(user_data[user.id]['can_repeat'] == 1) + ' (If true, problems you have already solved on sites where your account is linked will show up when you request for random problems)', inline=False)
-            embed.add_field(name='CAN_SUGGEST', value=str(user_data[user.id]['can_repeat'] == 1) + ' (If true, suggested problems based on your points on sites where your account is linked will show up when you request for random problems)', inline=False)
+            embed.add_field(name='CAN_SUGGEST', value=str(user_data[user.id]['can_suggest'] == 1) + ' (If true, suggested problems based on your points on sites where your account is linked will show up when you request for random problems)', inline=False)
         await ctx.send('Requested profile by ' + ctx.message.author.display_name, embed=embed)
 
     @commands.command(aliases=['s'])
