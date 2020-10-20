@@ -571,7 +571,7 @@ class ProblemCog(commands.Cog):
         except InvalidQueryException:
             await ctx.send(ctx.message.author.display_name + ', Invalid query. Make sure your points are positive integers.')
 
-    @commands.command(aliases=['toggleRepeat'])
+    @commands.command(aliases=['toggleRepeat', 'tr'])
     async def togglerepeat(self, ctx):
         self.check_existing_user(ctx.message.author)
         user_data = query.get_user(ctx.message.author.id)
@@ -587,7 +587,7 @@ class ProblemCog(commands.Cog):
                 return
         await ctx.send(ctx.message.author.display_name + ', You are not linked to any accounts')
 
-    @commands.command(aliases=['toggleSuggest'])
+    @commands.command(aliases=['toggleSuggest', 'ts'])
     async def togglesuggest(self, ctx):
         self.check_existing_user(ctx.message.author)
         user_data = query.get_user(ctx.message.author.id)
@@ -603,8 +603,8 @@ class ProblemCog(commands.Cog):
                 return
         await ctx.send(ctx.message.author.display_name + ', You are not linked to any accounts')
         
-    @commands.command(aliases=['toggleCountry'])
-    async def togglecountry(self, ctx, code=''):
+    @commands.command(aliases=['toggleCountry', 'togglecountry', 'setCountry'])
+    async def setcountry(self, ctx, code=''):
         try:
             country_object = Country(code)
             self.check_existing_user(ctx.message.author)

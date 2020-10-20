@@ -43,7 +43,7 @@ class ProblemRankingCog(ProblemCog):
         self.update_dmoj_ranks.start()
         self.update_cf_ranks.start()
 
-    @commands.command(aliases=['login'])
+    @commands.command(aliases=['cn'])
     async def connect(self, ctx, site=None, token=None):
         if ctx.guild is not None:
             if site is not None and site.lower() == 'dmoj':
@@ -139,7 +139,7 @@ class ProblemRankingCog(ProblemCog):
             prefix = await self.bot.command_prefix(self.bot, ctx.message)
             await ctx.send('Invalid query. Please use one of the following formats:\n\n`%sconnect dmoj <dmoj-api-token>` (your DMOJ API token can be found by going to https://dmoj.ca/edit/profile/ and selecting the __Generate__ or __Regenerate__ option next to API Token)\n\n`%sconnect cf <codeforces-handle>`' % (prefix, prefix))
 
-    @commands.command(aliases=['dc', 'logout'])
+    @commands.command(aliases=['dc'])
     async def disconnect(self, ctx, site=None):
         if ctx.guild is not None:
             mention = ctx.message.author.display_name + ', '
@@ -175,10 +175,10 @@ class ProblemRankingCog(ProblemCog):
         else:
             await ctx.send(mention + 'Sorry, that site does not exist or logins to that site are not available yet')
 
-    @commands.command(aliases=['toggleSync', 'toggleRanks', 'toggleNicks', 'toggleranks', 'togglenicks', 'setsync', 'setSync'])
+    @commands.command(aliases=['toggleSync', 'toggleRanks', 'toggleNicks', 'toggleranks', 'togglenicks', 'togglesync', 'setSync', 'ss'])
     @commands.has_permissions(manage_roles=True, manage_nicknames=True)
     @commands.guild_only()
-    async def togglesync(self, ctx, site=None):
+    async def setsync(self, ctx, site=None):
         self.check_existing_server(ctx.message.guild)
         if site is None:
             prefix = await self.bot.command_prefix(self.bot, ctx.message)

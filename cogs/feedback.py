@@ -11,7 +11,7 @@ class FeedbackCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command()
+    @commands.command(aliases=['feedback, fb'])
     async def suggest(self, ctx, *, content):
         if ctx.message.author.id in self.suggesters and time() - self.suggester_times[self.suggesters.index(ctx.message.author.id)] < 3600:
             await ctx.send(ctx.message.author.display_name + ', Please wait %d minutes before making another suggestion!' % int((3600 - time() + self.suggester_times[self.suggesters.index(ctx.message.author.id)])//60))
