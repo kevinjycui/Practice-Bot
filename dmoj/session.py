@@ -99,18 +99,3 @@ class Session:
             cases.append(testcase)            
 
         return Result(cases, raw_result, status, problemName, time, memory, done)        
-
-if __name__ == '__main__':
-    # testSession = Session('invalid')
-    testSession = Session('AABMIP6808UXPZsJOkSMyRMfcEUphPvXbk6p99ccJQValTE2')
-    print(testSession)
-    language = Language()
-    id = testSession.submit('helloworld', language.getId('PY3'), 'print("Hello, World!")')
-    print(id)
-    import time
-    while 1:
-        result = testSession.getTestcaseStatus(id)
-        print(result)
-        if result.done:
-            break
-        time.sleep(2)
