@@ -119,6 +119,12 @@ class MySQLConnection(object):
             countries.append(row[0] + ' - ' + str(self.readone_query(sql)[0]))
         return countries
 
+    def get_global_linked_count(self, row):
+        if not self.sanitize_alnum(row):
+            return -1
+        sql = "SELECT COUNT(*) FROM users WHERE %s IS NOT NULL"
+        return self.readone_query(sql)[0]
+
     def get_user(self, user_id):
         if not self.sanitize_id(user_id):
             return -1

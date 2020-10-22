@@ -201,6 +201,8 @@ async def stats(ctx):
     embed = discord.Embed(title='Bot Analytics')
     embed.add_field(name='Server count', value=len(bot.guilds), inline=False)
     embed.add_field(name='User count', value=query.user_count(), inline=False)
+    embed.add_field(name='DMOJ', value=query.get_global_linked_count('dmoj'), inline=False)
+    embed.add_field(name='Codeforces', value=query.get_global_linked_count('codeforces'), inline=False)
     def country_with_count(listitem):
         return str(Country(listitem.split(' - ')[0])) + ' - ' + listitem.split(' - ')[1]
     embed.add_field(name='Countries', value='\n'.join(map(country_with_count, sorted(query.get_global_countries(), key=lambda listitem: int(listitem.split(' - ')[1]), reverse=True))), inline=False)
