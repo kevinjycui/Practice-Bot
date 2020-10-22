@@ -203,7 +203,7 @@ async def stats(ctx):
     embed.add_field(name='User count', value=query.user_count(), inline=False)
     def country_with_count(listitem):
         return str(Country(listitem.split(' - ')[0])) + ' - ' + listitem.split(' - ')[1]
-    embed.add_field(name='Countries', value='\n'.join(map(country_with_count, sorted(query.get_global_countries(), key=lambda listitem: int(listitem.split(' - ')[1])))), inline=False)
+    embed.add_field(name='Countries', value='\n'.join(map(country_with_count, sorted(query.get_global_countries(), key=lambda listitem: int(listitem.split(' - ')[1]), reverse=True))), inline=False)
     await ctx.send(embed=embed)
 
 
