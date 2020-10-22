@@ -106,6 +106,19 @@ class MySQLConnection(object):
             self.set_query(sql)
         return 0
 
+    def user_count(self):
+        sql = "SELECT COUNT(*) FROM users"
+        return self.readone_query(sql)[0]
+
+    def get_global_countries(self):
+        sql = "SELECT DISTINCT country FROM users WHERE country IS NOT NULL"
+        result = self.readall_query(sql)
+        countries = []
+        for row in result:
+            sql = "SELECT COUNT(*) FROM users WHERE country='%s'" % row[0]
+            countries.append(row[0] + ' - ' + str(self.readone_query(sql)[0]))
+        return countries
+
     def get_user(self, user_id):
         if not self.sanitize_id(user_id):
             return -1

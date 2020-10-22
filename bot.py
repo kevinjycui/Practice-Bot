@@ -9,6 +9,7 @@ import cogs.problems_rankings as problems_rankings
 import cogs.contests as contests
 import cogs.searcher as searcher
 from connector import mySQLConnection as query
+from utils.country import Country
 from utils.onlinejudges import OnlineJudges, NoSuchOJException
 
 onlineJudges = OnlineJudges()
@@ -196,8 +197,14 @@ async def togglejoin(ctx):
 
 @bot.command(aliases=['sc'])
 @commands.is_owner()
-async def server_count(ctx):
-    await ctx.send('Server count: `%s`' % len(bot.guilds))
+async def stats(ctx):
+    embed = discord.Embed(title='Bot Analytics')
+    embed.add_field(name='Server count', value=len(bot.guilds), inline=False)
+    embed.add_field(name='User count', value=query.user_count(), inline=False)
+    def country_with_count(listitem):
+        return str(Country(listitem.split(' - ')[0])) + ' - ' + listitem.split(' - ')[1]
+    embed.add_field(name='Countries', value='\n'.join(map(country_with_count, sorted(query.get_global_countries(), key=lambda listitem: int(listitem.split(' - ')[1])))), inline=False)
+    await ctx.send(embed=embed)
 
 
 @bot.event
