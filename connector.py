@@ -122,7 +122,7 @@ class MySQLConnection(object):
     def get_global_linked_count(self, row):
         if not self.sanitize_alnum(row):
             return -1
-        sql = "SELECT COUNT(*) FROM users WHERE %s IS NOT NULL"
+        sql = "SELECT COUNT(*) FROM users WHERE %s IS NOT NULL" % row
         return self.readone_query(sql)[0]
 
     def get_user(self, user_id):
