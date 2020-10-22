@@ -135,7 +135,7 @@ class SearcherCog(commands.Cog):
     @commands.command()
     async def cat(self, ctx):
         if rand.randint(0, 100) == 0:
-            data = [{'url':'https://media.discordapp.net/attachments/511001840071213067/660303090444140545/539233495000809475.png'}]
+            data = [{'url':'https://bit.ly/3jiPSzb'}]
         else:
             data = json_get('https://api.thecatapi.com/v1/images/search?x-api-key=' + cat_api)
         await ctx.send(ctx.message.author.display_name + ', :smiley_cat: ' + data[0]['url'])
