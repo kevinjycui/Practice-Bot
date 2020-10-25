@@ -57,4 +57,4 @@ Support this bot by voting for it [here](https://top.gg/bot/691416325557452861/v
 Contributions are welcomed and encouraged!
 
 ## Icon
-![](static/spookLogo.png)
+![](icon.png)
