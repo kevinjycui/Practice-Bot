@@ -49,8 +49,8 @@ intents.members = True
 bot = commands.Bot(command_prefix=determine_prefix,
                    description='The all-competitive-programming-purpose Discord bot!',
                    owner_id=owner_id,
-                #    intents=intents, # TO BE ENABLED ONCE VERIFICATION PROCESS FINISHED
-                #    fetch_offline_members=True
+                   intents=intents,
+                   fetch_offline_members=True
                 )
 
 async def changenick(ctx, member: discord.Member, fix):
