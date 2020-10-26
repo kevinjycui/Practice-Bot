@@ -271,7 +271,7 @@ class ProblemRankingCog(ProblemCog):
             except discord.errors.Forbidden:
                 await ctx.send(ctx.message.author.display_name + ', Toggle failed, make sure that the bot has the Manage Roles and Manage Roles permissions and try again.')
 
-    @tasks.loop(seconds=5)
+    @tasks.loop(minutes=1)
     async def update_dmoj_ranks(self):
         self.update_dmoj_index, user_data = query.get_next_user_by_row(self.update_dmoj_index, 'dmoj')
         if user_data == {}:
