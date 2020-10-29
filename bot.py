@@ -164,7 +164,8 @@ async def on_command_error(ctx, error):
             commands.CommandNotFound,
             commands.errors.MissingRequiredArgument,
             commands.errors.NoPrivateMessage,
-            commands.errors.BadArgument
+            commands.errors.BadArgument,
+            commands.errors.NotOwner
         )
     ):
         return
@@ -197,7 +198,10 @@ async def togglejoin(ctx):
 
 @bot.command(aliases=['sc'])
 @commands.is_owner()
-async def stats(ctx):
+async def stats(ctx, option=None):
+    if option is not None and option == '-s':
+        await ctx.send('Server count: `%d`' % len(bot.guilds))
+        return
     embed = discord.Embed(title='Bot Analytics')
     embed.add_field(name='Server count', value=len(bot.guilds), inline=False)
     embed.add_field(name='User count', value=query.user_count(), inline=False)
