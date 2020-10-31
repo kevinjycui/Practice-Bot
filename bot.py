@@ -41,6 +41,7 @@ custom_prefixes = query.get_prefixes()
 async def determine_prefix(bot, message):
     guild = message.guild
     if guild:
+        query.insert_ignore_server(guild.id)
         return custom_prefixes.get(guild.id, prefix)
     return prefix
 
@@ -65,6 +66,7 @@ async def changenick(ctx, member: discord.Member, fix):
 
 async def prefix_from_guild(guild):
     if guild:
+        query.insert_ignore_server(guild.id)
         custom = query.get_prefix(guild.id)
         return prefix if custom is None else custom
     return prefix
