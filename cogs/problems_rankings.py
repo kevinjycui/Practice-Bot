@@ -177,10 +177,10 @@ class ProblemRankingCog(ProblemCog):
     @commands.is_owner()
     async def disconnectforce(self, ctx, user: discord.User):
         self.check_existing_user(user)
-        query.update_user(ctx.message.author.id, 'dmoj', None)
-        query.update_user(ctx.message.author.id, 'codeforces', None)
-        if ctx.message.author.id in self.dmoj_sessions.keys():
-            self.dmoj_sessions.pop(ctx.message.author.id)
+        query.update_user(user.id, 'dmoj', None)
+        query.update_user(user.id, 'codeforces', None)
+        if user.id in self.dmoj_sessions.keys():
+            self.dmoj_sessions.pop(user.id)
         await ctx.send('Successfully disconnected %s' % user.mention)
         await user.send('Attention! Your account(s) have been manually disconnected by a bot admin from Practice Bot. This may be due to suspicious activity in your authentication process or an update in the bot\'s security. If you are not a user of this bot and believe you received this message by error, please ignore this message. If you are a user of this bot and believe you were disconnected in error, please contact the bot admin on our support server:\nhttps://discord.gg/cyCraUm')
         
