@@ -654,6 +654,7 @@ class ProblemCog(commands.Cog):
     async def serverinfo(self, ctx):
         if ctx.message.guild is None:
             await ctx.send(ctx.message.author.display_name + ', You can only request for server info within a server!')
+            return
 
         query.insert_ignore_server(ctx.message.guild.id)
         server_data = query.get_server(ctx.message.guild.id)
