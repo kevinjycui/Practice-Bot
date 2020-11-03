@@ -16,6 +16,7 @@ from utils.onlinejudges import OnlineJudges, NoSuchOJException
 from utils.country import Country, InvalidCountryException
 import json
 import re
+from time import time
 
 
 def json_get(api_url):
@@ -65,12 +66,11 @@ class InvalidURLException(Exception):
         pass
 
 class ProblemCog(commands.Cog):
-    problems_by_points = {'dmoj':{}, 'codeforces':{}, 'atcoder':{}, 'peg':{}}
+    problems_by_points = {'dmoj':{}, 'codeforces':{}, 'atcoder':{}}
     dmoj_problems = None
     cf_problems = None
     at_problems = None
     cses_problems = {}
-    # peg_problems = {}
     szkopul_problems = {}
     dmoj_sessions = {}
     cf_sessions = {}
@@ -79,6 +79,20 @@ class ProblemCog(commands.Cog):
     szkopul_page = 1
     language = Language()
     onlineJudges = OnlineJudges()
+    statuses = {
+        'dmoj': 0,
+        'codeforces': 0,
+        'atcoder': 0,
+        'cses': 0,
+        'szkopul': 0
+    }
+    fetch_times = {
+        'dmoj': 0,
+        'codeforces': 0,
+        'atcoder': 0,
+        'cses': 0,
+        'szkopul': 0
+    }
 
     def __init__(self, bot):
         self.bot = bot
@@ -87,20 +101,50 @@ class ProblemCog(commands.Cog):
         self.refresh_cf_problems.start()
         self.refresh_atcoder_problems.start()
         self.refresh_cses_problems.start()
-        # self.refresh_peg_problems.start()
         self.refresh_szkopul_problems.start()
+
+    @commands.command()
+    async def oj(self, ctx, oj: str=''):
+        if oj == '':
+            await ctx.send('''```Available Online Judges
+dmoj -> [dmoj]
+    - random
+    - connect
+    - submit
+codeforces -> [codeforces] [cf]
+    - random
+    - connect
+atcoder -> [atcoder] [at] [ac]
+    -random
+cses -> [cses]
+    -random
+wcipeg -> [wcipeg] [peg]
+    -random
+szkopuł -> [szkopuł] [szkopul]
+    -random```''')
+        else:
+            try:
+                oj = self.onlineJudges.get_oj(oj)
+                await ctx.send('```%s status: %s. Last fetched, %d minutes ago```' % (self.onlineJudges.formal_names[oj], 'OK' if self.statuses[oj] == 1 else 'Unable to connect', (time()-self.fetch_times[oj])//60))
+            except NoSuchOJException:
+                await ctx.send(ctx.message.author.display_name + ', Sorry, no online judge found. Search only for online judges used by this bot ' + str(onlineJudges))
+
 
     def parse_dmoj_problems(self, problems):
         if problems is not None:
+            self.statuses['dmoj'] =  1
             self.dmoj_problems = problems
             self.problems_by_points['dmoj'] = {}
             for name, details in problems.items():
                 if details['points'] not in self.problems_by_points['dmoj']:
                     self.problems_by_points['dmoj'][details['points']] = {}
                 self.problems_by_points['dmoj'][details['points']][name] = details
+        else:
+            self.statuses['dmoj'] = 0
 
     def parse_cf_problems(self, cf_data):
         if cf_data is not None:
+            self.statuses['codeforces'] =  1
             try:
                 self.cf_problems = cf_data['result']['problems']
                 self.problems_by_points['codeforces'] = {}
@@ -111,9 +155,12 @@ class ProblemCog(commands.Cog):
                         self.problems_by_points['codeforces'][details['points']].append(details)
             except KeyError:
                 pass
+        else:
+            self.statuses['codeforces'] = 0
 
     def parse_atcoder_problems(self, problems):
         if problems is not None:
+            self.statuses['atcoder'] =  1
             self.atcoder_problems = problems
             self.problems_by_points['atcoder'] = {}
             for details in problems:
@@ -121,9 +168,12 @@ class ProblemCog(commands.Cog):
                     if details['point'] not in self.problems_by_points['atcoder']:
                         self.problems_by_points['atcoder'][details['point']] = []
                     self.problems_by_points['atcoder'][details['point']].append(details)
+        else:
+            self.statuses['atcoder'] = 0
 
     def parse_cses_problems(self, problems):
         if problems.status_code == 200:
+            self.statuses['cses'] =  1
             soup = bs.BeautifulSoup(problems.text, 'lxml')
             task_lists = soup.find_all('ul', attrs={'class' : 'task-list'})
             task_groups = soup.find_all('h2')
@@ -144,40 +194,13 @@ class ProblemCog(commands.Cog):
                         'group': group
                     }
                     self.cses_problems[id] = cses_data
-
-    # def parse_peg_problems(self, problems):
-    #     if problems.status_code == 200:
-    #         soup = bs.BeautifulSoup(problems.text, 'lxml')
-    #         table = soup.find('table', attrs={'class' : 'nicetable stripes'}).find_all('tr')
-    #         self.peg_problems = {}
-    #         self.problems_by_points['peg'] = {}
-    #         for prob in range(1, len(table)):
-    #             values = table[prob].find_all('td')
-    #             name = values[0].find('a').contents[0]
-    #             url = 'https://wcipeg.com/problem/' + values[1].contents[0]
-    #             points_value = values[2].contents[0]
-    #             partial = 'p' in points_value
-    #             points = int(points_value.replace('p', ''))
-    #             p_users = values[3].find('a').contents[0]
-    #             ac_rate = values[4].contents[0]
-    #             date = values[5].contents[0]
-    #             peg_data = {
-    #                 'name': name,
-    #                 'url': url,
-    #                 'partial': partial,
-    #                 'points': points,
-    #                 'users': p_users,
-    #                 'ac_rate': ac_rate,
-    #                 'date': date
-    #             }
-    #             self.peg_problems[name] = peg_data
-    #             if points not in self.problems_by_points['peg']:
-    #                 self.problems_by_points['peg'][points] = []
-    #             self.problems_by_points['peg'][points].append(peg_data)
+        else:
+            self.statuses['cses'] = 0
 
     def parse_szkopul_problems(self):
         problems = requests.get('https://szkopul.edu.pl/problemset/?page=%d' % self.szkopul_page)
         if problems.status_code == 200:
+            self.statuses['szkopul'] =  1
             soup = bs.BeautifulSoup(problems.text, 'lxml')
             rows = soup.find_all('tr')
             if self.szkopul_page == 1:
@@ -207,6 +230,8 @@ class ProblemCog(commands.Cog):
                     problem_data['average'] = data[5].contents[0]
                 self.szkopul_problems[id] = problem_data
             self.szkopul_page += 1
+        else:
+            self.statuses['szkopul'] = 0
 
     def embed_dmoj_problem(self, name, prob, suggested=False):
         embed = discord.Embed()
@@ -244,16 +269,6 @@ class ProblemCog(commands.Cog):
         embed.add_field(name='Success Rate', value=prob['rate'], inline=False)
         embed.add_field(name='Group', value='||' + prob['group'] + '||', inline=False)
         return prob['name'], prob['url'], embed
-
-    # def embed_peg_problem(self, prob):
-    #     embed = discord.Embed()
-    #     embed.set_thumbnail(url='https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/peg-thumbnail.png')
-    #     embed.add_field(name='Points', value=prob['points'], inline=False)
-    #     embed.add_field(name='Partials', value=('Yes' if prob['partial'] else 'No'), inline=False)
-    #     embed.add_field(name='Users', value=prob['users'], inline=False)
-    #     embed.add_field(name='AC Rate', value=prob['ac_rate'], inline=False)
-    #     embed.add_field(name='Date Added', value=prob['date'], inline=False)
-    #     return prob['name'], prob['url'], embed
 
     def embed_szkopul_problem(self, prob):
         embed = discord.Embed()
@@ -309,18 +324,6 @@ class ProblemCog(commands.Cog):
             embed.description = description + ' (searched in %ss)' % str(round(self.bot.latency, 3))
             embed.timestamp = datetime.utcnow()
             return embed
-
-        # elif oj == 'peg':
-        #     def is_problem(prob):
-        #         return prob['url'] == 'https://wcipeg.com/problem/' + problem_id
-        #     problist = list(filter(is_problem, list(self.peg_problems.values())))
-        #     if len(problist) == 0:
-        #         raise ProblemNotFoundException
-        #     title, description, embed = self.embed_peg_problem(problist[0])
-        #     embed.title = title
-        #     embed.description = description + ' (searched in %ss)' % str(round(self.bot.latency, 3))
-        #     embed.timestamp = datetime.utcnow()
-        #     return embed
 
         elif oj == 'cses':
             if problem_id not in self.cses_problems.keys():
@@ -516,17 +519,6 @@ class ProblemCog(commands.Cog):
                 raise InvalidParametersException()
             return self.embed_atcoder_problem(prob)
 
-        # elif oj == 'peg':
-        #     if not self.peg_problems:
-        #         raise OnlineJudgeHTTPException('WCIPEG')
-        #     if points is None:
-        #         prob = rand.choice(list(self.peg_problems.values()))
-        #     elif points in self.problems_by_points['peg']:
-        #         prob = rand.choice(list(self.problems_by_points['peg'][points]))
-        #     else:
-        #         raise InvalidParametersException()
-        #     return self.embed_peg_problem(prob)
-
         elif oj == 'cses':
             prob = rand.choice(list(self.cses_problems.values()))
             return self.embed_cses_problem(prob)
@@ -556,9 +548,6 @@ class ProblemCog(commands.Cog):
             embed.title = title
             embed.description = description + ' (searched in %ss)' % str(round(self.bot.latency, 3))
             embed.timestamp = datetime.utcnow()
-            # if rand.randint(0, 30) == 0 and isinstance(oj, str) and (oj.lower() == 'dmoj' or oj.lower() == 'codeforces' or oj.lower() == 'cf'):
-            #     prefix = await self.bot.command_prefix(self.bot, ctx.message)
-            #     await ctx.send('Pro tip: Try out the new command, `%stogglesuggest` to turn on personalised suggested problems for DMOJ and Codeforces!' % prefix)
             await ctx.send('Requested problem for ' + ctx.message.author.display_name, embed=embed)
         except IndexError:
             await ctx.send(ctx.message.author.display_name + ', No problem was found. This may be due to the bot updating the problem cache. Please wait a moment, then try again.')
@@ -714,6 +703,7 @@ class ProblemCog(commands.Cog):
 
     @tasks.loop(hours=3)
     async def refresh_dmoj_problems(self):
+        self.fetch_times['dmoj'] = time()
         self.parse_dmoj_problems(json_get('https://dmoj.ca/api/problem/list'))
         
     @refresh_dmoj_problems.before_loop
@@ -722,6 +712,7 @@ class ProblemCog(commands.Cog):
 
     @tasks.loop(hours=3)
     async def refresh_cf_problems(self):
+        self.fetch_times['codeforces'] = time()
         self.parse_cf_problems(json_get('https://codeforces.com/api/problemset.problems'))
 
     @refresh_cf_problems.before_loop
@@ -730,6 +721,7 @@ class ProblemCog(commands.Cog):
 
     @tasks.loop(hours=3)
     async def refresh_atcoder_problems(self):
+        self.fetch_times['atcoder'] = time()
         self.parse_atcoder_problems(json_get('https://kenkoooo.com/atcoder/resources/merged-problems.json'))
 
     @refresh_atcoder_problems.before_loop
@@ -738,22 +730,16 @@ class ProblemCog(commands.Cog):
 
     @tasks.loop(hours=3)
     async def refresh_cses_problems(self):
+        self.fetch_times['cses'] = time()
         self.parse_cses_problems(requests.get('https://cses.fi/problemset/list/'))
 
     @refresh_cses_problems.before_loop
     async def refresh_cses_problems_before(self):
         await self.bot.wait_until_ready()
 
-    # @tasks.loop(hours=3)
-    # async def refresh_peg_problems(self):
-    #     self.parse_peg_problems(requests.get('https://wcipeg.com/problems/show%3D999999'))
-
-    # @refresh_peg_problems.before_loop
-    # async def refresh_peg_problems_before(self):
-    #     await self.bot.wait_until_ready()
-
     @tasks.loop(hours=3)
     async def refresh_szkopul_problems(self):
+        self.fetch_times['szkopul'] = time()
         self.parse_szkopul_problems()
 
     @refresh_szkopul_problems.before_loop
