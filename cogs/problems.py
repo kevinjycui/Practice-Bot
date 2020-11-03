@@ -127,7 +127,7 @@ szkopuł -> [szkopuł] [szkopul]
                 oj = self.onlineJudges.get_oj(oj)
                 await ctx.send('```%s status: %s. Last fetched, %d minutes ago```' % (self.onlineJudges.formal_names[oj], 'OK' if self.statuses[oj] == 1 else 'Unable to connect', (time()-self.fetch_times[oj])//60))
             except NoSuchOJException:
-                await ctx.send(ctx.message.author.display_name + ', Sorry, no online judge found. Search only for online judges used by this bot ' + str(onlineJudges))
+                await ctx.send(ctx.message.author.display_name + ', Sorry, no online judge found. Search only for online judges used by this bot ' + str(self.onlineJudges))
 
 
     def parse_dmoj_problems(self, problems):
