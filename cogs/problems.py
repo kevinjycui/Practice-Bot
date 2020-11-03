@@ -625,10 +625,14 @@ class ProblemCog(commands.Cog):
     async def user(self, ctx, user: discord.User=None):
         if user is None:
             user = ctx.message.author
+
         self.check_existing_user(user)
         user_data = query.get_user(user.id)
+
         embed = discord.Embed(title=user.display_name)
         embed.timestamp = datetime.utcnow()
+        embed.colour = discord.Colour(int('0000ff', 16))
+
         empty = True
         if user_data[user.id]['dmoj'] is not None:
             embed.add_field(name='DMOJ', value='https://dmoj.ca/user/%s' % user_data[user.id]['dmoj'], inline=False)
@@ -641,9 +645,37 @@ class ProblemCog(commands.Cog):
         if empty:
             embed.description = 'No accounts linked...'
         elif user.id == ctx.message.author.id:
-            embed.add_field(name='CAN_REPEAT', value=str(user_data[user.id]['can_repeat'] == 1) + ' (If true, problems you have already solved on sites where your account is linked will show up when you request for random problems)', inline=False)
-            embed.add_field(name='CAN_SUGGEST', value=str(user_data[user.id]['can_suggest'] == 1) + ' (If true, suggested problems based on your points on sites where your account is linked will show up when you request for random problems)', inline=False)
+            embed.add_field(name='Can repeat', value=str(user_data[user.id]['can_repeat'] == 1) + ' (If true, problems you have already solved on sites where your account is linked will show up when you request for random problems)', inline=False)
+            embed.add_field(name='Can suggest', value=str(user_data[user.id]['can_suggest'] == 1) + ' (If true, suggested problems based on your points on sites where your account is linked will show up when you request for random problems)', inline=False)
         await ctx.send('Requested profile by ' + ctx.message.author.display_name, embed=embed)
+
+    @commands.command(aliases=['si'])
+    @commands.bot_has_permissions(embed_links=True)
+    async def serverinfo(self, ctx):
+        if ctx.message.guild is None:
+            await ctx.send(ctx.message.author.display_name + ', You can only request for server info within a server!')
+
+        query.insert_ignore_server(ctx.message.guild.id)
+        server_data = query.get_server(ctx.message.guild.id)
+
+        embed = discord.Embed(title=ctx.message.guild.name)
+        embed.timestamp = datetime.utcnow()
+        embed.set_thumbnail(url=ctx.message.guild.icon_url)
+        embed.colour = discord.Colour(int('ffd300', 16))
+
+        embed.add_field(name='Nickname sync', value=str(server_data[ctx.message.guild.id]['nickname_sync'] == 1) + ' (If true, nicknames will be set automatically based on the sync source)', inline=False)
+        embed.add_field(name='Role sync', value=str(server_data[ctx.message.guild.id]['role_sync'] == 1) + ' (If true, roles will be set automatically based on the sync source)', inline=False)
+        if server_data[ctx.message.guild.id]['nickname_sync'] or server_data[ctx.message.guild.id]['role_sync']:
+            embed.add_field(name='Sync source', value=server_data[ctx.message.guild.id]['sync_source'], inline=False)
+        embed.add_field(name='Join message', value=str(server_data[ctx.message.guild.id]['join_message'] == 1) + ' (If true, bot will send a default join message whenever a new member joins your server)', inline=False)
+        prefix = await self.bot.command_prefix(self.bot, ctx.message)
+        embed.add_field(name='Server prefix', value=prefix, inline=False)
+        clist = ''
+        for text_channel in ctx.message.guild.text_channels:
+            if query.exists('subscriptions_contests', 'channel_id', text_channel.id):
+                clist += text_channel.mention + '\n'
+        embed.add_field(name='Contest notification channel(s)', value='None' if clist == '' else clist, inline=False)
+        await ctx.send(ctx.message.author.display_name + ', Here is your requested info!', embed=embed)
 
     @commands.command(aliases=['s'])
     async def submit(self, ctx, problem, lang, *, source=None):

@@ -125,6 +125,24 @@ class MySQLConnection(object):
         sql = "SELECT COUNT(*) FROM users WHERE %s IS NOT NULL" % row
         return self.readone_query(sql)[0]
 
+    def get_server(self, server_id):
+        if not self.sanitize_id(server_id):
+            return -1
+        sql = "SELECT * FROM servers WHERE server_id = %d" % server_id
+        row = self.readone_query(sql)
+        if row is None:
+            return {}
+        server = {
+            row[0]: {
+                'nickname_sync': row[1],
+                'role_sync': row[2],
+                'sync_source': row[3],
+                'join_message': row[4],
+                'prefix': row[5]
+            }
+        }
+        return server
+
     def get_user(self, user_id):
         if not self.sanitize_id(user_id):
             return -1

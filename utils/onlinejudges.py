@@ -42,11 +42,17 @@ class OnlineJudges:
         judge_to_aliases[judge].append(alias)
 
     def get_oj(self, oj):
+        if oj is None:
+            raise NoSuchOJException(oj)
         if oj.lower() in self.judges:
             return oj.lower()
         if oj.lower() in self.aliases.keys():
             return self.aliases[oj.lower()]
         raise NoSuchOJException(oj)
+
+    def can_sync(self, oj):
+        oj_name = self.get_oj(oj)
+        return oj_name == 'dmoj' or oj_name == 'codeforces'
 
     def oj_exists(self, oj):
         return self.get_oj(oj.lower()) in self.judges

@@ -184,102 +184,153 @@ class ProblemRankingCog(ProblemCog):
         await ctx.send('Successfully disconnected %s' % user.mention)
         if option != '-s':
             await user.send('Attention! Your account(s) have been manually disconnected by a bot admin from Practice Bot. This may be due to suspicious activity in your authentication process or an update in the bot\'s security. If you are not a user of this bot and believe you received this message by error, please ignore this message. If you are a user of this bot and believe you were disconnected in error, please contact the bot admin on our support server:\nhttps://discord.gg/cyCraUm')
-        
+
     @commands.command(aliases=['toggleSync', 'toggleRanks', 'toggleNicks', 'toggleranks', 'togglenicks', 'togglesync', 'setSync', 'ss'])
     @commands.has_permissions(manage_roles=True, manage_nicknames=True)
     @commands.guild_only()
-    async def setsync(self, ctx, site=None):
+    async def setsync(self, ctx, site=None, option=''):
         self.check_existing_server(ctx.message.guild)
         if site is None:
             prefix = await self.bot.command_prefix(self.bot, ctx.message)
-            await ctx.send(ctx.message.author.display_name + ', Invalid query. Please use format `%stoggleranks <sync source>` (available sync sources are DMOJ and Codeforces, or OFF to turn automatic roles off.' % prefix)
+            await ctx.send(ctx.message.author.display_name + ', Invalid query. Please use format `%ssetsync <sync source>` (available sync sources are DMOJ and Codeforces, or OFF to turn automatic roles off.' % prefix)
             return
+
+        nick_options = ('nickname', 'nick', 'n')
+        role_options = ('roles', 'role', 'r')
+
+        if option not in nick_options and option not in role_options and option != '':
+            await ctx.send(ctx.message.author.display_name + ', Invalid option `%s`. Use `r` for roles, `n` for nicknames, or no option for both.' % option)
+            return
+
         site = site.lower()
         if site == 'dmoj':
-            if ctx.message.guild.id in self.dmoj_server_roles:
-                await ctx.send(ctx.message.author.display_name + ', DMOJ based ranked roles already set to `ON`!')
-                return
             try:
-                for role in ctx.message.guild.roles:
-                    if (role.name, role.colour) in self.cf_ratings:
-                        await role.delete()
-                names = []
-                for role in ctx.message.guild.roles:
-                    names.append(role.name)
-                for role in list(self.dmoj_ratings.values()):
-                    if role[0] not in names:
-                        await ctx.message.guild.create_role(name=role[0], colour=role[1], mentionable=False)
-                if ctx.message.guild.id in self.cf_server_roles:
-                    self.cf_server_roles.remove(ctx.message.guild.id)
-                self.dmoj_server_roles.append(ctx.message.guild.id)
-                query.update_server(ctx.message.guild.id, 'role_sync', True)
+                if option not in nick_options:
+                    if ctx.message.guild.id in self.dmoj_server_roles:
+                        await ctx.send(ctx.message.author.display_name + ', DMOJ based ranked roles already set to `ON`!')
+                    else:
+                        for role in ctx.message.guild.roles:
+                            if (role.name, role.colour) in self.cf_ratings:
+                                await role.delete()
+                        names = []
+                        for role in ctx.message.guild.roles:
+                            names.append(role.name)
+                        for role in list(self.dmoj_ratings.values()):
+                            if role[0] not in names:
+                                await ctx.message.guild.create_role(name=role[0], colour=role[1], mentionable=False)
+                        if ctx.message.guild.id in self.cf_server_roles:
+                            self.cf_server_roles.remove(ctx.message.guild.id)
+                        self.dmoj_server_roles.append(ctx.message.guild.id)
+                    
+                        query.update_server(ctx.message.guild.id, 'role_sync', True)
+                        await ctx.send(ctx.message.author.display_name + ', DMOJ based ranked roles set to `ON`. It may take some time for all roles to fully update.')
+                
+                else:
+                    query.update_server(ctx.message.guild.id, 'role_sync', False)
+
+                if option not in role_options: 
+                    if ctx.message.guild.id in self.dmoj_server_nicks:
+                        await ctx.send(ctx.message.author.display_name + ', DMOJ based nicknames already set to `ON`!')
+                    else:
+                        forbidden_users = 0
+                        for member in ctx.message.guild.members:
+                            user_data = query.get_user(member.id)
+                            if member.id in user_data.keys() and user_data[member.id]['dmoj'] is not None:
+                                try:
+                                    await member.edit(nick=user_data[member.id]['dmoj'])
+                                except discord.errors.Forbidden:
+                                    forbidden_users += 1
+                        self.dmoj_server_nicks.append(ctx.message.guild.id)
+                        query.update_server(ctx.message.guild.id, 'nickname_sync', True)
+                        await ctx.send(ctx.message.author.display_name + ', DMOJ based nicknames set to `ON`. Skipped changing the nickname of %d members due to having lower permissions.' % forbidden_users)
+                
+                else:
+                    query.update_server(ctx.message.guild.id, 'nickname_sync', False)
+
                 query.update_server(ctx.message.guild.id, 'sync_source', 'dmoj')
-                forbidden_users = 0
-                for member in ctx.message.guild.members:
-                    user_data = query.get_user(member.id)
-                    if member.id in user_data.keys() and user_data[member.id]['dmoj'] is not None:
-                        try:
-                            await member.edit(nick=user_data[member.id]['dmoj'])
-                        except discord.errors.Forbidden:
-                            forbidden_users += 1
-                self.dmoj_server_nicks.append(ctx.message.guild.id)
-                query.update_server(ctx.message.guild.id, 'nickname_sync', True)
-                await ctx.send(ctx.message.author.display_name + ', DMOJ based nicknames and ranked roles set to `ON`. It may take some time for all roles to fully update. Skipped changing the nickname of %d members due to having lower permissions.' % forbidden_users)
+
             except discord.errors.Forbidden:
-                await ctx.send(ctx.message.author.display_name + ', Toggle failed, make sure that the bot has the Manage Roles and Manage Roles permissions and try again.')
+                await ctx.send(ctx.message.author.display_name + ', Set sync failed, make sure that the bot has the Manage Roles and Manage Roles permissions and try again.')
+        
         elif site == 'cf' or site == 'codeforces':
-            if ctx.message.guild.id in self.cf_server_roles:
-                await ctx.send(ctx.message.author.display_name + ', Codeforces based ranked roles already set to `ON`!')
-                return
             try:
-                for role in ctx.message.guild.roles:
-                    if (role.name, role.colour) in self.dmoj_ratings.values():
-                        await role.delete()
-                names = []
-                for role in ctx.message.guild.roles:
-                    names.append(role.name)
-                for role in self.cf_ratings:
-                    if role[0] not in names:
-                        await ctx.message.guild.create_role(name=role[0], colour=role[1], mentionable=False)
-                if ctx.message.guild.id in self.dmoj_server_roles:
-                    self.dmoj_server_roles.remove(ctx.message.guild.id)
-                self.cf_server_roles.append(ctx.message.guild.id)
-                query.update_server(ctx.message.guild.id, 'role_sync', True)
+
+                if option not in nick_options:
+                    if ctx.message.guild.id in self.cf_server_roles:
+                        await ctx.send(ctx.message.author.display_name + ', Codeforces based ranked roles already set to `ON`!')
+                    else:
+                        for role in ctx.message.guild.roles:
+                            if (role.name, role.colour) in self.dmoj_ratings.values():
+                                await role.delete()
+                        names = []
+                        for role in ctx.message.guild.roles:
+                            names.append(role.name)
+                        for role in self.cf_ratings:
+                            if role[0] not in names:
+                                await ctx.message.guild.create_role(name=role[0], colour=role[1], mentionable=False)
+                        if ctx.message.guild.id in self.dmoj_server_roles:
+                            self.dmoj_server_roles.remove(ctx.message.guild.id)
+                        self.cf_server_roles.append(ctx.message.guild.id)
+                        query.update_server(ctx.message.guild.id, 'role_sync', True)
+                        await ctx.send(ctx.message.author.display_name + ', Codeforces based ranked roles set to `ON`. It may take some time for all roles to fully update.')
+                       
+                                    
+                else:
+                    query.update_server(ctx.message.guild.id, 'role_sync', False)
+                  
+                if option not in role_options:  
+                    if ctx.message.guild.id in self.cf_server_nicks:
+                        await ctx.send(ctx.message.author.display_name + ', Codeforces based nicknames already set to `ON`!')
+                    else:            
+                        self.cf_server_nicks.append(ctx.message.guild.id)
+                        forbidden_users = []
+                        for member in ctx.message.guild.members:
+                            user_data = query.get_user(member.id)
+                            if member.id in user_data.keys() and user_data[member.id]['codeforces'] is not None:
+                                try:
+                                    await member.edit(nick=user_data[member.id]['codeforces'])
+                                except discord.errors.Forbidden:
+                                    forbidden_users.append('%s#%s' % (member.name, member.discriminator))
+                        query.update_server(ctx.message.guild.id, 'nickname_sync', True)
+                        await ctx.send(ctx.message.author.display_name + ', Codeforces based nicknames set to `ON`. Skipped changing the nickname of %d members due to having lower permissions.' % len(forbidden_users))
+                       
+                else:
+                    query.update_server(ctx.message.guild.id, 'nickname_sync', False)
+
                 query.update_server(ctx.message.guild.id, 'sync_source', 'codeforces')
-                forbidden_users = []
-                for member in ctx.message.guild.members:
-                    user_data = query.get_user(member.id)
-                    if member.id in user_data.keys() and user_data[member.id]['codeforces'] is not None:
-                        try:
-                            await member.edit(nick=user_data[member.id]['codeforces'])
-                        except discord.errors.Forbidden:
-                            forbidden_users.append('%s#%s' % (member.name, member.discriminator))
-                self.dmoj_server_nicks.append(ctx.message.guild.id)
-                query.update_server(ctx.message.guild.id, 'nickname_sync', True)
-                await ctx.send(ctx.message.author.display_name + ', Codeforces based nicknames and ranked roles set to `ON`. It may take some time for all roles to fully update. Skipped changing the nickname of %d members due to having lower permissions.' % len(forbidden_users))
+
             except discord.errors.Forbidden:
-                await ctx.send(ctx.message.author.display_name + ', Toggle failed, make sure that the bot has the Manage Roles and Manage Roles permissions and try again.')
+                await ctx.send(ctx.message.author.display_name + ', Set sync failed, make sure that the bot has the Manage Roles and Manage Roles permissions and try again.')
+        
         elif site == 'off':
-            if ctx.message.guild.id not in self.cf_server_roles and ctx.message.guild.id not in self.dmoj_server_roles:
-                await ctx.send(ctx.message.author.display_name + ', Ranked roles already set to `OFF`!')
-                return
             try:
-                for role in ctx.message.guild.roles:
-                    if (role.name, role.colour) in self.dmoj_ratings.values() or (role.name, role.colour) in self.cf_ratings:
-                        await role.delete()
-                if ctx.message.guild.id in self.dmoj_server_roles:
-                    self.dmoj_server_roles.remove(ctx.message.guild.id)
-                if ctx.message.guild.id in self.cf_server_roles:
-                    self.cf_server_roles.remove(ctx.message.guild.id)
-                query.update_server(ctx.message.guild.id, 'role_sync', False)
-                if ctx.message.guild.id in self.dmoj_server_nicks:
-                    self.dmoj_server_nicks.remove(ctx.message.guild.id)
-                if ctx.message.guild.id in self.cf_server_nicks:
-                    self.cf_server_nicks.remove(ctx.message.guild.id)
-                query.update_server(ctx.message.guild.id, 'nickname_sync', False)
-                await ctx.send(ctx.message.author.display_name + ', Ranked roles set to `OFF`')
+                if option not in nick_options:
+                    if ctx.message.guild.id not in self.cf_server_roles and ctx.message.guild.id not in self.dmoj_server_roles:
+                        await ctx.send(ctx.message.author.display_name + ', Ranked roles already set to `OFF`!')
+                    else:
+                        for role in ctx.message.guild.roles:
+                            if (role.name, role.colour) in self.dmoj_ratings.values() or (role.name, role.colour) in self.cf_ratings:
+                                await role.delete()
+                        if ctx.message.guild.id in self.dmoj_server_roles:
+                            self.dmoj_server_roles.remove(ctx.message.guild.id)
+                        if ctx.message.guild.id in self.cf_server_roles:
+                            self.cf_server_roles.remove(ctx.message.guild.id)
+                        query.update_server(ctx.message.guild.id, 'role_sync', False)
+                        await ctx.send(ctx.message.author.display_name + ', Ranked roles set to `OFF`')
+                
+                if option not in role_options:
+                    if ctx.message.guild.id not in self.cf_server_nicks and ctx.message.guild.id not in self.dmoj_server_nicks:
+                        await ctx.send(ctx.message.author.display_name + ', Nicknames already set to `OFF`!')
+                    else:
+                        if ctx.message.guild.id in self.dmoj_server_nicks:
+                            self.dmoj_server_nicks.remove(ctx.message.guild.id)
+                        if ctx.message.guild.id in self.cf_server_nicks:
+                            self.cf_server_nicks.remove(ctx.message.guild.id)
+                        query.update_server(ctx.message.guild.id, 'nickname_sync', False)
+                        await ctx.send(ctx.message.author.display_name + ', Nickname sync set to `OFF`')
+
             except discord.errors.Forbidden:
-                await ctx.send(ctx.message.author.display_name + ', Toggle failed, make sure that the bot has the Manage Roles and Manage Roles permissions and try again.')
+                await ctx.send(ctx.message.author.display_name + ', Set sync failed, make sure that the bot has the Manage Roles and Manage Roles permissions and try again.')
 
     @tasks.loop(minutes=1)
     async def update_dmoj_ranks(self):
