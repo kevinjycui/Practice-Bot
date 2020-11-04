@@ -21,13 +21,6 @@ finally:
     cat_api = config['cats']['token']
     client_id, client_secret = config['jdoodle']['client_id'], config['jdoodle']['client_secret']
 
-def json_get(api_url):
-    response = requests.get(api_url)
-
-    if response.status_code == 200:
-        return json.loads(response.content.decode('utf-8'))
-    return None
-
 class SearcherCog(commands.Cog):
 
     wait_time = 0
@@ -137,7 +130,7 @@ class SearcherCog(commands.Cog):
         if rand.randint(0, 100) == 0:
             data = [{'url':'https://bit.ly/3jiPSzb'}]
         else:
-            data = json_get('https://api.thecatapi.com/v1/images/search?x-api-key=' + cat_api)
+            data = requests.get('https://api.thecatapi.com/v1/images/search?x-api-key=' + cat_api).json()
         await ctx.send(ctx.message.author.display_name + ', :smiley_cat: ' + data[0]['url'])
 
     @commands.command()

@@ -12,13 +12,6 @@ from connector import mySQLConnection as query
 from utils.onlinejudges import OnlineJudges, NoSuchOJException
 
 
-def json_get(api_url):
-    response = requests.get(api_url)
-
-    if response.status_code == 200:
-        return json.loads(response.content.decode('utf-8'))
-    return None
-
 class Contest(object):
     def __init__(self, data):
         self.data = data
@@ -114,12 +107,14 @@ class ContestCog(commands.Cog):
     def set_time(self):
         self.fetch_time = time()
 
-    def parse_dmoj_contests(self, contests):
-        if contests is not None:
+    def parse_dmoj_contests(self):
+        contest_req = rrequests.get('https://dmoj.ca/api/contest/list')
+        if contest_req.status_code == 200:
+            contests = contest_req.json()
             for contest in range(len(contests)):
                 name, details = list(contests.items())[contest]
                 if datetime.strptime(details['start_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z').timestamp() > time():
-                    spec = json_get('https://dmoj.ca/api/contest/info/' + name)
+                    spec = requests.get('https://dmoj.ca/api/contest/info/' + name).json()
                     url = 'https://dmoj.ca/contest/' + name
                     contest_data = {
                         'title': ':trophy: %s' % details['name'],
@@ -140,8 +135,10 @@ class ContestCog(commands.Cog):
                         self.dmoj_contests.append(Contest(contest_data))
             self.dmoj_contests = list(set(self.dmoj_contests))
 
-    def parse_cf_contests(self, contests):
-        if contests is not None and contests['status'] == 'OK':
+    def parse_cf_contests(self):
+        contest_req = requests.get('https://codeforces.com/api/contest.list')
+        if contest_req.status_code == 200 and contest_req.json()['status'] == 'OK':
+            contests = contest_req.json()
             for contest in range(len(contests.get('result', []))):
                 details = contests['result'][contest]
                 if details['phase'] == 'BEFORE':
@@ -160,7 +157,8 @@ class ContestCog(commands.Cog):
                         self.cf_contests.append(Contest(contest_data))
             self.cf_contests = list(set(self.cf_contests))
 
-    def parse_atcoder_contests(self, contests):
+    def parse_atcoder_contests(self):
+        contests = requests.get('https://atcoder.jp/contests/?lang=en')
         if contests.status_code == 200:
             soup = bs.BeautifulSoup(contests.text, 'lxml')
             for contest in soup.find_all('table')[1].find('tbody').find_all('tr'):
@@ -289,19 +287,19 @@ class ContestCog(commands.Cog):
     async def refresh_contests(self):
         try:
             self.reset_contest('dmoj')
-            self.parse_dmoj_contests(json_get('https://dmoj.ca/api/contest/list'))
+            self.parse_dmoj_contests()
         except:
             pass
 
         try:
             self.reset_contest('codeforces')
-            self.parse_cf_contests(json_get('https://codeforces.com/api/contest.list'))
+            self.parse_cf_contests()
         except:
             pass
 
         try:
             self.reset_contest('atcoder')
-            self.parse_atcoder_contests(requests.get('https://atcoder.jp/contests/?lang=en'))
+            self.parse_atcoder_contests()
         except:
             pass
 

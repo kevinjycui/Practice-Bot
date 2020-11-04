@@ -361,8 +361,9 @@ class ProblemCog(commands.Cog):
                 
             if not user_data[iden]['can_repeat']:
                 if oj == 'dmoj' and user_data[iden]['dmoj'] is not None:
-                    user_response = json_get('https://dmoj.ca/api/user/info/%s' % user_data[iden]['dmoj'])
-                    if user_response is not None:
+                    user_request = requests.get('https://dmoj.ca/api/user/info/%s' % user_data[iden]['dmoj'])
+                    if user_request.status_code == 200:
+                        user_response = user_request.json()
                         if points is None:
                             for name, prob in list(self.dmoj_problems.items()):
                                 if name not in user_response['solved_problems']:
