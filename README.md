@@ -1,7 +1,7 @@
 # Practice-Bot
 The all-competitive-programming-purpose Discord bot!
 
-Discord to DMOJ/Codeforces/AtCoder/WCIPEG/CSES/Szkopuł integration. Handles problems, accounts, ratings, contests, and submitting. Everything for your competitive programming server needs!
+Discord to DMOJ/Codeforces/AtCoder/Leetcode/CSES/Szkopuł integration. Handles problems, accounts, ratings, contests, and submitting. Everything for your competitive programming server needs!
 
 [![Discord Bots](https://top.gg/api/widget/status/691416325557452861.svg)](https://top.gg/bot/691416325557452861)
 [![Discord Bots](https://top.gg/api/widget/servers/691416325557452861.svg)](https://top.gg/bot/691416325557452861)
@@ -14,7 +14,11 @@ Support this bot by voting for it [here](https://top.gg/bot/691416325557452861/v
 
 ## What's New 
 
-### September 2020 \[BETA\]
+### November 2020 \[BETA\]
+ * Added problem support for Leetcode
+ * Added some new informational commands. See [commands](https://github.com/kevinjycui/Practice-Bot/wiki/Commands) for more details
+
+### September 2020
  * Improved contest display
 
 ### August 2020
@@ -35,6 +39,7 @@ Support this bot by voting for it [here](https://top.gg/bot/691416325557452861/v
 | DMOJ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
 | Codeforces | ✔ | ✔ | ✔ | ✔ | ✔ | ❌ |
 | AtCoder | ✔ | ❌ | ✔ | ❌ | ❌ | ❌ |
+| Leetcode | ✔ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | CSES | ✔ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | Szkopuł | ✔ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | ~~WCIPEG~~* |  |  |  |  |  |  |
@@ -45,8 +50,8 @@ Support this bot by voting for it [here](https://top.gg/bot/691416325557452861/v
  - discord.py
  - [DMOJ API](https://dmoj.ca/api/)
  - [Codeforces API](https://codeforces.com/apiHelp)
- - [nomikura/atcoder-api](https://github.com/nomikura/atcoder-api)
  - [kenkoooo/AtCoderProblems](https://github.com/kenkoooo/AtCoderProb✔ems)
+ - [Leetcode API](https://leetcode.com/api/problems/algorithms/)
  - [WCIPEG](https://wcipeg.com/main)
  - [CSES](https://cses.fi/)
  - [Szkopuł](https://szkopul.edu.pl/)
