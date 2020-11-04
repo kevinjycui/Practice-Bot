@@ -337,7 +337,7 @@ class ProblemRankingCog(ProblemCog):
         self.update_dmoj_index, user_data = query.get_next_user_by_row(self.update_dmoj_index, 'dmoj')
         if user_data == {}:
             return
-        user_info = json_get('https://dmoj.ca/api/user/info/%s' % user_data['dmoj'])
+        user_info = requests.get('https://dmoj.ca/api/user/info/%s' % user_data['dmoj']).json()
         current_rating = user_info['contests']['current_rating']
         for rating, role in list(self.dmoj_ratings.items()):
             if current_rating in rating:
@@ -373,7 +373,7 @@ class ProblemRankingCog(ProblemCog):
         self.update_cf_index, user_data = query.get_next_user_by_row(self.update_cf_index, 'codeforces')
         if user_data == {}:
             return
-        user_info = json_get('https://codeforces.com/api/user.info?handles=%s' % user_data['codeforces'])['result'][0]
+        user_info = requests.get('https://codeforces.com/api/user.info?handles=%s' % user_data['codeforces']).json()['result'][0]
         for guild in self.bot.guilds:
             self.check_existing_server(guild)
             if int(guild.id) not in self.cf_server_roles:

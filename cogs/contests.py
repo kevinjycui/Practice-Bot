@@ -183,6 +183,7 @@ class ContestCog(commands.Cog):
     def embed_contest(self, contest):
         embed = discord.Embed(title=contest.asdict()['title'], description=contest.asdict()['description'])
         embed.set_thumbnail(url=contest.asdict()['thumbnail'])
+        embed.colour = self.onlineJudges.colours[contest.asdict()['oj']]
         for key in list(contest.asdict().keys()):
             if key not in ('title', 'description', 'thumbnail', 'oj'):
                 embed.add_field(name=key, value=contest.asdict()[key], inline=False)

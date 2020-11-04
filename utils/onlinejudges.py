@@ -5,7 +5,7 @@ class NoSuchOJException(Exception):
         self.oj = oj
 
 class OnlineJudges:
-    judges = ('dmoj', 'codeforces', 'atcoder', 'cses', 'szkopul')
+    judges = ('dmoj', 'codeforces', 'atcoder', 'leetcode', 'cses', 'szkopul')
     contest_judges = ('dmoj', 'codeforces', 'atcoder')
     accounts = ('dmoj', 'codeforces')
     formal_names = {
@@ -13,27 +13,31 @@ class OnlineJudges:
         'codeforces': 'Codeforces',
         'atcoder': 'AtCoder',
         'cses': 'CSES',
-        'szkopul': 'Szkopuł'
+        'szkopul': 'Szkopuł',
+        'leetcode': 'Leetcode'
     }
     aliases = {
         'cf': 'codeforces',
         'at': 'atcoder',
         'ac': 'atcoder',
-        'szkopuł': 'szkopul'
+        'szkopuł': 'szkopul',
+        'lc': 'leetcode'
     }
     thumbnails = {
         'dmoj': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/dmoj-thumbnail.png',
         'codeforces': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/cf-thumbnail.png',
         'atcoder': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/at-thumbnail.png',
         'cses': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/cses-thumbnail.png',
-        'szkopul': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/szkopul-thumbnail.png'
+        'szkopul': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/szkopul-thumbnail.png',
+        'leetcide': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/lc-thumbnail.png'
     }
-    url_to_thumbnail = {
-        'https://dmoj.ca/problem/': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/dmoj-thumbnail.png',
-        'https://codeforces.com/problemset/problem/': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/cf-thumbnail.png',
-        'https://atcoder.jp/contests/': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/at-thumbnail.png',
-        'https://cses.fi/problemset/': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/cses-thumbnail.png',
-        'https://szkopul.edu.pl/problemset/': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/szkopul-thumbnail.png'
+    colours = {
+        'dmoj': discord.Colour(int('fcdc00', 16)),
+        'codeforces': discord.Colour(int('198dcd', 16)),
+        'atcoder': discord.Colour(int('f5f5f5', 16)),
+        'cses': discord.Colour(int('f6e0a8', 16)),
+        'szkopul': discord.Colour(int('f93800', 16)),
+        'leetcode': discord.Colour(int('f89f1b', 16))
     }
     judge_to_aliases = {}
     for judge in judges:

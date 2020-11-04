@@ -19,13 +19,6 @@ import re
 from time import time
 
 
-def json_get(api_url):
-    response = requests.get(api_url)
-
-    if response.status_code == 200:
-        return json.loads(response.content.decode('utf-8'))
-    return None
-
 class InvalidParametersException(Exception):
     def __init__(self, cses=False, szkopul=False):
         self.cses = cses
@@ -67,61 +60,58 @@ class InvalidURLException(Exception):
 
 class ProblemCog(commands.Cog):
     problems_by_points = {'dmoj':{}, 'codeforces':{}, 'atcoder':{}}
-    dmoj_problems = None
+
+    dmoj_problems = {}
     cf_problems = None
     at_problems = None
     cses_problems = {}
     szkopul_problems = {}
+    leetcode_problems = {}
+    leetcode_problems_paid = {}
+
     dmoj_sessions = {}
     cf_sessions = {}
+
     dmoj_user_suggests = {}
     cf_user_suggests = {}
+
     szkopul_page = 1
     language = Language()
     onlineJudges = OnlineJudges()
+
     statuses = {
         'dmoj': 0,
         'codeforces': 0,
         'atcoder': 0,
         'cses': 0,
-        'szkopul': 0
+        'szkopul': 0,
+        'leetcode': 0
     }
     fetch_times = {
         'dmoj': 0,
         'codeforces': 0,
         'atcoder': 0,
         'cses': 0,
-        'szkopul': 0
+        'szkopul': 0,
+        'leetcode': 0
     }
 
     def __init__(self, bot):
         self.bot = bot
-
         self.refresh_dmoj_problems.start()
         self.refresh_cf_problems.start()
         self.refresh_atcoder_problems.start()
+        self.refresh_leetcode_problems.start()
         self.refresh_cses_problems.start()
         self.refresh_szkopul_problems.start()
 
     @commands.command()
     async def oj(self, ctx, oj: str=''):
         if oj == '':
-            await ctx.send('''```Available Online Judges
-dmoj -> [dmoj]
-    - random
-    - connect
-    - submit
-codeforces -> [codeforces] [cf]
-    - random
-    - connect
-atcoder -> [atcoder] [at] [ac]
-    -random
-cses -> [cses]
-    -random
-wcipeg -> [wcipeg] [peg]
-    -random
-szkopuł -> [szkopuł] [szkopul]
-    -random```''')
+            status_list = '```'
+            for oj in self.onlineJudges.judges:
+                status_list += '%s status: %s. Last fetched, %d minutes ago\n' % (self.onlineJudges.formal_names[oj], 'OK' if self.statuses[oj] == 1 else 'Unable to connect', (time()-self.fetch_times[oj])//60)
+            await ctx.send(status_list[:-1] + '```')
         else:
             try:
                 oj = self.onlineJudges.get_oj(oj)
@@ -130,23 +120,31 @@ szkopuł -> [szkopuł] [szkopul]
                 await ctx.send(ctx.message.author.display_name + ', Sorry, no online judge found. Search only for online judges used by this bot ' + str(self.onlineJudges))
 
 
-    def parse_dmoj_problems(self, problems):
-        if problems is not None:
-            self.statuses['dmoj'] =  1
-            self.dmoj_problems = problems
-            self.problems_by_points['dmoj'] = {}
-            for name, details in problems.items():
-                if details['points'] not in self.problems_by_points['dmoj']:
-                    self.problems_by_points['dmoj'][details['points']] = {}
-                self.problems_by_points['dmoj'][details['points']][name] = details
+    def parse_dmoj_problems(self):
+        problem_req = requests.get('https://dmoj.ca/api/v2/problems')
+        if problem_req.status_code == 200:
+            try:
+                problems = problem_req.json()['data']['objects']
+                self.statuses['dmoj'] =  1
+                for problem in problems:
+                    self.dmoj_problems[problem['code']] = problem
+                self.problems_by_points['dmoj'] = {}
+                for name, details in self.dmoj_problems.items():
+                    if details['points'] not in self.problems_by_points['dmoj']:
+                        self.problems_by_points['dmoj'][details['points']] = {}
+                    self.problems_by_points['dmoj'][details['points']][name] = details
+            except KeyError:
+                self.statuses['dmoj'] = 0
         else:
             self.statuses['dmoj'] = 0
 
-    def parse_cf_problems(self, cf_data):
-        if cf_data is not None:
+    def parse_cf_problems(self):
+        problem_req = requests.get('https://codeforces.com/api/problemset.problems')
+        if problem_req.status_code == 200:
+            problems = problem_req.json()
             self.statuses['codeforces'] =  1
             try:
-                self.cf_problems = cf_data['result']['problems']
+                self.cf_problems = problems['result']['problems']
                 self.problems_by_points['codeforces'] = {}
                 for details in self.cf_problems:
                     if 'points' in details.keys():
@@ -154,12 +152,14 @@ szkopuł -> [szkopuł] [szkopul]
                             self.problems_by_points['codeforces'][details['points']] = []
                         self.problems_by_points['codeforces'][details['points']].append(details)
             except KeyError:
-                pass
+                self.statuses['codeforces'] = 0
         else:
             self.statuses['codeforces'] = 0
 
-    def parse_atcoder_problems(self, problems):
-        if problems is not None:
+    def parse_atcoder_problems(self):
+        problem_req = requests.get('https://kenkoooo.com/atcoder/resources/merged-problems.json')
+        if problem_req.status_code == 200:
+            problems = problem_req.json()
             self.statuses['atcoder'] =  1
             self.atcoder_problems = problems
             self.problems_by_points['atcoder'] = {}
@@ -171,7 +171,8 @@ szkopuł -> [szkopuł] [szkopul]
         else:
             self.statuses['atcoder'] = 0
 
-    def parse_cses_problems(self, problems):
+    def parse_cses_problems(self):
+        problems = requests.get('https://cses.fi/problemset/list/')
         if problems.status_code == 200:
             self.statuses['cses'] =  1
             soup = bs.BeautifulSoup(problems.text, 'lxml')
@@ -233,17 +234,50 @@ szkopuł -> [szkopuł] [szkopul]
         else:
             self.statuses['szkopul'] = 0
 
+    def parse_leetcode_problems(self):
+        problems = requests.get('https://leetcode.com/api/problems/algorithms/')
+        if problems.status_code == 200:
+            try:
+                self.statuses['leetcode'] = 1
+                problemlist = problems.json()['stat_status_pairs']
+                for problem in problemlist:
+                    id = problem['stat']['frontend_question_id']
+                    title = problem['stat']['question__title']
+                    url = 'https://leetcode.com/problems/' + problem['stat']['question__title_slug']
+                    total_acs = problem['stat']['total_acs']
+                    total_submitted = problem['stat']['total_submitted']
+                    level = problem['difficulty']['level']
+                    paid = problem['paid_only'] == 'True'
+                    problem_data = {
+                        'id': id,
+                        'title': title,
+                        'url': url,
+                        'total_acs': total_acs,
+                        'total_submitted': total_submitted,
+                        'level': level,
+                        'paid': str(paid)
+                    }
+                    if paid:
+                        self.leetcode_problems_paid[id] = problem_data
+                    else:
+                        self.leetcode_problems[id] = problem_data
+            except KeyError:
+                self.statuses['leetcode'] = 0
+
     def embed_dmoj_problem(self, name, prob, suggested=False):
         embed = discord.Embed()
+        embed.colour = self.onlineJudges.colours['dmoj']
         url = 'https://dmoj.ca/problem/' + name
         embed.set_thumbnail(url='https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/dmoj-thumbnail.png')
         embed.add_field(name='Points', value=prob['points'], inline=False)
         embed.add_field(name='Partials', value=('Yes' if prob['partial'] else 'No'), inline=False)
         embed.add_field(name='Group', value=prob['group'], inline=False)
+        embed.add_field(name='Types', value='||'+', '.join(prob['types'])+'||', inline=False)
         return ('[:thumbsup: SUGGESTED] ' if suggested else '') + prob['name'], url, embed
 
     def embed_cf_problem(self, prob, suggested=False):
         embed = discord.Embed()
+        embed.colour = self.onlineJudges.colours['codeforces']
         url = 'https://codeforces.com/problemset/problem/' + str(prob['contestId']) + '/' + str(prob['index'])
         embed.set_thumbnail(url='https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/cf-thumbnail.png')
         embed.add_field(name='Type', value=prob['type'], inline=False)
@@ -256,6 +290,7 @@ szkopuł -> [szkopuł] [szkopul]
 
     def embed_atcoder_problem(self, prob):
         embed = discord.Embed()
+        embed.colour = self.onlineJudges.colours['atcoder']
         url = 'https://atcoder.jp/contests/' + prob['contest_id'] + '/tasks/' + prob['id']
         embed.set_thumbnail(url='https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/at-thumbnail.png')
         if prob['point']:
@@ -265,6 +300,7 @@ szkopuł -> [szkopuł] [szkopul]
 
     def embed_cses_problem(self, prob):
         embed = discord.Embed()
+        embed.colour = self.onlineJudges.colours['cses']
         embed.set_thumbnail(url='https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/cses-thumbnail.png')
         embed.add_field(name='Success Rate', value=prob['rate'], inline=False)
         embed.add_field(name='Group', value='||' + prob['group'] + '||', inline=False)
@@ -272,6 +308,7 @@ szkopuł -> [szkopuł] [szkopul]
 
     def embed_szkopul_problem(self, prob):
         embed = discord.Embed()
+        embed.colour = self.onlineJudges.colours['szkopul']
         embed.set_thumbnail(url='https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/szkopul-thumbnail.png')
         if len(prob['tags']) > 0:
             embed.add_field(name='Tags', value=', '.join(prob['tags']), inline=False)
@@ -282,90 +319,17 @@ szkopuł -> [szkopuł] [szkopul]
             embed.add_field(name='Average', value=prob['average'], inline=False)
         return prob['title'], prob['url'], embed
 
-    def get_problem(self, oj, contest_id=None, problem_id=None, szkopul_url=''):
+    def embed_leetcode_problem(self, prob):
+        embed = discord.Embed()
+        embed.colour = self.onlineJudges.colours['leetcode']
+        embed.set_thumbnail(url='https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/lc-thumbnail.png')
+        embed.add_field(name='Total ACs', value=prob['total_acs'], inline=False)
+        embed.add_field(name='Total Submitted', value=prob['total_submitted'], inline=False)
+        embed.add_field(name='Level', value=prob['level'], inline=False)
+        embed.add_field(name='Paid?', value='Yes' if prob['paid'] == 'True' else 'No', inline=False)
+        return prob['title'], prob['url'], embed
 
-        oj = self.onlineJudges.get_oj(oj)
-        if oj != 'szkopul' and problem_id is None:
-            raise ProblemNotFoundException
-        
-        if oj == 'dmoj':
-            if problem_id not in self.dmoj_problems.keys():
-                raise ProblemNotFoundException
-            title, description, embed = self.embed_dmoj_problem(problem_id, self.dmoj_problems[problem_id])
-            embed.title = title
-            embed.description = description + ' (searched in %ss)' % str(round(self.bot.latency, 3))
-            embed.timestamp = datetime.utcnow()
-            return embed
-        
-        elif oj == 'codeforces':
-            if contest_id is None:
-                raise ProblemNotFoundException
-            def is_problem(prob):
-                return prob['contestId'] == int(contest_id) and prob['index'] == problem_id
-            problist = list(filter(is_problem, self.cf_problems))
-            if len(problist) == 0:
-                raise ProblemNotFoundException
-            title, description, embed = self.embed_cf_problem(problist[0])
-            embed.title = title
-            embed.description = description + ' (searched in %ss)' % str(round(self.bot.latency, 3))
-            embed.timestamp = datetime.utcnow()
-            return embed
-
-        elif oj == 'atcoder':
-            if contest_id is None:
-                raise ProblemNotFoundException
-            def is_problem(prob):
-                return prob['contest_id'] == contest_id and prob['id'] == problem_id
-            problist = list(filter(is_problem, self.atcoder_problems))
-            if len(problist) == 0:
-                raise ProblemNotFoundException
-            title, description, embed = self.embed_atcoder_problem(problist[0])
-            embed.title = title
-            embed.description = description + ' (searched in %ss)' % str(round(self.bot.latency, 3))
-            embed.timestamp = datetime.utcnow()
-            return embed
-
-        elif oj == 'cses':
-            if problem_id not in self.cses_problems.keys():
-                raise CSESProblemNotFoundException
-            title, description, embed = self.embed_cses_problem(self.cses_problems[problem_id])
-            embed.title = title
-            embed.description = description + ' (searched in %ss)' % str(round(self.bot.latency, 3))
-            embed.timestamp = datetime.utcnow()
-            return embed
-
-        elif oj == 'szkopul':
-            if szkopul_url == '':
-                raise ProblemNotFoundException
-            def is_problem(prob):
-                return prob['url'] == szkopul_url
-            problist = list(filter(is_problem, list(self.szkopul_problems.values())))
-            if len(problist) == 0:
-                raise ProblemNotFoundException
-            title, description, embed = self.embed_szkopul_problem(problist[0])
-            embed.title = title
-            embed.description = description + ' (searched in %ss)' % str(round(self.bot.latency, 3))
-            embed.timestamp = datetime.utcnow()
-            return embed
-
-    def get_problem_from_url(self, url):
-        components = url.split('/')
-        if url[:24] == 'https://dmoj.ca/problem/' and len(components) == 5:
-            return self.get_problem('dmoj', problem_id=components[4])
-        elif url[:42] == 'https://codeforces.com/problemset/problem/' and len(components) == 7:
-            return self.get_problem('codeforces', components[5], components[6])
-        elif url[:28] == 'https://atcoder.jp/contests/' and len(components) == 7 and components[5] == 'tasks':
-            return self.get_problem('atcoder', components[4], components[6])
-        elif url[:27] == 'https://wcipeg.com/problem/' and len(components) == 5:
-            return self.get_problem('peg', problem_id=components[4])
-        elif url[:32] == 'https://cses.fi/problemset/task/' and len(components) == 6:
-            return self.get_problem('cses', problem_id=components[5])
-        elif url[:42] == 'https://szkopul.edu.pl/problemset/problem/':
-            return self.get_problem('szkopul', szkopul_url=url)
-        else:
-            raise InvalidURLException
-
-    def get_random_problem(self, oj=None, points=None, maximum=None, iden=None):
+    def get_random_problem(self, oj=None, points=None, maximum=None, iden=None, paid=False):
         if oj is None:
             oj = rand.choice(self.onlineJudges.judges)
 
@@ -526,6 +490,13 @@ szkopuł -> [szkopuł] [szkopul]
         elif oj == 'szkopul':
             prob = rand.choice(list(self.szkopul_problems.values()))
             return self.embed_szkopul_problem(prob)
+
+        elif oj == 'leetcode':
+            if paid:
+                prob = rand.choice(self.leetcode_problems + self.leetcode_problems_paid)
+            else:
+                prob = rand.choice(self.leetcode_problems)
+            return self.embed_leetcode_problem(prob)
         
         else:
             raise NoSuchOJException(oj)
@@ -704,7 +675,7 @@ szkopuł -> [szkopuł] [szkopul]
     @tasks.loop(hours=3)
     async def refresh_dmoj_problems(self):
         self.fetch_times['dmoj'] = time()
-        self.parse_dmoj_problems(json_get('https://dmoj.ca/api/problem/list'))
+        self.parse_dmoj_problems()
         
     @refresh_dmoj_problems.before_loop
     async def refresh_dmoj_problems_before(self):
@@ -713,7 +684,7 @@ szkopuł -> [szkopuł] [szkopul]
     @tasks.loop(hours=3)
     async def refresh_cf_problems(self):
         self.fetch_times['codeforces'] = time()
-        self.parse_cf_problems(json_get('https://codeforces.com/api/problemset.problems'))
+        self.parse_cf_problems()
 
     @refresh_cf_problems.before_loop
     async def refresh_cf_problems_before(self):
@@ -722,7 +693,7 @@ szkopuł -> [szkopuł] [szkopul]
     @tasks.loop(hours=3)
     async def refresh_atcoder_problems(self):
         self.fetch_times['atcoder'] = time()
-        self.parse_atcoder_problems(json_get('https://kenkoooo.com/atcoder/resources/merged-problems.json'))
+        self.parse_atcoder_problems()
 
     @refresh_atcoder_problems.before_loop
     async def refresh_atcoder_problems_before(self):
@@ -731,7 +702,7 @@ szkopuł -> [szkopuł] [szkopul]
     @tasks.loop(hours=3)
     async def refresh_cses_problems(self):
         self.fetch_times['cses'] = time()
-        self.parse_cses_problems(requests.get('https://cses.fi/problemset/list/'))
+        self.parse_cses_problems()
 
     @refresh_cses_problems.before_loop
     async def refresh_cses_problems_before(self):
@@ -744,6 +715,15 @@ szkopuł -> [szkopuł] [szkopul]
 
     @refresh_szkopul_problems.before_loop
     async def refresh_szkopul_problems_before(self):
+        await self.bot.wait_until_ready()
+
+    @tasks.loop(hours=3)
+    async def refresh_leetcode_problems(self):
+        self.fetch_times['leetcode'] = time()
+        self.parse_leetcode_problems()
+
+    @refresh_leetcode_problems.before_loop
+    async def refresh_leetcode_problems_before(self):
         await self.bot.wait_until_ready()
 
     @commands.command()
