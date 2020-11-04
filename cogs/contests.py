@@ -108,7 +108,7 @@ class ContestCog(commands.Cog):
         self.fetch_time = time()
 
     def parse_dmoj_contests(self):
-        contest_req = rrequests.get('https://dmoj.ca/api/contest/list')
+        contest_req = requests.get('https://dmoj.ca/api/contest/list')
         if contest_req.status_code == 200:
             contests = contest_req.json()
             for contest in range(len(contests)):
