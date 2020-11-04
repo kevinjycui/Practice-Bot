@@ -268,7 +268,7 @@ class ProblemCog(commands.Cog):
         embed = discord.Embed()
         embed.colour = self.onlineJudges.colours['dmoj']
         url = 'https://dmoj.ca/problem/' + name
-        embed.set_thumbnail(url='https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/dmoj-thumbnail.png')
+        embed.set_thumbnail(url=self.onlineJudges.thumbnails['dmoj'])
         embed.add_field(name='Points', value=prob['points'], inline=False)
         embed.add_field(name='Partials', value=('Yes' if prob['partial'] else 'No'), inline=False)
         embed.add_field(name='Group', value=prob['group'], inline=False)
@@ -279,7 +279,7 @@ class ProblemCog(commands.Cog):
         embed = discord.Embed()
         embed.colour = self.onlineJudges.colours['codeforces']
         url = 'https://codeforces.com/problemset/problem/' + str(prob['contestId']) + '/' + str(prob['index'])
-        embed.set_thumbnail(url='https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/cf-thumbnail.png')
+        embed.set_thumbnail(url=self.onlineJudges.thumbnails['codeforces'])
         embed.add_field(name='Type', value=prob['type'], inline=False)
         if 'points' in prob.keys():
             embed.add_field(name='Points', value=prob['points'], inline=False)
@@ -292,7 +292,7 @@ class ProblemCog(commands.Cog):
         embed = discord.Embed()
         embed.colour = self.onlineJudges.colours['atcoder']
         url = 'https://atcoder.jp/contests/' + prob['contest_id'] + '/tasks/' + prob['id']
-        embed.set_thumbnail(url='https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/at-thumbnail.png')
+        embed.set_thumbnail(url=self.onlineJudges.thumbnails['atcoder'])
         if prob['point']:
             embed.add_field(name='Points', value=prob['point'], inline=False)
         embed.add_field(name='Solver Count', value=prob['solver_count'], inline=False)
@@ -301,7 +301,7 @@ class ProblemCog(commands.Cog):
     def embed_cses_problem(self, prob):
         embed = discord.Embed()
         embed.colour = self.onlineJudges.colours['cses']
-        embed.set_thumbnail(url='https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/cses-thumbnail.png')
+        embed.set_thumbnail(url=self.onlineJudges.thumbnails['cses'])
         embed.add_field(name='Success Rate', value=prob['rate'], inline=False)
         embed.add_field(name='Group', value='||' + prob['group'] + '||', inline=False)
         return prob['name'], prob['url'], embed
@@ -309,7 +309,7 @@ class ProblemCog(commands.Cog):
     def embed_szkopul_problem(self, prob):
         embed = discord.Embed()
         embed.colour = self.onlineJudges.colours['szkopul']
-        embed.set_thumbnail(url='https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/szkopul-thumbnail.png')
+        embed.set_thumbnail(url=self.onlineJudges.thumbnails['szkopul'])
         if len(prob['tags']) > 0:
             embed.add_field(name='Tags', value=', '.join(prob['tags']), inline=False)
         embed.add_field(name='Submitters', value=prob['submitters'], inline=False)
@@ -322,7 +322,7 @@ class ProblemCog(commands.Cog):
     def embed_leetcode_problem(self, prob):
         embed = discord.Embed()
         embed.colour = self.onlineJudges.colours['leetcode']
-        embed.set_thumbnail(url='https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/lc-thumbnail.png')
+        embed.set_thumbnail(url=self.onlineJudges.thumbnails['leetcode'])
         embed.add_field(name='Total ACs', value=prob['total_acs'], inline=False)
         embed.add_field(name='Total Submitted', value=prob['total_submitted'], inline=False)
         embed.add_field(name='Level', value=prob['level'], inline=False)

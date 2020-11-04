@@ -29,7 +29,7 @@ class OnlineJudges:
         'atcoder': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/at-thumbnail.png',
         'cses': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/cses-thumbnail.png',
         'szkopul': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/szkopul-thumbnail.png',
-        'leetcide': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/lc-thumbnail.png'
+        'leetcode': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/lc-thumbnail.png'
     }
     colours = {
         'dmoj': discord.Colour(int('fcdc00', 16)),
