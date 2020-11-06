@@ -12,8 +12,10 @@ env/
 
 *.bat
 *.sh
+!bot*.sh
+
 *.pem
 
 .idea/
 
-log.txt
+stderr.log
