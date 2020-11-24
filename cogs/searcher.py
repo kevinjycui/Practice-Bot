@@ -136,16 +136,18 @@ class SearcherCog(commands.Cog):
             message = '\n'
             message += 'CPU Time: `' + ((str(response['cpuTime']) + 's') if response['cpuTime'] is not None else 'N/A') + '`\n'
             message += 'Memory: `' + ((str(response['memory']) + 'KB') if response['memory'] is not None else 'N/A') + '`\n'
-            if len(message + '\n```' + response['output'] + '```') > 2000:
-                with open('data/solution.txt', 'w+') as f:
-                    f.write(response['output'])
-                await ctx.send(ctx.message.author.mention + message + '\n That\'s a really long output, I put it in this file for you.', file=discord.File('data/solution.txt', 'output.txt'))    
-            else:
+            try:
                 if len(response['output']) > 0:
                     message += '\n```' + response['output'] + '```'
                 else:
                     message += '\n```\n```'
                 await ctx.send(ctx.message.author.mention + message)
+
+            except discord.errors.HTTPException:
+                with open('data/solution.txt', 'w+') as f:
+                    f.write(response['output'])
+                await ctx.send(ctx.message.author.mention + message + '\n That\'s a really long output, I put it in this file for you.', file=discord.File('data/solution.txt', 'output.txt'))    
+
 
 def setup(bot):
     bot.add_cog(SearcherCog(bot))

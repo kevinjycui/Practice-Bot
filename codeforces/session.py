@@ -34,7 +34,10 @@ class Session:
             raise InvalidCodeforcesSessionException(response.status_code)
         soup = bs.BeautifulSoup(response.text, 'lxml')
         try:
-            self.handle = soup.find('h1').find('a').contents[0]
+            if soup.find('h1').find('a').find('span') is not None:
+                self.handle = soup.find('h1').find('a').contents[0].contents[0] + soup.find('h1').find('a').contents[1]
+            else:
+                self.handle = soup.find('h1').find('a').contents[0]
         except AttributeError:
             raise InvalidCodeforcesSessionException(404)
         self.time = time()
@@ -63,10 +66,3 @@ class Session:
             raise PrivateSubmissionException
         source = soup.find('body').find('pre').contents[0]
         return self.hash in source
-
-if __name__ == '__main__':
-    class User:
-        id = 1234
-    session = Session('ManchurioX', User())
-    session.token = '93a0cd0a9e572f50321bfe7dc9b1cea25f820567131a6ba49baac4acf8cd444e'
-    session.validate()
