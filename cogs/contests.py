@@ -108,13 +108,13 @@ class ContestCog(commands.Cog):
         self.fetch_time = time()
 
     def parse_dmoj_contests(self):
-        contest_req = requests.get('https://dmoj.ca/api/contest/list')
+        contest_req = requests.get('https://dmoj.ca/api/v2/contests')
         if contest_req.status_code == 200:
-            contests = contest_req.json()
-            for contest in range(len(contests)):
-                name, details = list(contests.items())[contest]
+            contests = contest_req.json()['data']['objects']
+            for details in contests:
+                name = details['key']
                 if datetime.strptime(details['start_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z').timestamp() > time():
-                    spec = requests.get('https://dmoj.ca/api/contest/info/' + name).json()
+                    spec = requests.get('https://dmoj.ca/api/v2/contest/' + name).json()['data']['object']
                     url = 'https://dmoj.ca/contest/' + name
                     contest_data = {
                         'title': ':trophy: %s' % details['name'],
@@ -124,10 +124,10 @@ class ContestCog(commands.Cog):
                         'Start Time': datetime.strptime(details['start_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z').strftime('%Y-%m-%d %H:%M:%S%z'),
                         'End Time': datetime.strptime(details['end_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z').strftime('%Y-%m-%d %H:%M:%S%z')
                     }
-                    if details['time_limit']:
-                        contest_data['Time Limit'] = details['time_limit']
-                    if len(details['labels']) > 0:
-                        contest_data['Labels'] = ', '.join(details['labels'])
+                    if spec['time_limit'] is not None:
+                        contest_data['Window'] = '%d:%d:%d' % (spec['time_limit']//(60*60), spec['time_limit']%(60*60)//60, spec['time_limit']%60)
+                    if len(spec['tags']) > 0:
+                        contest_data['Tags'] = ', '.join(spec['tags'])
                     contest_data['Rated'] ='Yes' if spec['is_rated'] else 'No'
                     contest_data['Format'] = spec['format']['name']
                     if contest_data['title'] not in self.dmoj_contest_titles:
