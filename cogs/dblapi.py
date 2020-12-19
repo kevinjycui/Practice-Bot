@@ -1,9 +1,9 @@
 import discord
 from discord.ext import commands, tasks
 import dbl
-import requests
 import json
 import sys
+from utils.webclient import webc
 
 
 class DiscordBotLists(commands.Cog):
@@ -16,9 +16,9 @@ class DiscordBotLists(commands.Cog):
     @tasks.loop(minutes=30)
     async def post_guild_count(self):
         self.data['server_count'] = len(self.bot.guilds)
-        response = requests.post('https://botblock.org/api/count', json=self.data, headers={'Content-type':'application/json', 'Accept':'application/json'})
+        response = await webc.webget_json('https://botblock.org/api/count', json=self.data, headers={'Content-type':'application/json', 'Accept':'application/json'})
         with open('log.txt', 'w+') as log:
-            print(response.json(), file=log)
+            print(response, file=log)
 
     @post_guild_count.before_loop
     async def post_guild_count_before(self):

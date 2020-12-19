@@ -5,4 +5,4 @@ then
     . env/bin/activate
 fi
 
-python3 bot.py 2>> stderr.log
+python3 bot.py

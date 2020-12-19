@@ -1,7 +1,6 @@
 import discord
 from discord.ext import commands, tasks
 import random as rand
-import requests
 import json
 import urllib
 import wikipedia
@@ -10,6 +9,7 @@ import yaml
 from datetime import datetime
 import bs4 as bs
 from bs4.element import Comment
+from utils.webclient import webc
 
 
 try:
@@ -56,11 +56,11 @@ class SearcherCog(commands.Cog):
             return False
         return True
 
-    def wcipegScrape(self, name):
+    async def wcipegScrape(self, name):
         if self.valid('http://wcipeg.com/wiki/%s' % name.replace(' ', '_')):
             try:
                 url = 'http://wcipeg.com/wiki/%s' % name.replace(' ', '_')
-                wiki_response = requests.get(url).text
+                wiki_response = await webc.webget_text(url)
                 soup = bs.BeautifulSoup(wiki_response, 'lxml')
                 scan = True
                 title = soup.find('h1', attrs={'id': 'firstHeading'}).contents[0]
@@ -77,7 +77,7 @@ class SearcherCog(commands.Cog):
             prefix = await self.bot.command_prefix(self.bot, ctx.message)
             await ctx.send(ctx.message.author.display_name + ', Invalid query. Please use format `%swhatis <thing>`.' % prefix)
             return
-        peg_res = self.wcipegScrape(name)
+        peg_res = await self.wcipegScrape(name)
         if peg_res is not None:
             title, summary, url = peg_res
             embed = discord.Embed(title=title, description=url + ' (searched in %ss)' % str(round(self.bot.latency, 3)))
@@ -99,7 +99,7 @@ class SearcherCog(commands.Cog):
         if rand.randint(0, 100) == 0:
             data = [{'url':'https://bit.ly/3jiPSzb'}]
         else:
-            data = requests.get('https://api.thecatapi.com/v1/images/search?x-api-key=' + cat_api).json()
+            data = await webc.webget_json('https://api.thecatapi.com/v1/images/search?x-api-key=' + cat_api)
         await ctx.send(ctx.message.author.display_name + ', :smiley_cat: ' + data[0]['url'])
 
     @commands.command()
@@ -109,7 +109,7 @@ class SearcherCog(commands.Cog):
             await ctx.send(ctx.message.author.display_name + ', Invalid query. Please use format `%srun <language> "<stdin>" <script>`.' % prefix)
             return
         headers = {'Content-type':'application/json', 'Accept':'application/json'}
-        credit_spent = requests.post('https://api.jdoodle.com/v1/credit-spent', json={'clientId': client_id, 'clientSecret': client_secret}, headers=headers).json()
+        credit_spent = await webc.webpost_json('https://api.jdoodle.com/v1/credit-spent', json={'clientId': client_id, 'clientSecret': client_secret}, headers=headers)
         if 'error' not in credit_spent and credit_spent['used'] >= 200:
             await ctx.send(ctx.message.author.display_name + ', Sorry, the daily limit of compilations has been surpassed (200). Please wait until 12:00 AM UTC')
             return
@@ -127,9 +127,9 @@ class SearcherCog(commands.Cog):
             'language': lang,
             'versionIndex': 0
             }
-        response = requests.post('https://api.jdoodle.com/v1/execute', json=data, headers=headers).json()
+        response = await webc.webpost_json('https://api.jdoodle.com/v1/execute', json=data, headers=headers)
         if 'error' in response and response['statusCode'] == 400:
-            await ctx.send(ctx.message.author.display_name + ', Invalid request. Perhaps the language you\'re using is unavailable.')
+            await ctx.send(ctx.message.author.display_name + ', Invalid request. Perhaps the language you\'re using is unavailable. See languages here: https://docs.jdoodle.com/compiler-api/compiler-api#what-languages-and-versions-supported')
         elif 'error' in response:
             await ctx.send(ctx.message.author.display_name + ', Compilation failed. The compiler may be down.')
         else:
@@ -141,12 +141,12 @@ class SearcherCog(commands.Cog):
                     message += '\n```' + response['output'] + '```'
                 else:
                     message += '\n```\n```'
-                await ctx.send(ctx.message.author.mention + message)
+                await ctx.send(ctx.message.author.display_name + message)
 
             except discord.errors.HTTPException:
                 with open('data/solution.txt', 'w+') as f:
                     f.write(response['output'])
-                await ctx.send(ctx.message.author.mention + message + '\n That\'s a really long output, I put it in this file for you.', file=discord.File('data/solution.txt', 'output.txt'))    
+                await ctx.send(ctx.message.author.display_name + message + '\n That\'s a really long output, I put it in this file for you.', file=discord.File('data/solution.txt', 'output.txt'))    
 
 
 def setup(bot):

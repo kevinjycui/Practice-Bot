@@ -5,11 +5,11 @@ from time import time
 import random as rand
 from datetime import datetime, timedelta
 import json
-import requests
 import bs4 as bs
 import pytz
 from connector import mySQLConnection as query
 from utils.onlinejudges import OnlineJudges, NoSuchOJException
+from utils.webclient import webc
 
 
 class Contest(object):
@@ -107,76 +107,72 @@ class ContestCog(commands.Cog):
     def set_time(self):
         self.fetch_time = time()
 
-    def parse_dmoj_contests(self):
-        contest_req = requests.get('https://dmoj.ca/api/v2/contests')
-        if contest_req.status_code == 200:
-            contests = contest_req.json()['data']['objects']
-            for details in contests:
-                name = details['key']
-                if datetime.strptime(details['start_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z').timestamp() > time():
-                    spec = requests.get('https://dmoj.ca/api/v2/contest/' + name).json()['data']['object']
-                    url = 'https://dmoj.ca/contest/' + name
-                    contest_data = {
-                        'title': ':trophy: %s' % details['name'],
-                        'description': url,
-                        'oj': 'dmoj',
-                        'thumbnail': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/dmoj-thumbnail.png',
-                        'Start Time': datetime.strptime(details['start_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z').strftime('%Y-%m-%d %H:%M:%S%z'),
-                        'End Time': datetime.strptime(details['end_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z').strftime('%Y-%m-%d %H:%M:%S%z')
-                    }
-                    if spec['time_limit'] is not None:
-                        contest_data['Window'] = '%d:%d:%d' % (spec['time_limit']//(60*60), spec['time_limit']%(60*60)//60, spec['time_limit']%60)
-                    if len(spec['tags']) > 0:
-                        contest_data['Tags'] = ', '.join(spec['tags'])
-                    contest_data['Rated'] ='Yes' if spec['is_rated'] else 'No'
-                    contest_data['Format'] = spec['format']['name']
-                    if contest_data['title'] not in self.dmoj_contest_titles:
-                        self.dmoj_contest_titles.append(contest_data['title'])
-                        self.dmoj_contests.append(Contest(contest_data))
-            self.dmoj_contests = list(set(self.dmoj_contests))
+    async def parse_dmoj_contests(self):
+        contest_req = await webc.webget_json('https://dmoj.ca/api/v2/contests')
+        contests = contest_req['data']['objects']
+        for details in contests:
+            name = details['key']
+            if datetime.strptime(details['start_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z').timestamp() > time():
+                spec = webc.webget_json('https://dmoj.ca/api/v2/contest/' + name)['data']['object']
+                url = 'https://dmoj.ca/contest/' + name
+                contest_data = {
+                    'title': ':trophy: %s' % details['name'],
+                    'description': url,
+                    'oj': 'dmoj',
+                    'thumbnail': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/dmoj-thumbnail.png',
+                    'Start Time': datetime.strptime(details['start_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z').strftime('%Y-%m-%d %H:%M:%S%z'),
+                    'End Time': datetime.strptime(details['end_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z').strftime('%Y-%m-%d %H:%M:%S%z')
+                }
+                if spec['time_limit'] is not None:
+                    contest_data['Window'] = '%d:%d:%d' % (spec['time_limit']//(60*60), spec['time_limit']%(60*60)//60, spec['time_limit']%60)
+                if len(spec['tags']) > 0:
+                    contest_data['Tags'] = ', '.join(spec['tags'])
+                contest_data['Rated'] ='Yes' if spec['is_rated'] else 'No'
+                contest_data['Format'] = spec['format']['name']
+                if contest_data['title'] not in self.dmoj_contest_titles:
+                    self.dmoj_contest_titles.append(contest_data['title'])
+                    self.dmoj_contests.append(Contest(contest_data))
+        self.dmoj_contests = list(set(self.dmoj_contests))
 
-    def parse_cf_contests(self):
-        contest_req = requests.get('https://codeforces.com/api/contest.list')
-        if contest_req.status_code == 200 and contest_req.json()['status'] == 'OK':
-            contests = contest_req.json()
-            for contest in range(len(contests.get('result', []))):
-                details = contests['result'][contest]
-                if details['phase'] == 'BEFORE':
-                    url = 'https://codeforces.com/contest/' + str(details['id'])
-                    contest_data = {
-                        'title': ':trophy: %s' % details['name'],
-                        'description': url,
-                        'oj': 'codeforces',
-                        'thumbnail': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/cf-thumbnail.png',
-                        'Type': details['type'],
-                        'Start Time': datetime.utcfromtimestamp(details['startTimeSeconds']).strftime('%Y-%m-%d %H:%M:%S'),
-                        'Time Limit': '%s:%s:%s' % (str(details['durationSeconds']//(24*3600)).zfill(2), str(details['durationSeconds']%(24*3600)//3600).zfill(2), str(details['durationSeconds']%3600//60).zfill(2))
-                    }
-                    if contest_data['title'] not in self.cf_contest_titles:
-                        self.cf_contest_titles.append(contest_data['title'])
-                        self.cf_contests.append(Contest(contest_data))
-            self.cf_contests = list(set(self.cf_contests))
+    async def parse_cf_contests(self):
+        contests = await webc.webget_json('https://codeforces.com/api/contest.list')
+        for contest in range(len(contests.get('result', []))):
+            details = contests['result'][contest]
+            if details['phase'] == 'BEFORE':
+                url = 'https://codeforces.com/contest/' + str(details['id'])
+                contest_data = {
+                    'title': ':trophy: %s' % details['name'],
+                    'description': url,
+                    'oj': 'codeforces',
+                    'thumbnail': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/cf-thumbnail.png',
+                    'Type': details['type'],
+                    'Start Time': datetime.utcfromtimestamp(details['startTimeSeconds']).strftime('%Y-%m-%d %H:%M:%S'),
+                    'Time Limit': '%s:%s:%s' % (str(details['durationSeconds']//(24*3600)).zfill(2), str(details['durationSeconds']%(24*3600)//3600).zfill(2), str(details['durationSeconds']%3600//60).zfill(2))
+                }
+                if contest_data['title'] not in self.cf_contest_titles:
+                    self.cf_contest_titles.append(contest_data['title'])
+                    self.cf_contests.append(Contest(contest_data))
+        self.cf_contests = list(set(self.cf_contests))
 
-    def parse_atcoder_contests(self):
-        contests = requests.get('https://atcoder.jp/contests/?lang=en')
-        if contests.status_code == 200:
-            soup = bs.BeautifulSoup(contests.text, 'lxml')
-            for contest in soup.find_all('table')[1].find('tbody').find_all('tr'):
-                details = contest.find_all('td')
-                if datetime.strptime(details[0].find('a').find('time').contents[0], '%Y-%m-%d %H:%M:%S%z').timestamp() > time():
-                    contest_data = {
-                        'title': ':trophy: %s' % details[1].find('a').contents[0],
-                        'description': 'https://atcoder.jp' + details[1].find('a')['href'],
-                        'oj': 'atcoder',
-                        'thumbnail': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/at-thumbnail.png',
-                        'Start Time': datetime.strptime(details[0].find('a').find('time').contents[0], '%Y-%m-%d %H:%M:%S%z').strftime('%Y-%m-%d %H:%M:%S%z'),
-                        'Time Limit':  details[2].contents[0] + ':00',
-                        'Rated Range': details[3].contents[0]
-                    }
-                    if contest_data['title'] not in self.atcoder_contest_titles:
-                        self.atcoder_contest_titles.append(contest_data['title'])
-                        self.atcoder_contests.append(Contest(contest_data))
-            self.atcoder_contests = list(set(self.atcoder_contests))
+    async def parse_atcoder_contests(self):
+        contests = await webc.webget_text('https://atcoder.jp/contests/?lang=en')
+        soup = bs.BeautifulSoup(contests, 'lxml')
+        for contest in soup.find_all('table')[1 + len(soup.find_all('div', attrs={'id': 'contest-table-action'}))].find('tbody').find_all('tr'):
+            details = contest.find_all('td')
+            if datetime.strptime(details[0].find('a').find('time').contents[0], '%Y-%m-%d %H:%M:%S%z').timestamp() > time():
+                contest_data = {
+                    'title': ':trophy: %s' % details[1].find('a').contents[0],
+                    'description': 'https://atcoder.jp' + details[1].find('a')['href'],
+                    'oj': 'atcoder',
+                    'thumbnail': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/at-thumbnail.png',
+                    'Start Time': datetime.strptime(details[0].find('a').find('time').contents[0], '%Y-%m-%d %H:%M:%S%z').strftime('%Y-%m-%d %H:%M:%S%z'),
+                    'Time Limit':  details[2].contents[0] + ':00',
+                    'Rated Range': details[3].contents[0]
+                }
+                if contest_data['title'] not in self.atcoder_contest_titles:
+                    self.atcoder_contest_titles.append(contest_data['title'])
+                    self.atcoder_contests.append(Contest(contest_data))
+        self.atcoder_contests = list(set(self.atcoder_contests))
 
     def embed_contest(self, contest):
         embed = discord.Embed(title=contest.asdict()['title'], description=contest.asdict()['description'])
@@ -287,19 +283,19 @@ class ContestCog(commands.Cog):
     async def refresh_contests(self):
         try:
             self.reset_contest('dmoj')
-            self.parse_dmoj_contests()
+            await self.parse_dmoj_contests()
         except:
             pass
 
         try:
             self.reset_contest('codeforces')
-            self.parse_cf_contests()
+            await self.parse_cf_contests()
         except:
             pass
 
         try:
             self.reset_contest('atcoder')
-            self.parse_atcoder_contests()
+            await self.parse_atcoder_contests()
         except:
             pass
 

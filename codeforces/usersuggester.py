@@ -1,6 +1,6 @@
-import requests
 import bs4 as bs
 from time import time
+from utils.webclient import webc
 
 
 class UserSuggester(object):
@@ -9,15 +9,14 @@ class UserSuggester(object):
         self.handle = handle
         self.points_min = 1
         self.points_max = 50
-        self.update_pp_range()
         self.expand_up = True
     
-    def update_pp_range(self):
-        response = requests.get('https://codeforces.com/api/user.status?handle=%s&from=1&count=100' % self.handle)
-        if response.status_code != 200 or response.json()['status'] != 'OK':
+    async def update_pp_range(self):
+        response = await webc.webget_json('https://codeforces.com/api/user.status?handle=%s&from=1&count=100' % self.handle)
+        if response['status'] != 'OK':
             return
         self.time = time()
-        submissions = response.json()['result']
+        submissions = response['result']
         points = []
         for submission in submissions:
             try:

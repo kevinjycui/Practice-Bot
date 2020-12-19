@@ -2,10 +2,9 @@ import discord
 from discord.ext import commands, tasks
 from datetime import datetime, date
 import random as rand
-import requests
 import bs4 as bs
 from dmoj.session import Session as DMOJSession
-from dmoj.session import InvalidSessionException, VerificationException
+from dmoj.session import InvalidDMOJSessionException, VerificationException
 from dmoj.language import Language
 from dmoj.usersuggester import UserSuggester as DMOJUserSuggester
 from codeforces.session import Session as CodeforcesSession
@@ -14,6 +13,7 @@ from codeforces.usersuggester import UserSuggester as CodeforcesUserSuggester
 from connector import mySQLConnection as query
 from utils.onlinejudges import OnlineJudges, NoSuchOJException
 from utils.country import Country, InvalidCountryException
+from utils.webclient import webc
 import json
 import re
 from time import time
@@ -120,46 +120,40 @@ class ProblemCog(commands.Cog):
                 await ctx.send(ctx.message.author.display_name + ', Sorry, no online judge found. Search only for online judges used by this bot ' + str(self.onlineJudges))
 
 
-    def parse_dmoj_problems(self):
-        problem_req = requests.get('https://dmoj.ca/api/v2/problems')
-        if problem_req.status_code == 200:
-            try:
-                problems = problem_req.json()['data']['objects']
-                self.statuses['dmoj'] =  1
-                for problem in problems:
-                    self.dmoj_problems[problem['code']] = problem
-                self.problems_by_points['dmoj'] = {}
-                for name, details in self.dmoj_problems.items():
-                    if details['points'] not in self.problems_by_points['dmoj']:
-                        self.problems_by_points['dmoj'][details['points']] = {}
-                    self.problems_by_points['dmoj'][details['points']][name] = details
-            except KeyError:
-                self.statuses['dmoj'] = 0
-        else:
+    async def parse_dmoj_problems(self):
+        try:
+            problem_req = await webc.webget_json('https://dmoj.ca/api/v2/problems')
+            problems = problem_req['data']['objects']
+            self.statuses['dmoj'] =  1
+            for problem in problems:
+                self.dmoj_problems[problem['code']] = problem
+            self.problems_by_points['dmoj'] = {}
+            for name, details in self.dmoj_problems.items():
+                if details['points'] not in self.problems_by_points['dmoj']:
+                    self.problems_by_points['dmoj'][details['points']] = {}
+                self.problems_by_points['dmoj'][details['points']][name] = details
+        except Exception as e:
             self.statuses['dmoj'] = 0
+            raise e
 
-    def parse_cf_problems(self):
-        problem_req = requests.get('https://codeforces.com/api/problemset.problems')
-        if problem_req.status_code == 200:
-            problems = problem_req.json()
+    async def parse_cf_problems(self):
+        try:
+            problems = await webc.webget_json('https://codeforces.com/api/problemset.problems')
             self.statuses['codeforces'] =  1
-            try:
-                self.cf_problems = problems['result']['problems']
-                self.problems_by_points['codeforces'] = {}
-                for details in self.cf_problems:
-                    if 'points' in details.keys():
-                        if details['points'] not in self.problems_by_points['codeforces']:
-                            self.problems_by_points['codeforces'][details['points']] = []
-                        self.problems_by_points['codeforces'][details['points']].append(details)
-            except KeyError:
-                self.statuses['codeforces'] = 0
-        else:
+            self.cf_problems = problems['result']['problems']
+            self.problems_by_points['codeforces'] = {}
+            for details in self.cf_problems:
+                if 'points' in details.keys():
+                    if details['points'] not in self.problems_by_points['codeforces']:
+                        self.problems_by_points['codeforces'][details['points']] = []
+                    self.problems_by_points['codeforces'][details['points']].append(details)
+        except Exception as e:
             self.statuses['codeforces'] = 0
+            raise e
 
-    def parse_atcoder_problems(self):
-        problem_req = requests.get('https://kenkoooo.com/atcoder/resources/merged-problems.json')
-        if problem_req.status_code == 200:
-            problems = problem_req.json()
+    async def parse_atcoder_problems(self):
+        try:
+            problems = await webc.webget_json('https://kenkoooo.com/atcoder/resources/merged-problems.json')
             self.statuses['atcoder'] =  1
             self.atcoder_problems = problems
             self.problems_by_points['atcoder'] = {}
@@ -168,14 +162,15 @@ class ProblemCog(commands.Cog):
                     if details['point'] not in self.problems_by_points['atcoder']:
                         self.problems_by_points['atcoder'][details['point']] = []
                     self.problems_by_points['atcoder'][details['point']].append(details)
-        else:
+        except Exception as e:
             self.statuses['atcoder'] = 0
+            raise e
 
-    def parse_cses_problems(self):
-        problems = requests.get('https://cses.fi/problemset/list/')
-        if problems.status_code == 200:
+    async def parse_cses_problems(self):
+        try:
+            problems = await webc.webget_text('https://cses.fi/problemset/list/')
             self.statuses['cses'] =  1
-            soup = bs.BeautifulSoup(problems.text, 'lxml')
+            soup = bs.BeautifulSoup(problems, 'lxml')
             task_lists = soup.find_all('ul', attrs={'class' : 'task-list'})
             task_groups = soup.find_all('h2')
             self.cses_problems = {}
@@ -195,14 +190,15 @@ class ProblemCog(commands.Cog):
                         'group': group
                     }
                     self.cses_problems[id] = cses_data
-        else:
+        except Exception as e:
             self.statuses['cses'] = 0
+            raise e
 
-    def parse_szkopul_problems(self):
-        problems = requests.get('https://szkopul.edu.pl/problemset/?page=%d' % self.szkopul_page)
-        if problems.status_code == 200:
+    async def parse_szkopul_problems(self):
+        try:
+            problems = await webc.webget_text('https://szkopul.edu.pl/problemset/?page=%d' % self.szkopul_page)
             self.statuses['szkopul'] =  1
-            soup = bs.BeautifulSoup(problems.text, 'lxml')
+            soup = bs.BeautifulSoup(problems, 'lxml')
             rows = soup.find_all('tr')
             if self.szkopul_page == 1:
                 self.szkopul_problems = {}
@@ -231,38 +227,39 @@ class ProblemCog(commands.Cog):
                     problem_data['average'] = data[5].contents[0]
                 self.szkopul_problems[id] = problem_data
             self.szkopul_page += 1
-        else:
+        except Exception as e:
             self.statuses['szkopul'] = 0
+            raise e
 
-    def parse_leetcode_problems(self):
-        problems = requests.get('https://leetcode.com/api/problems/algorithms/')
-        if problems.status_code == 200:
-            try:
-                self.statuses['leetcode'] = 1
-                problemlist = problems.json()['stat_status_pairs']
-                for problem in problemlist:
-                    id = problem['stat']['frontend_question_id']
-                    title = problem['stat']['question__title']
-                    url = 'https://leetcode.com/problems/' + problem['stat']['question__title_slug']
-                    total_acs = problem['stat']['total_acs']
-                    total_submitted = problem['stat']['total_submitted']
-                    level = problem['difficulty']['level']
-                    paid = problem['paid_only'] == 'True'
-                    problem_data = {
-                        'id': id,
-                        'title': title,
-                        'url': url,
-                        'total_acs': total_acs,
-                        'total_submitted': total_submitted,
-                        'level': level,
-                        'paid': str(paid)
-                    }
-                    if paid:
-                        self.leetcode_problems_paid[id] = problem_data
-                    else:
-                        self.leetcode_problems[id] = problem_data
-            except KeyError:
-                self.statuses['leetcode'] = 0
+    async def parse_leetcode_problems(self):
+        try:
+            problems = await webc.webget_json('https://leetcode.com/api/problems/algorithms/')
+            self.statuses['leetcode'] = 1
+            problemlist = problems['stat_status_pairs']
+            for problem in problemlist:
+                id = problem['stat']['frontend_question_id']
+                title = problem['stat']['question__title']
+                url = 'https://leetcode.com/problems/' + problem['stat']['question__title_slug']
+                total_acs = problem['stat']['total_acs']
+                total_submitted = problem['stat']['total_submitted']
+                level = problem['difficulty']['level']
+                paid = problem['paid_only'] == 'True'
+                problem_data = {
+                    'id': id,
+                    'title': title,
+                    'url': url,
+                    'total_acs': total_acs,
+                    'total_submitted': total_submitted,
+                    'level': level,
+                    'paid': str(paid)
+                }
+                if paid:
+                    self.leetcode_problems_paid[id] = problem_data
+                else:
+                    self.leetcode_problems[id] = problem_data
+        except Exception as e:
+            self.statuses['leetcode'] = 0
+            raise e
 
     def embed_dmoj_problem(self, name, prob, suggested=False):
         embed = discord.Embed()
@@ -329,7 +326,7 @@ class ProblemCog(commands.Cog):
         embed.add_field(name='Paid?', value='Yes' if prob['paid'] == 'True' else 'No', inline=False)
         return prob['title'], prob['url'], embed
 
-    def get_random_problem(self, oj=None, points=None, maximum=None, iden=None, paid=False):
+    async def get_random_problem(self, oj=None, points=None, maximum=None, iden=None, paid=False):
         if oj is None:
             oj = rand.choice(self.onlineJudges.judges)
 
@@ -353,36 +350,36 @@ class ProblemCog(commands.Cog):
                 if oj == 'dmoj':
                     if iden not in self.dmoj_user_suggests.keys():
                         self.dmoj_user_suggests[iden] = DMOJUserSuggester(user_data[iden]['dmoj'])
+                        await self.dmoj_user_suggests[iden].update_pp_range()
                     points, maximum = self.dmoj_user_suggests[iden].get_pp_range()
                 elif oj == 'codeforces':
                     if iden not in self.cf_user_suggests.keys():
                         self.cf_user_suggests[iden] = CodeforcesUserSuggester(user_data[iden]['codeforces'])
+                        await self.cf_user_suggests[iden].update_pp_range()
                     points, maximum = self.cf_user_suggests[iden].get_pp_range()
                 
             if not user_data[iden]['can_repeat']:
                 if oj == 'dmoj' and user_data[iden]['dmoj'] is not None:
-                    user_request = requests.get('https://dmoj.ca/api/user/info/%s' % user_data[iden]['dmoj'])
-                    if user_request.status_code == 200:
-                        user_response = user_request.json()
-                        if points is None:
-                            for name, prob in list(self.dmoj_problems.items()):
+                    user_response = await webc.webget_json('https://dmoj.ca/api/user/info/%s' % user_data[iden]['dmoj'])
+                    if points is None:
+                        for name, prob in list(self.dmoj_problems.items()):
+                            if name not in user_response['solved_problems']:
+                                temp_dmoj_problems[name] = prob
+                    else:
+                        temp_dmoj_problems['dmoj'] = {}
+                        for point in list(self.problems_by_points['dmoj']):
+                            temp_dmoj_problems['dmoj'][point] = {}
+                            for name, prob in list(self.problems_by_points['dmoj'][point].items()):
                                 if name not in user_response['solved_problems']:
-                                    temp_dmoj_problems[name] = prob
-                        else:
-                            temp_dmoj_problems['dmoj'] = {}
-                            for point in list(self.problems_by_points['dmoj']):
-                                temp_dmoj_problems['dmoj'][point] = {}
-                                for name, prob in list(self.problems_by_points['dmoj'][point].items()):
-                                    if name not in user_response['solved_problems']:
-                                        temp_dmoj_problems['dmoj'][point][name] = prob
-                        if temp_dmoj_problems == {}:
-                            raise InvalidParametersException()
+                                    temp_dmoj_problems['dmoj'][point][name] = prob
+                    if temp_dmoj_problems == {}:
+                        raise InvalidParametersException()
                 elif oj == 'codeforces' and user_data[iden]['codeforces'] is not None:
-                    response = requests.get('https://codeforces.com/api/user.status?handle=' + user_data[iden]['codeforces'])
-                    if response.status_code != 200 or response.json()['status'] != 'OK':
+                    response = await webc.webget_json('https://codeforces.com/api/user.status?handle=' + user_data[iden]['codeforces'])
+                    if response['status'] != 'OK':
                         return None
                     solved = []
-                    for sub in response.json()['result']:
+                    for sub in response['result']:
                         if sub['verdict'] == 'OK':
                             if 'contestId' in sub['problem']:
                                 solved.append((sub['problem']['contestId'], sub['problem']['index']))
@@ -516,7 +513,7 @@ class ProblemCog(commands.Cog):
             await ctx.send(ctx.message.author.display_name + ', Notice: Support for WCIPEG has been discontinued as **PEG Judge shut down at the end of July 2020**\nhttps://wcipeg.com/announcement/9383')
             return
         try:
-            title, description, embed = self.get_random_problem(oj, points, maximum, ctx.message.author.id)
+            title, description, embed = await self.get_random_problem(oj, points, maximum, ctx.message.author.id)
             embed.title = title
             embed.description = description + ' (searched in %ss)' % str(round(self.bot.latency, 3))
             embed.timestamp = datetime.utcnow()
@@ -651,32 +648,30 @@ class ProblemCog(commands.Cog):
             return
         try:
             if source is None and len(ctx.message.attachments) > 0:
-                f = requests.get(ctx.message.attachments[0].url)
+                f = webc.webget_text(ctx.message.attachments[0].url)
                 source = f.content
             self.check_existing_user(ctx.message.author)
             user_data = query.get_user(ctx.message.author.id)
             if problem == '^' and user_data[ctx.message.author.id]['last_dmoj_problem'] is not None:
                 problem = user_data[ctx.message.author.id]['last_dmoj_problem']
-            id = user_session.submit(problem, self.language.getId(lang), source)
-            response = user_session.getTestcaseStatus(id)
+            id = await user_session.submit(problem, self.language.getId(lang), source)
+            response = await user_session.getTestcaseStatus(id)
             responseText = str(response)
             if len(responseText) > 1950:
                 responseText = responseText[1950:] + '\n(Result cut off to fit message length limit)'
             await ctx.send(ctx.message.author.display_name + ', ' + responseText + '\nTrack your submission here: https://dmoj.ca/submission/' + str(id))
-        except InvalidSessionException:
+        except InvalidDMOJSessionException:
             await ctx.send(ctx.message.author.display_name + ', Failed to connect, or problem not available. Make sure you are submitting to a valid problem, check your authentication, and try again.')
-        except:
-            await ctx.send(ctx.message.author.display_name + ', Error submitting to the problem. Report this using command `$suggest Submission to DMOJ failed`.')
-
+        
     @commands.Cog.listener()
     async def on_member_update(self, before, after):
-        if str(after.status) == 'offline' and after.id in self.dmoj_sessions.keys():
+        if str(after.status) == 'offline' and str(before.status) != 'offline' and after.id in self.dmoj_sessions.keys():
             await after.send('Attention! You have been logged out of the account %s due to being offline (Note that your account will still be linked to your Discord account, but will now be unable to submit to problems)' % self.dmoj_sessions.pop(after.id))
 
     @tasks.loop(hours=3)
     async def refresh_dmoj_problems(self):
+        await self.parse_dmoj_problems()
         self.fetch_times['dmoj'] = time()
-        self.parse_dmoj_problems()
         
     @refresh_dmoj_problems.before_loop
     async def refresh_dmoj_problems_before(self):
@@ -684,8 +679,8 @@ class ProblemCog(commands.Cog):
 
     @tasks.loop(hours=3)
     async def refresh_cf_problems(self):
+        await self.parse_cf_problems()
         self.fetch_times['codeforces'] = time()
-        self.parse_cf_problems()
 
     @refresh_cf_problems.before_loop
     async def refresh_cf_problems_before(self):
@@ -693,8 +688,8 @@ class ProblemCog(commands.Cog):
 
     @tasks.loop(hours=3)
     async def refresh_atcoder_problems(self):
+        await self.parse_atcoder_problems()
         self.fetch_times['atcoder'] = time()
-        self.parse_atcoder_problems()
 
     @refresh_atcoder_problems.before_loop
     async def refresh_atcoder_problems_before(self):
@@ -702,8 +697,8 @@ class ProblemCog(commands.Cog):
 
     @tasks.loop(hours=3)
     async def refresh_cses_problems(self):
+        await self.parse_cses_problems()
         self.fetch_times['cses'] = time()
-        self.parse_cses_problems()
 
     @refresh_cses_problems.before_loop
     async def refresh_cses_problems_before(self):
@@ -711,8 +706,8 @@ class ProblemCog(commands.Cog):
 
     @tasks.loop(hours=3)
     async def refresh_szkopul_problems(self):
+        await self.parse_szkopul_problems()
         self.fetch_times['szkopul'] = time()
-        self.parse_szkopul_problems()
 
     @refresh_szkopul_problems.before_loop
     async def refresh_szkopul_problems_before(self):
@@ -720,8 +715,8 @@ class ProblemCog(commands.Cog):
 
     @tasks.loop(hours=3)
     async def refresh_leetcode_problems(self):
+        await self.parse_leetcode_problems()
         self.fetch_times['leetcode'] = time()
-        self.parse_leetcode_problems()
 
     @refresh_leetcode_problems.before_loop
     async def refresh_leetcode_problems_before(self):

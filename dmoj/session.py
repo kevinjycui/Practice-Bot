@@ -1,14 +1,16 @@
-import requests
 import bs4 as bs
 import hashlib
 from dmoj.language import Language
 from dmoj.result import Result
 from dmoj.testcase import Testcase
+from utils.webclient import webc
+from aiohttp import ClientError
 
-class InvalidSessionException(Exception):
+
+class InvalidDMOJSessionException(Exception):
     
-    def __init__(self, code):
-        self.code = code
+    def __init__(self):
+        pass
 
 class VerificationException(Exception):
     
@@ -21,42 +23,46 @@ class Session:
 
     def __init__(self, token, user):
         self.token = token
-        req = requests.get(self.BASE_URL + '/edit/profile/', headers={'Authorization': 'Bearer %s' % token})
-        if req.status_code == 400 or req.status_code == 401:
-            raise InvalidSessionException(req.status_code)
-        doc = req.text
-        soup = bs.BeautifulSoup(doc, 'lxml')
-        self.handle = soup.find('span', attrs={'id' : 'user-links'}).find('b').contents[0]
-        noAuthReq = requests.get(self.BASE_URL + '/user/' + self.handle)
-        if noAuthReq.status_code == 400 or noAuthReq.status_code == 401:
-            raise InvalidSessionException(noAuthReq.status_code)
-        self.hash = hashlib.sha256((str(user.id) + self.handle).encode('utf-8')).hexdigest()
-        if self.hash not in noAuthReq.text:
-            raise VerificationException(self.hash)
+        self.user = user
+        self.handle = None
+
+    async def generate(self):
+        try:
+            doc = await webc.webget_text(self.BASE_URL + '/edit/profile/', headers={'Authorization': 'Bearer %s' % self.token})
+            soup = bs.BeautifulSoup(doc, 'lxml')
+            self.handle = soup.find('span', attrs={'id' : 'user-links'}).find('b').contents[0]
+            noAuthReq = await webc.webget_text(self.BASE_URL + '/user/' + self.handle)
+            self.hash = hashlib.sha256((str(self.user.id) + self.handle).encode('utf-8')).hexdigest()
+            if self.hash not in noAuthReq:
+                raise VerificationException(self.hash)
+        except:
+            raise InvalidDMOJSessionException
 
     def __str__(self):
         return self.handle
 
-    def getAuthRequest(self, url):
-        return requests.get(url, headers={'Authorization': 'Bearer %s' % self.token})
+    async def getAuthRequest(self, url):
+        return await webc.webget_text(url, headers={'Authorization': 'Bearer %s' % self.token})
 
-    def postAuthRequest(self, url, data):
-        return requests.post(url, headers={'Authorization': 'Bearer %s' % self.token}, data=data)
+    async def postAuthRequest(self, url, data):
+        return await webc.webpost(url, headers={'Authorization': 'Bearer %s' % self.token}, data=data)
 
-    def submit(self, problem, lang, code):
+    async def submit(self, problem, lang, code):
         global BASE_URL
         submitUrl = self.BASE_URL + '/problem/' + problem + '/submit'
-        submitRes = self.postAuthRequest(submitUrl, {'source': code, 'language': str(lang)})
-        if submitRes.status_code == 401:
-            raise InvalidSessionException(submitRes.status_code)
-        path = submitRes.url.split('/')
-        return int(path[len(path)-1])
+        try:
+            submitRes = await self.postAuthRequest(submitUrl, {'source': code, 'language': str(lang)})
+            path = str(submitRes.url).split('/')
+            return int(path[len(path)-1])
+        except ClientError:
+            raise InvalidDMOJSessionException
 
-    def getTestcaseStatus(self, id):
-        req = self.getAuthRequest(self.BASE_URL + '/widgets/single_submission?id=' + str(id))
-        if req.status_code == 401:
-            raise InvalidSessionException(req.status_code)
-        soup = bs.BeautifulSoup(req.text, 'lxml')
+    async def getTestcaseStatus(self, id):
+        try:
+            req = await self.getAuthRequest(self.BASE_URL + '/widgets/single_submission?id=' + str(id))
+        except ClientError:
+            raise InvalidDMOJSessionException
+        soup = bs.BeautifulSoup(req, 'lxml')
         status = soup.find_all('span', attrs={'class' : 'status'})[0].contents[0]
         time = soup.find_all('div',  attrs={'class' : 'time'})[-1].contents[0].strip()
         memory = soup.find_all('div',  attrs={'class' : 'memory'})[0].contents[0]
@@ -69,10 +75,11 @@ class Session:
 
         problemName = soup.find_all('div',  attrs={'class' : 'name'})[0].find('a').contents[0]
 
-        req = self.getAuthRequest(self.BASE_URL + '/widgets/submission_testcases?id=' + str(id))
-        if req.status_code == 401:
-            raise InvalidSessionException(req.status_code)
-        soup = bs.BeautifulSoup(req.text, 'lxml')
+        try:
+            req = await self.getAuthRequest(self.BASE_URL + '/widgets/submission_testcases?id=' + str(id))
+        except ClientError:
+            raise InvalidDMOJSessionException
+        soup = bs.BeautifulSoup(req, 'lxml')
         raw_result = soup.find('body').contents[0]
 
         cases = []

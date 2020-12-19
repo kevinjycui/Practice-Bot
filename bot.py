@@ -1,6 +1,7 @@
 import re
 import discord
 from discord.ext import commands, tasks
+import aiohttp
 import random as rand
 import yaml
 import cogs.dblapi as dblapi
@@ -154,6 +155,8 @@ async def on_command_error(ctx, error):
         await ctx.send(ctx.message.author.display_name + ', Sorry, you are missing permissions to run this command!')
     elif isinstance(error, commands.BotMissingPermissions):
         await ctx.send(ctx.message.author.display_name + ', It would seem that the bot is missing permissions to run this command! Be sure that all the required permissions are set to on: both for the bot and the channel. See here for a list of required permissions: https://github.com/kevinjycui/Practice-Bot/wiki/Permissions')
+    elif isinstance(error, aiohttp.ClientError):
+        await ctx.send(ctx.message.author.display_name + ', There appears to have been some HTTP error. Either your command was invalid or there is some problem in the server. Try again later!')
     else:
         server_prefix = await prefix_from_guild(ctx.message.guild)
         await ctx.send(ctx.message.author.display_name + ', An unexpected error occurred. Please try again. If this error persists, you can report it using the `%ssuggest <suggestion>` command.' % server_prefix)

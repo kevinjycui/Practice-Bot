@@ -1,6 +1,6 @@
-import requests
 import bs4 as bs
 from time import time
+from utils.webclient import webc
 
 
 class UserSuggester(object):
@@ -9,15 +9,12 @@ class UserSuggester(object):
         self.handle = handle
         self.points_min = 1
         self.points_max = 50
-        self.update_pp_range()
         self.expand_up = True
     
-    def update_pp_range(self):
-        response = requests.get('https://dmoj.ca/user/%s/solved' % self.handle)
-        if response.status_code != 200:
-            return
+    async def update_pp_range(self):
+        response = await webc.webget_text('https://dmoj.ca/user/%s/solved' % self.handle)
         self.time = time()
-        soup = bs.BeautifulSoup(response.text, 'lxml')
+        soup = bs.BeautifulSoup(response, 'lxml')
         points = soup.find_all('div', attrs={'class': 'pp'})
         if len(points) == 0:
             self.points_min = 1

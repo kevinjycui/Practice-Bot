@@ -63,6 +63,7 @@ class ProblemRankingCog(ProblemCog):
                 user_data = query.get_user(ctx.message.author.id)
                 try:
                     self.dmoj_sessions[ctx.message.author.id] = DMOJSession(token, ctx.message.author)
+                    await self.dmoj_sessions[ctx.message.author.id].generate()
                     user_data[ctx.message.author.id]['dmoj'] = str(self.dmoj_sessions[ctx.message.author.id])
                     query.update_user(ctx.message.author.id, 'dmoj', user_data[ctx.message.author.id]['dmoj'])
                     for guild in self.bot.guilds:
@@ -74,7 +75,7 @@ class ProblemRankingCog(ProblemCog):
                                     except:
                                         pass
                     await ctx.send('Successfully logged in with submission permissions as %s on DMOJ! (Note that for security reasons, submission permissions will be automatically turned off after the cache resets or when you go offline. When this occurs, you will have to log in using your token again to submit, but your account will remain linked. You may delete the message containing your token now)' % self.dmoj_sessions[ctx.message.author.id])
-                except InvalidSessionException:
+                except InvalidDMOJSessionException:
                     await ctx.send('Token invalid, failed to log in (your DMOJ API token can be found by going to https://dmoj.ca/edit/profile/ and selecting the __Generate__ or __Regenerate__ option next to API Token).')
                 except VerificationException as e:
                     await ctx.send('Due to security reasons, we now must ask you to place the following token in your self-description (you can edit your self-description here https://dmoj.ca/edit/profile/)\nThis is just an extra precaution to confirm your identity.\n```%s```Once this is done, run the command that you just ran again to connect to your DMOJ account!' % e.hash)
@@ -82,10 +83,10 @@ class ProblemRankingCog(ProblemCog):
         elif site.lower() == 'cf' or site.lower() == 'codeforces':             
             self.check_existing_user(ctx.message.author)
             user_data = query.get_user(ctx.message.author.id)
-            if token is None or (ctx.message.author.id in self.cf_sessions.keys() and token.lower() == str(self.cf_sessions[ctx.message.author.id]).lower()):
+            if token is None or (ctx.message.author.id in self.cf_sessions.keys() and self.cf_sessions[ctx.message.author.id].handle is not None and token.lower() == str(self.cf_sessions[ctx.message.author.id]).lower()):
                 try:
                     if ctx.message.author.id in self.cf_sessions:
-                        validated = self.cf_sessions[ctx.message.author.id].validate()
+                        validated = await self.cf_sessions[ctx.message.author.id].validate()
                         if not validated:
                             raise NoSubmissionsException
                         query.update_user(ctx.message.author.id, 'codeforces', str(self.cf_sessions[ctx.message.author.id]))
@@ -101,9 +102,9 @@ class ProblemRankingCog(ProblemCog):
                         await ctx.send('Successfully linked your account as %s on Codeforces!' % str(self.cf_sessions[ctx.message.author.id]))
                         self.cf_sessions.pop(ctx.message.author.id)
                         if user_data[ctx.message.author.id]['country'] is None:
-                            response = requests.get('https://codeforces.com/api/user.info?handles=' + user_data[ctx.message.author.id]['codeforces'])
-                            if response.status_code == 200 and response.json()['status'] == 'OK':
-                                country = response.json()['result'][0].get('country', None)
+                            response = await webc.webget_json('https://codeforces.com/api/user.info?handles=' + user_data[ctx.message.author.id]['codeforces'])
+                            if response['status'] == 'OK':
+                                country = response['result'][0].get('country', None)
                                 if country is None:
                                     return
                                 user_data[ctx.message.author.id]['country'] = country
@@ -128,6 +129,7 @@ class ProblemRankingCog(ProblemCog):
                     return
                 try:
                     self.cf_sessions[ctx.message.author.id] = CodeforcesSession(token, ctx.message.author)
+                    await self.cf_sessions[ctx.message.author.id].generate()
                     hash = self.cf_sessions[ctx.message.author.id].hash
                     prefix = await self.bot.command_prefix(self.bot, ctx.message)
                     await ctx.send('Login session for user %s initialised. Add the following token as a comment to your most recent public submission to any problem. Then, use the command `%sconnect cf` to validate.```%s```Example in C/C++/Java:```// %s```Example in Python:```# %s```' % \
@@ -172,18 +174,6 @@ class ProblemRankingCog(ProblemCog):
             await ctx.send(mention + 'Successfully disconnected your Codeforces account: %s' % handle)          
         else:
             await ctx.send(mention + 'Sorry, that site does not exist or logins to that site are not available yet')
-
-    @commands.command(aliases=['dcf'])
-    @commands.is_owner()
-    async def disconnectforce(self, ctx, user: discord.User, option=''):
-        self.check_existing_user(user)
-        query.update_user(user.id, 'dmoj', None)
-        query.update_user(user.id, 'codeforces', None)
-        if user.id in self.dmoj_sessions.keys():
-            self.dmoj_sessions.pop(user.id)
-        await ctx.send('Successfully disconnected %s' % user.mention)
-        if option != '-s':
-            await user.send('Attention! Your account(s) have been manually disconnected by a bot admin from Practice Bot. This may be due to suspicious activity in your authentication process or an update in the bot\'s security. If you are not a user of this bot and believe you received this message by error, please ignore this message. If you are a user of this bot and believe you were disconnected in error, please contact the bot admin on our support server:\nhttps://discord.gg/cyCraUm')
 
     @commands.command(aliases=['toggleSync', 'toggleRanks', 'toggleNicks', 'toggleranks', 'togglenicks', 'togglesync', 'setSync', 'ss'])
     @commands.has_permissions(manage_roles=True, manage_nicknames=True)
@@ -337,7 +327,7 @@ class ProblemRankingCog(ProblemCog):
         self.update_dmoj_index, user_data = query.get_next_user_by_row(self.update_dmoj_index, 'dmoj')
         if user_data == {}:
             return
-        user_info = requests.get('https://dmoj.ca/api/user/info/%s' % user_data['dmoj']).json()
+        user_info = await webc.webget_json('https://dmoj.ca/api/user/info/%s' % user_data['dmoj'])
         current_rating = user_info['contests']['current_rating']
         for rating, role in list(self.dmoj_ratings.items()):
             if current_rating in rating:
@@ -373,7 +363,7 @@ class ProblemRankingCog(ProblemCog):
         self.update_cf_index, user_data = query.get_next_user_by_row(self.update_cf_index, 'codeforces')
         if user_data == {}:
             return
-        user_info = requests.get('https://codeforces.com/api/user.info?handles=%s' % user_data['codeforces']).json()['result'][0]
+        user_info = (await webc.webget_json('https://codeforces.com/api/user.info?handles=%s' % user_data['codeforces']))['result'][0]
         for guild in self.bot.guilds:
             self.check_existing_server(guild)
             if int(guild.id) not in self.cf_server_roles:
