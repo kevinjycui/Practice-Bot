@@ -184,14 +184,14 @@ class ContestCog(commands.Cog):
         soup = bs.BeautifulSoup(contests, 'lxml')
         for contest in soup.find_all('table', attrs={'class': 'dataTable'})[1].find('tbody').find_all('tr'):
             details = contest.find_all('td')
-            if datetime.strptime(details[2].attrs['data-starttime'], '%Y-%m-%dT%H:%M:%S%z').timestamp() > time():
+            if datetime.strptime(details[2].attrs['data-starttime'].split('+')[0] + '+' + details[2].attrs['data-starttime'].split('+')[1].replace(':', ''), '%Y-%m-%dT%H:%M:%S%z').timestamp() > time():
                 contest_data = {
                     'title': ':trophy: %s' % details[1].find('a').contents[0],
                     'description': 'https://www.codechef.com/' + details[0].contents[0],
                     'oj': 'codechef',
                     'thumbnail': self.onlineJudges.thumbnails['codechef'],
-                    'Start Time': details[2].attrs['data-starttime'].replace('T', ' '),
-                    'End Time': details[3].attrs['data-endtime'].replace('T', ' ')
+                    'Start Time': (details[2].attrs['data-starttime'].split('+')[0] + '+' + details[2].attrs['data-starttime'].split('+')[1].replace(':', '')).replace('T', ' '),
+                    'End Time': (details[3].attrs['data-endtime'].split('+')[0] + '+' + details[3].attrs['data-endtime'].split('+')[1].replace(':', '')).replace('T', ' ')
                 }
                 if contest_data['title'] not in self.codechef_contest_titles:
                     self.codechef_contest_titles.append(contest_data['title'])
