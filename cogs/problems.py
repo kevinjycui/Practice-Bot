@@ -778,6 +778,34 @@ class ProblemCog(commands.Cog):
         await self.parse_codechef_problems()
         self.fetch_times['codechef'] = time()
 
+    @refresh_dmoj_problems.before_loop
+    async def refresh_dmoj_problems_before(self):
+        await self.bot.wait_until_ready()
+
+    @refresh_cf_problems.before_loop
+    async def refresh_cf_problems_before(self):
+        await self.bot.wait_until_ready()
+
+    @refresh_atcoder_problems.before_loop
+    async def refresh_atcoder_problems_before(self):
+        await self.bot.wait_until_ready()
+
+    @refresh_cses_problems.before_loop
+    async def refresh_cses_problems_before(self):
+        await self.bot.wait_until_ready()
+
+    @refresh_szkopul_problems.before_loop
+    async def refresh_szkopul_problems_before(self):
+        await self.bot.wait_until_ready()
+
+    @refresh_leetcode_problems.before_loop
+    async def refresh_leetcode_problems_before(self):
+        await self.bot.wait_until_ready()
+
+    @refresh_codechef_problems.before_loop
+    async def refresh_codechef_problems_before(self):
+        await self.bot.wait_until_ready()
+
     @commands.command()
     @commands.guild_only()
     async def tea(self, ctx, user: discord.User=None):
