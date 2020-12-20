@@ -344,9 +344,5 @@ class ContestCog(commands.Cog):
         self.contest_cache = list(filter(self.is_recent, list(set(self.contest_objects).union(set(self.contest_cache)))))
         self.update_contest_cache()
 
-    @refresh_contests.before_loop
-    async def check_contests_before(self):
-        await self.bot.wait_until_ready()
-
 def setup(bot):
     bot.add_cog(ContestCog(bot))
