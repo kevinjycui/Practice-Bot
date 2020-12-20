@@ -39,8 +39,13 @@ class OnlineJudgeHTTPException(Exception):
         return self.oj
 
 class InvalidQueryException(Exception):
-    def __init__(self):
-        pass
+    def __init__(self, codechef=False):
+        self.codechef = codechef
+
+    def __str__(self):
+        if self.codechef:
+            return 'Invalid query. Make sure you only query for one difficulty and your difficulty is one of the following: `school, easy, medium, hard, challenge, extcontest`'
+        return 'Invalid query. Make sure your points are positive integers.'
 
 class ProblemNotFoundException(Exception):
     def __init__(self):
@@ -59,7 +64,7 @@ class InvalidURLException(Exception):
         pass
 
 class ProblemCog(commands.Cog):
-    problems_by_points = {'dmoj':{}, 'codeforces':{}, 'atcoder':{}}
+    problems_by_points = {'dmoj':{}, 'codeforces':{}, 'atcoder':{}, 'codechef': {}}
 
     dmoj_problems = {}
     cf_problems = None
@@ -68,6 +73,7 @@ class ProblemCog(commands.Cog):
     szkopul_problems = {}
     leetcode_problems = {}
     leetcode_problems_paid = {}
+    codechef_problems = {}
 
     dmoj_sessions = {}
     cf_sessions = {}
@@ -85,7 +91,8 @@ class ProblemCog(commands.Cog):
         'atcoder': 0,
         'cses': 0,
         'szkopul': 0,
-        'leetcode': 0
+        'leetcode': 0,
+        'codechef': 0
     }
     fetch_times = {
         'dmoj': 0,
@@ -93,7 +100,8 @@ class ProblemCog(commands.Cog):
         'atcoder': 0,
         'cses': 0,
         'szkopul': 0,
-        'leetcode': 0
+        'leetcode': 0,
+        'codechef': 0
     }
 
     def __init__(self, bot):
@@ -104,6 +112,7 @@ class ProblemCog(commands.Cog):
         self.refresh_leetcode_problems.start()
         self.refresh_cses_problems.start()
         self.refresh_szkopul_problems.start()
+        self.refresh_codechef_problems.start()
 
     @commands.command()
     async def oj(self, ctx, oj: str=''):
@@ -261,6 +270,45 @@ class ProblemCog(commands.Cog):
             self.statuses['leetcode'] = 0
             raise e
 
+    async def parse_codechef_problems(self):
+        difficulty_names = {
+            'school': 'Beginner',
+            'easy': 'Easy',
+            'medium': 'Medium',
+            'hard': 'Hard',
+            'challenge': 'Challenge',
+            'extcontest': 'Peer'
+        }
+        try:
+            for difficulty in ('school', 'easy', 'medium', 'hard', 'challenge', 'extcontest'):
+                problems = await webc.webget_text('https://www.codechef.com/problems/%s/' % difficulty)
+                self.statuses['codechef'] = 1
+                soup = bs.BeautifulSoup(problems, 'lxml')
+                for row in soup.find('table', attrs={'class': 'dataTable'}).find('tbody').find_all('tr'):
+                    if row.find_all('td')[1].find('a') is None:
+                        continue
+                    title = row.find_all('td')[0].find('div', attrs={'class': 'problemname'}).find('a').find('b').contents[0]
+                    url = 'https://www.codechef.com' + row.find_all('td')[0].find('div', attrs={'class': 'problemname'}).find('a').attrs['href']
+                    id = row.find_all('td')[1].find('a').contents[0]
+                    difficulty_str = difficulty_names[difficulty]
+                    successful_subs = row.find_all('td')[2].find('div').contents[0]
+                    accuracy = row.find_all('td')[3].find('a').contents[0]
+                    problem_data = {
+                        'id': id,
+                        'title': title,
+                        'url': url,
+                        'difficulty': difficulty_str,
+                        'successful_subs': successful_subs,
+                        'accuracy': accuracy
+                    }
+                    self.codechef_problems[id] = problem_data
+                    if difficulty not in self.problems_by_points['codechef']:
+                        self.problems_by_points['codechef'][difficulty] = []
+                    self.problems_by_points['codechef'][difficulty].append(problem_data)
+        except Exception as e:
+            self.statuses['codechef'] = 0
+            raise e
+
     def embed_dmoj_problem(self, name, prob, suggested=False):
         embed = discord.Embed()
         embed.colour = self.onlineJudges.colours['dmoj']
@@ -326,6 +374,15 @@ class ProblemCog(commands.Cog):
         embed.add_field(name='Paid?', value='Yes' if prob['paid'] == 'True' else 'No', inline=False)
         return prob['title'], prob['url'], embed
 
+    def embed_codechef_problem(self, prob):
+        embed = discord.Embed()
+        embed.colour = self.onlineJudges.colours['codechef']
+        embed.set_thumbnail(url=self.onlineJudges.thumbnails['codechef'])
+        embed.add_field(name='Difficulty', value=prob['difficulty'], inline=False)
+        embed.add_field(name='Successful Submissions', value=prob['successful_subs'], inline=False)
+        embed.add_field(name='Accuracy', value=prob['accuracy'], inline=False)
+        return prob['title'], prob['url'], embed
+
     async def get_random_problem(self, oj=None, points=None, maximum=None, iden=None, paid=False):
         if oj is None:
             oj = rand.choice(self.onlineJudges.judges)
@@ -334,6 +391,9 @@ class ProblemCog(commands.Cog):
         
         if oj == 'cses' and points is not None:
             raise InvalidParametersException(cses=True)
+
+        if oj == 'codechef' and maximum is not None:
+            raise InvalidQueryException(codechef=True)
 
         temp_dmoj_problems = {}
         temp_cf_problems = []
@@ -407,9 +467,14 @@ class ProblemCog(commands.Cog):
             problem_list = self.problems_by_points
                                     
         if points is not None:
-            if not points.isdigit():
+            if points.isalpha():
+                points = points.lower()
+            if oj == 'codechef' and points not in ('school', 'easy', 'medium', 'hard', 'challenge', 'extcontest'):
+                raise InvalidQueryException(codechef=True)
+            if oj != 'codechef' and not points.isdigit():
                 raise InvalidQueryException()
-            points = int(points)
+            if oj != 'codechef':
+                points = int(points)
 
         if maximum is not None:
             if not maximum.isdigit():
@@ -495,6 +560,16 @@ class ProblemCog(commands.Cog):
             else:
                 prob = rand.choice(self.leetcode_problems)
             return self.embed_leetcode_problem(prob)
+
+        elif oj == 'codechef':
+            if not self.codechef_problems:
+                raise OnlineJudgeHTTPException('CodeChef')
+            
+            if points is None:
+                prob = rand.choice(list(self.codechef_problems.values()))
+            else:
+                prob = rand.choice(self.problems_by_points['codechef'][points]) 
+            return self.embed_codechef_problem(prob)
         
         else:
             raise NoSuchOJException(oj)
@@ -526,8 +601,8 @@ class ProblemCog(commands.Cog):
             await ctx.send(ctx.message.author.display_name + ', ' + str(e))
         except OnlineJudgeHTTPException as e:
             await ctx.send(ctx.message.author.display_name + ', There seems to be a problem with %s. Please try again later :shrug:' % str(e))
-        except InvalidQueryException:
-            await ctx.send(ctx.message.author.display_name + ', Invalid query. Make sure your points are positive integers.')
+        except InvalidQueryException as e:
+            await ctx.send(ctx.message.author.display_name + ', %s', str(e))
 
     @commands.command(aliases=['toggleRepeat', 'tr'])
     async def togglerepeat(self, ctx):
@@ -672,55 +747,36 @@ class ProblemCog(commands.Cog):
     async def refresh_dmoj_problems(self):
         await self.parse_dmoj_problems()
         self.fetch_times['dmoj'] = time()
-        
-    @refresh_dmoj_problems.before_loop
-    async def refresh_dmoj_problems_before(self):
-        await self.bot.wait_until_ready()
 
     @tasks.loop(hours=3)
     async def refresh_cf_problems(self):
         await self.parse_cf_problems()
         self.fetch_times['codeforces'] = time()
 
-    @refresh_cf_problems.before_loop
-    async def refresh_cf_problems_before(self):
-        await self.bot.wait_until_ready()
-
     @tasks.loop(hours=3)
     async def refresh_atcoder_problems(self):
         await self.parse_atcoder_problems()
         self.fetch_times['atcoder'] = time()
-
-    @refresh_atcoder_problems.before_loop
-    async def refresh_atcoder_problems_before(self):
-        await self.bot.wait_until_ready()
 
     @tasks.loop(hours=3)
     async def refresh_cses_problems(self):
         await self.parse_cses_problems()
         self.fetch_times['cses'] = time()
 
-    @refresh_cses_problems.before_loop
-    async def refresh_cses_problems_before(self):
-        await self.bot.wait_until_ready()
-
     @tasks.loop(hours=3)
     async def refresh_szkopul_problems(self):
         await self.parse_szkopul_problems()
         self.fetch_times['szkopul'] = time()
-
-    @refresh_szkopul_problems.before_loop
-    async def refresh_szkopul_problems_before(self):
-        await self.bot.wait_until_ready()
 
     @tasks.loop(hours=3)
     async def refresh_leetcode_problems(self):
         await self.parse_leetcode_problems()
         self.fetch_times['leetcode'] = time()
 
-    @refresh_leetcode_problems.before_loop
-    async def refresh_leetcode_problems_before(self):
-        await self.bot.wait_until_ready()
+    @tasks.loop(hours=3)
+    async def refresh_codechef_problems(self):
+        await self.parse_codechef_problems()
+        self.fetch_times['codechef'] = time()
 
     @commands.command()
     @commands.guild_only()

@@ -6,6 +6,7 @@ class WebSession:
     session = aiohttp.ClientSession()
 
     async def webget_text(self, url, headers={}):
+        headers['User-Agent'] = 'Mozilla/5.0'
         async with self.session.get(url, headers=headers) as resp:
             return await resp.text()
 
