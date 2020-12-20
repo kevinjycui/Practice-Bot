@@ -602,7 +602,7 @@ class ProblemCog(commands.Cog):
         except OnlineJudgeHTTPException as e:
             await ctx.send(ctx.message.author.display_name + ', There seems to be a problem with %s. Please try again later :shrug:' % str(e))
         except InvalidQueryException as e:
-            await ctx.send(ctx.message.author.display_name + ', %s', str(e))
+            await ctx.send(ctx.message.author.display_name + ', ' + str(e))
 
     @commands.command(aliases=['toggleRepeat', 'tr'])
     async def togglerepeat(self, ctx):
