@@ -40,7 +40,7 @@ Support this bot by voting for it [here](https://top.gg/bot/691416325557452861/v
 | | Random Problems | Suggested Problems | Contest Notifications | Rating Roles | Account Link | Submission |
 |---|---|---|---|---|---|---|
 | AtCoder | ✔ | ❌ | ✔ | ❌ | ❌ | ❌ |
-| CodeChef | ✔ | ❌ | ✔ | ❌ | ❌ | ❌ |
+| CodeChef** | ✔ | ❌ | ✔ | ❌ | ❌ | ❌ |
 | Codeforces | ✔ | ✔ | ✔ | ✔ | ✔ | ❌ |
 | CSES | ✔ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | DMOJ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
@@ -49,6 +49,8 @@ Support this bot by voting for it [here](https://top.gg/bot/691416325557452861/v
 | ~~WCIPEG~~* |  |  |  |  |  |  |
 
 **Support for WCIPEG has been discontinued as [PEG Judge shut down at the end of July 2020](https://wcipeg.com/announcement/9383)*
+
+***CodeChef integration available in beta version only as of now*
 
 ## Tools
  - discord.py
