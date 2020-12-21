@@ -19,5 +19,6 @@ env/
 .idea/
 
 stderr.log
+*.log
 
 tmux-*

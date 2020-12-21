@@ -123,6 +123,15 @@ async def motivation(ctx):
 # async def status_change_before():
 #     await bot.wait_until_ready()
 
+# @tasks.loop(seconds=5)
+# async def cpu_stat():
+#     import os, psutil
+#     process = psutil.Process(os.getpid())
+#     print(f'{process.memory_info().rss / 1048576} MB; {process.cpu_percent(interval=1)}% CPU')  # in bytes 
+
+# @cpu_stat.before_loop
+# async def cpu_stat_before():
+#     await bot.wait_until_ready()
 
 bot.remove_command('help')
 
@@ -222,6 +231,7 @@ async def on_ready():
 
 if __name__ == '__main__':
     # status_change.start()
+    # cpu_stat.start()
     problems_rankings.setup(bot)
     contests.setup(bot)
     feedback.setup(bot)
