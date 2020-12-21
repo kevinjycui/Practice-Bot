@@ -113,7 +113,7 @@ class ProblemCog(commands.Cog):
     async def oj(self, ctx, oj: str=''):
         if oj == '':
             status_list = '```'
-            for oj in self.onlineJudges.judges:
+            for oj in self.onlineJudges.problem_judges:
                 status_list += '%s status: %s. Last fetched, %d minutes ago\n' % (self.onlineJudges.formal_names[oj], 'OK' if self.statuses[oj] == 1 else 'Unable to connect', (time()-self.fetch_times[oj])//60)
             await ctx.send(status_list[:-1] + '```')
         else:
