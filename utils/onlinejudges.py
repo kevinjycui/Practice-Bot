@@ -6,6 +6,7 @@ class NoSuchOJException(Exception):
 
 class OnlineJudges:
     judges = ('dmoj', 'codeforces', 'atcoder', 'leetcode', 'cses', 'szkopul', 'codechef')
+    problem_judges = ('dmoj', 'codeforces', 'atcoder', 'leetcode', 'cses', 'szkopul')
     contest_judges = ('dmoj', 'codeforces', 'atcoder', 'codechef')
     accounts = ('dmoj', 'codeforces')
     formal_names = {
@@ -157,4 +158,16 @@ class OnlineJudges:
         output = ''
         for judge, aliases in list(self.judge_to_aliases.items()):
             output += self.formal_names[judge] + ' (' + ', '.join([judge] + aliases)  + '), '
+        return output
+
+    def problem_judge_str(self):
+        output = ''
+        for judge in self.problem_judges:
+            output += self.formal_names[judge] + ' (' + ', '.join([judge] + self.judge_to_aliases[judge])  + '), '
+        return output
+
+    def contest_judge_str(self):
+        output = ''
+        for judge in self.contest_judges:
+            output += self.formal_names[judge] + ' (' + ', '.join([judge] + self.judge_to_aliases[judge])  + '), '
         return output

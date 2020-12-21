@@ -20,18 +20,18 @@ from time import time
 
 
 class InvalidParametersException(Exception):
-    def __init__(self, cses=False, szkopul=False, codechef=False):
+    def __init__(self, cses=False, szkopul=False): # , codechef=False):
         self.cses = cses
         self.szkopul = szkopul
-        self.codechef = codechef
+        # self.codechef = codechef
     
     def __str__(self):
         if self.cses:
             return 'Sorry, I couldn\'t find any problems with those parameters. :cry: (Note that CSES problems do not have points)'
         elif self.szkopul:
             return 'Sorry, I couldn\'t find any problems with those parameters. :cry: (Note that Szkopuł problems do not have points)'
-        elif self.codechef:
-            return 'Sorry, I couldn\'t find any problems with those parameters. :cry: (Note that CodeChef problems may take longer for the bot to parse, and you may just have to try again later)'
+        # elif self.codechef:
+        #     return 'Sorry, I couldn\'t find any problems with those parameters. :cry: (Note that CodeChef problems may take longer for the bot to parse, and you may just have to try again later)'
         return 'Sorry, I couldn\'t find any problems with those parameters. :cry:'
 
 class OnlineJudgeHTTPException(Exception):
@@ -42,12 +42,13 @@ class OnlineJudgeHTTPException(Exception):
         return self.oj
 
 class InvalidQueryException(Exception):
-    def __init__(self, codechef=False):
-        self.codechef = codechef
+    def __init__(self): # , codechef=False):
+        # self.codechef = codechef
+        pass
 
     def __str__(self):
-        if self.codechef:
-            return 'Invalid query. Make sure you only query for one difficulty and your difficulty is one of the following: `school`, `easy`, `medium`, `hard`, `challenge`'
+        # if self.codechef:
+        #     return 'Invalid query. Make sure you only query for one difficulty and your difficulty is one of the following: `school`, `easy`, `medium`, `hard`, `challenge`'
         return 'Invalid query. Make sure your points are positive integers.'
 
 class InvalidURLException(Exception):
@@ -55,7 +56,7 @@ class InvalidURLException(Exception):
         pass
 
 class ProblemCog(commands.Cog):
-    problems_by_points = {'dmoj':{}, 'codeforces':{}, 'atcoder':{}, 'codechef': {}}
+    problems_by_points = {'dmoj':{}, 'codeforces':{}, 'atcoder':{}} #, 'codechef': {}}
 
     dmoj_problems = {}
     cf_problems = None
@@ -64,7 +65,7 @@ class ProblemCog(commands.Cog):
     szkopul_problems = []
     leetcode_problems = []
     leetcode_problems_paid = []
-    codechef_problems = []
+    # codechef_problems = []
 
     dmoj_sessions = {}
     cf_sessions = {}
@@ -73,8 +74,8 @@ class ProblemCog(commands.Cog):
     cf_user_suggests = {}
 
     szkopul_page = 1
-    codechef_page = 0
-    codechef_difficulties = ('school', 'easy', 'medium', 'hard', 'challenge')
+    # codechef_page = 0
+    # codechef_difficulties = ('school', 'easy', 'medium', 'hard', 'challenge')
 
     language = Language()
     onlineJudges = OnlineJudges()
@@ -85,8 +86,8 @@ class ProblemCog(commands.Cog):
         'atcoder': 0,
         'cses': 0,
         'szkopul': 0,
-        'leetcode': 0,
-        'codechef': 0
+        'leetcode': 0
+        # 'codechef': 0
     }
     fetch_times = {
         'dmoj': 0,
@@ -94,8 +95,8 @@ class ProblemCog(commands.Cog):
         'atcoder': 0,
         'cses': 0,
         'szkopul': 0,
-        'leetcode': 0,
-        'codechef': 0
+        'leetcode': 0
+        # 'codechef': 0
     }
 
     def __init__(self, bot):
@@ -106,7 +107,7 @@ class ProblemCog(commands.Cog):
         self.refresh_leetcode_problems.start()
         self.refresh_cses_problems.start()
         self.refresh_szkopul_problems.start()
-        self.refresh_codechef_problems.start()
+        # self.refresh_codechef_problems.start()
 
     @commands.command()
     async def oj(self, ctx, oj: str=''):
@@ -386,15 +387,15 @@ class ProblemCog(commands.Cog):
 
     async def get_random_problem(self, oj=None, points=None, maximum=None, iden=None, paid=False):
         if oj is None:
-            oj = rand.choice(self.onlineJudges.judges)
+            oj = rand.choice(self.onlineJudges.problem_judges)
 
         oj = self.onlineJudges.get_oj(oj)
         
         if oj == 'cses' and points is not None:
             raise InvalidParametersException(cses=True)
 
-        if oj == 'codechef' and maximum is not None:
-            raise InvalidQueryException(codechef=True)
+        # if oj == 'codechef' and maximum is not None:
+        #     raise InvalidQueryException(codechef=True)
 
         temp_dmoj_problems = {}
         temp_cf_problems = []
@@ -468,10 +469,10 @@ class ProblemCog(commands.Cog):
             problem_list = self.problems_by_points
                                     
         if points is not None:
-            if points.isalpha():
-                points = points.lower()
-            if oj == 'codechef' and points not in self.codechef_difficulties:
-                raise InvalidQueryException(codechef=True)
+            # if points.isalpha():
+            #     points = points.lower()
+            # if oj == 'codechef' and points not in self.codechef_difficulties:
+            #     raise InvalidQueryException(codechef=True)
             if oj != 'codechef' and not points.isdigit():
                 raise InvalidQueryException()
             if oj != 'codechef':
@@ -562,17 +563,17 @@ class ProblemCog(commands.Cog):
                 prob = rand.choice(self.leetcode_problems)
             return self.embed_leetcode_problem(prob)
 
-        elif oj == 'codechef':
-            if len(self.codechef_problems) == 0:
-                raise InvalidParametersException(codechef=True)
+        # elif oj == 'codechef':
+        #     if len(self.codechef_problems) == 0:
+        #         raise InvalidParametersException(codechef=True)
             
-            if points is None:
-                prob = rand.choice(self.codechef_problems)
-            else:
-                if points not in self.problems_by_points['codechef']:
-                    raise InvalidParametersException(codechef=True)
-                prob = rand.choice(self.problems_by_points['codechef'][points]) 
-            return self.embed_codechef_problem(prob)
+        #     if points is None:
+        #         prob = rand.choice(self.codechef_problems)
+        #     else:
+        #         if points not in self.problems_by_points['codechef']:
+        #             raise InvalidParametersException(codechef=True)
+        #         prob = rand.choice(self.problems_by_points['codechef'][points]) 
+        #     return self.embed_codechef_problem(prob)
         
         else:
             raise NoSuchOJException(oj)
@@ -599,7 +600,7 @@ class ProblemCog(commands.Cog):
         except IndexError:
             await ctx.send(ctx.message.author.display_name + ', No problem was found. This may be due to the bot updating the problem cache. Please wait a moment, then try again.')
         except NoSuchOJException:
-            await ctx.send(ctx.message.author.display_name + ', Invalid query. The online judge must be one of the following: %s.' % str(self.onlineJudges))
+            await ctx.send(ctx.message.author.display_name + ', Invalid query. The online judge must be one of the following: %s.' % self.onlineJudges.problem_judge_str())
         except InvalidParametersException as e:
             await ctx.send(ctx.message.author.display_name + ', ' + str(e))
         except OnlineJudgeHTTPException as e:
@@ -776,13 +777,13 @@ class ProblemCog(commands.Cog):
         await self.parse_leetcode_problems()
         self.fetch_times['leetcode'] = time()
 
-    @tasks.loop(minutes=1)
-    async def refresh_codechef_problems(self):
-        if time() - self.fetch_times['codechef'] <= 60 * 60 * 28: # handle high CPU usage of CodeChef parsing
-            return
-        await self.parse_codechef_problems()
-        if self.codechef_page == 0:
-            self.fetch_times['codechef'] = time()
+    # @tasks.loop(minutes=1)
+    # async def refresh_codechef_problems(self):
+    #     if time() - self.fetch_times['codechef'] <= 60 * 60 * 28: # handle high CPU usage of CodeChef parsing
+    #         return
+    #     await self.parse_codechef_problems()
+    #     if self.codechef_page == 0:
+    #         self.fetch_times['codechef'] = time()
 
     @refresh_dmoj_problems.before_loop
     async def refresh_dmoj_problems_before(self):
@@ -808,9 +809,9 @@ class ProblemCog(commands.Cog):
     async def refresh_leetcode_problems_before(self):
         await self.bot.wait_until_ready()
 
-    @refresh_codechef_problems.before_loop
-    async def refresh_codechef_problems_before(self):
-        await self.bot.wait_until_ready()
+    # @refresh_codechef_problems.before_loop
+    # async def refresh_codechef_problems_before(self):
+    #     await self.bot.wait_until_ready()
 
     @commands.command()
     @commands.guild_only()

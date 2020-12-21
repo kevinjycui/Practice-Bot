@@ -244,14 +244,13 @@ class ContestCog(commands.Cog):
             elif self.onlineJudges.oj_exists(numstr):
                 oj = self.onlineJudges.get_oj(numstr)
                 if oj not in self.onlineJudges.contest_judges:
-                    await ctx.send(ctx.message.author.display_name + ', Sorry, contests for that site are not available yet or contests are not applicable to that site.')
-                    return
+                    raise NoSuchOJException(oj)
                 contestList = self.get_contests_of_oj(oj)
             await ctx.send(ctx.message.author.display_name + ', Here are some upcoming contest(s). Last fetched, %d minutes ago' % ((time()-self.fetch_time)//60), embed=contestList)
         except NoContestsAvailableException as e:
             await ctx.send(ctx.message.author.display_name + ', ' + str(e))
         except NoSuchOJException:
-            await ctx.send(ctx.message.author.display_name + ', Invalid query. The online judge must be one of the following: %s.' % str(self.onlineJudges))
+            await ctx.send(ctx.message.author.display_name + ', Invalid query. The online judge must be one of the following: %s.' % self.onlineJudges.contest_judge_str())
 
     @commands.command()
     @commands.has_permissions(manage_channels=True)
