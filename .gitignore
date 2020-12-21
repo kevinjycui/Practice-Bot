@@ -13,6 +13,7 @@ env/
 *.bat
 *.sh
 !bot*.sh
+!stats.sh
 
 *.pem
 
