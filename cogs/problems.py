@@ -47,7 +47,7 @@ class InvalidQueryException(Exception):
 
     def __str__(self):
         if self.codechef:
-            return 'Invalid query. Make sure you only query for one difficulty and your difficulty is one of the following: `school, easy, medium, hard, challenge, extcontest`'
+            return 'Invalid query. Make sure you only query for one difficulty and your difficulty is one of the following: `school`, `easy`, `medium`, `hard`, `challenge`'
         return 'Invalid query. Make sure your points are positive integers.'
 
 class InvalidURLException(Exception):
@@ -74,7 +74,7 @@ class ProblemCog(commands.Cog):
 
     szkopul_page = 1
     codechef_page = 0
-    codechef_difficulties = ('school', 'easy', 'medium', 'hard', 'challenge', 'extcontest')
+    codechef_difficulties = ('school', 'easy', 'medium', 'hard', 'challenge')
 
     language = Language()
     onlineJudges = OnlineJudges()
@@ -276,8 +276,7 @@ class ProblemCog(commands.Cog):
             'easy': 'Easy',
             'medium': 'Medium',
             'hard': 'Hard',
-            'challenge': 'Challenge',
-            'extcontest': 'Peer'
+            'challenge': 'Challenge'
         }
         try:
             difficulty = self.codechef_difficulties[self.codechef_page]
