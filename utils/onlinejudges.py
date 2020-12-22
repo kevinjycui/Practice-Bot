@@ -6,7 +6,6 @@ class NoSuchOJException(Exception):
 
 class OnlineJudges:
     judges = ('dmoj', 'codeforces', 'atcoder', 'leetcode', 'cses', 'szkopul')
-    problem_judges = ('dmoj', 'codeforces', 'atcoder', 'leetcode', 'cses', 'szkopul')
     contest_judges = ('dmoj', 'codeforces', 'atcoder')
     accounts = ('dmoj', 'codeforces')
     formal_names = {
@@ -16,7 +15,6 @@ class OnlineJudges:
         'cses': 'CSES',
         'szkopul': 'Szkopuł',
         'leetcode': 'Leetcode'
-        # 'codechef': 'CodeChef'
     }
     aliases = {
         'cf': 'codeforces',
@@ -24,7 +22,6 @@ class OnlineJudges:
         'ac': 'atcoder',
         'szkopuł': 'szkopul',
         'lc': 'leetcode'
-        # 'cc': 'codechef'
     }
     thumbnails = {
         'dmoj': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/dmoj-thumbnail.png',
@@ -33,7 +30,6 @@ class OnlineJudges:
         'cses': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/cses-thumbnail.png',
         'szkopul': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/szkopul-thumbnail.png',
         'leetcode': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/lc-thumbnail.png'
-        # 'codechef': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/cc-thumbnail.png'
     }
     colours = {
         'dmoj': discord.Colour(int('fcdc00', 16)),
@@ -42,7 +38,6 @@ class OnlineJudges:
         'cses': discord.Colour(int('f6e0a8', 16)),
         'szkopul': discord.Colour(int('f93800', 16)),
         'leetcode': discord.Colour(int('f89f1b', 16))
-        # 'codechef': discord.Colour(int('5c4435', 16))
     }
     judge_to_aliases = {}
     for judge in judges:
@@ -158,16 +153,4 @@ class OnlineJudges:
         output = ''
         for judge, aliases in list(self.judge_to_aliases.items()):
             output += self.formal_names[judge] + ' (' + ', '.join([judge] + aliases)  + '), '
-        return output
-
-    def problem_judge_str(self):
-        output = ''
-        for judge in self.problem_judges:
-            output += self.formal_names[judge] + ' (' + ', '.join([judge] + self.judge_to_aliases[judge])  + '), '
-        return output
-
-    def contest_judge_str(self):
-        output = ''
-        for judge in self.contest_judges:
-            output += self.formal_names[judge] + ' (' + ', '.join([judge] + self.judge_to_aliases[judge])  + '), '
         return output

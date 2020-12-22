@@ -49,12 +49,10 @@ class ContestCog(commands.Cog):
     dmoj_contests = []
     cf_contests = []
     atcoder_contests = []
-    # codechef_contests = []
 
     dmoj_contest_titles = []
     cf_contest_titles = []
     atcoder_contest_titles = []
-    # codechef_contest_titles = []
 
     contest_objects = []
 
@@ -105,9 +103,6 @@ class ContestCog(commands.Cog):
         elif oj == 'atcoder':
             self.atcoder_contests = []
             self.atcoder_contest_titles = []
-        # elif oj == 'codechef':
-        #     self.codechef_contests = []
-        #     self.codechef_contest_titles = []
 
     def set_time(self):
         self.fetch_time = time()
@@ -124,7 +119,7 @@ class ContestCog(commands.Cog):
                     'title': ':trophy: %s' % details['name'],
                     'description': url,
                     'oj': 'dmoj',
-                    'thumbnail': self.onlineJudges.thumbnails['dmoj'],
+                    'thumbnail': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/dmoj-thumbnail.png',
                     'Start Time': datetime.strptime(details['start_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z').strftime('%Y-%m-%d %H:%M:%S%z'),
                     'End Time': datetime.strptime(details['end_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z').strftime('%Y-%m-%d %H:%M:%S%z')
                 }
@@ -149,7 +144,7 @@ class ContestCog(commands.Cog):
                     'title': ':trophy: %s' % details['name'],
                     'description': url,
                     'oj': 'codeforces',
-                    'thumbnail': self.onlineJudges.thumbnails['codeforces'],
+                    'thumbnail': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/cf-thumbnail.png',
                     'Type': details['type'],
                     'Start Time': datetime.utcfromtimestamp(details['startTimeSeconds']).strftime('%Y-%m-%d %H:%M:%S'),
                     'Time Limit': '%s:%s:%s' % (str(details['durationSeconds']//(24*3600)).zfill(2), str(details['durationSeconds']%(24*3600)//3600).zfill(2), str(details['durationSeconds']%3600//60).zfill(2))
@@ -169,7 +164,7 @@ class ContestCog(commands.Cog):
                     'title': ':trophy: %s' % details[1].find('a').contents[0],
                     'description': 'https://atcoder.jp' + details[1].find('a')['href'],
                     'oj': 'atcoder',
-                    'thumbnail': self.onlineJudges.thumbnails['atcoder'],
+                    'thumbnail': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/at-thumbnail.png',
                     'Start Time': datetime.strptime(details[0].find('a').find('time').contents[0], '%Y-%m-%d %H:%M:%S%z').strftime('%Y-%m-%d %H:%M:%S%z'),
                     'Time Limit':  details[2].contents[0] + ':00',
                     'Rated Range': details[3].contents[0]
@@ -178,25 +173,6 @@ class ContestCog(commands.Cog):
                     self.atcoder_contest_titles.append(contest_data['title'])
                     self.atcoder_contests.append(Contest(contest_data))
         self.atcoder_contests = list(set(self.atcoder_contests))
-
-    # async def parse_codechef_contests(self):
-    #     contests = await webc.webget_text('https://www.codechef.com/contests/')
-    #     soup = bs.BeautifulSoup(contests, 'lxml')
-    #     for contest in soup.find_all('table', attrs={'class': 'dataTable'})[1].find('tbody').find_all('tr'):
-    #         details = contest.find_all('td')
-    #         if datetime.strptime(details[2].attrs['data-starttime'].split('+')[0] + '+' + details[2].attrs['data-starttime'].split('+')[1].replace(':', ''), '%Y-%m-%dT%H:%M:%S%z').timestamp() > time():
-    #             contest_data = {
-    #                 'title': ':trophy: %s' % details[1].find('a').contents[0],
-    #                 'description': 'https://www.codechef.com/' + details[0].contents[0],
-    #                 'oj': 'codechef',
-    #                 'thumbnail': self.onlineJudges.thumbnails['codechef'],
-    #                 'Start Time': (details[2].attrs['data-starttime'].split('+')[0] + '+' + details[2].attrs['data-starttime'].split('+')[1].replace(':', '')).replace('T', ' '),
-    #                 'End Time': (details[3].attrs['data-endtime'].split('+')[0] + '+' + details[3].attrs['data-endtime'].split('+')[1].replace(':', '')).replace('T', ' ')
-    #             }
-    #             if contest_data['title'] not in self.codechef_contest_titles:
-    #                 self.codechef_contest_titles.append(contest_data['title'])
-    #                 self.codechef_contests.append(Contest(contest_data))
-    #     self.codechef_contests = list(set(self.codechef_contests))
 
     def embed_contest(self, contest):
         embed = discord.Embed(title=contest.asdict()['title'], description=contest.asdict()['description'])
@@ -222,7 +198,7 @@ class ContestCog(commands.Cog):
         return embed
         
     def generate_stream(self):
-        self.contest_objects = list(set(self.dmoj_contests + self.cf_contests + self.atcoder_contests)) # + self.codechef_contests))
+        self.contest_objects = list(set(self.dmoj_contests + self.cf_contests + self.atcoder_contests))
 
     def update_contest_cache(self):
         with open('data/contests.json', 'w') as json_file:
@@ -244,13 +220,14 @@ class ContestCog(commands.Cog):
             elif self.onlineJudges.oj_exists(numstr):
                 oj = self.onlineJudges.get_oj(numstr)
                 if oj not in self.onlineJudges.contest_judges:
-                    raise NoSuchOJException(oj)
+                    await ctx.send(ctx.message.author.display_name + ', Sorry, contests for that site are not available yet or contests are not applicable to that site.')
+                    return
                 contestList = self.get_contests_of_oj(oj)
             await ctx.send(ctx.message.author.display_name + ', Here are some upcoming contest(s). Last fetched, %d minutes ago' % ((time()-self.fetch_time)//60), embed=contestList)
         except NoContestsAvailableException as e:
             await ctx.send(ctx.message.author.display_name + ', ' + str(e))
         except NoSuchOJException:
-            await ctx.send(ctx.message.author.display_name + ', Invalid query. The online judge must be one of the following: %s.' % self.onlineJudges.contest_judge_str())
+            await ctx.send(ctx.message.author.display_name + ', Invalid query. The online judge must be one of the following: %s.' % str(self.onlineJudges))
 
     @commands.command()
     @commands.has_permissions(manage_channels=True)
@@ -302,7 +279,7 @@ class ContestCog(commands.Cog):
             return datetime.strptime(contest.asdict()['Start Time'], '%Y-%m-%d %H:%M:%S%z') > datetime.now(pytz.UTC) - timedelta(days=7)
         return datetime.strptime(contest.asdict()['Start Time'], '%Y-%m-%d %H:%M:%S') > datetime.now() - timedelta(days=7)
 
-    @tasks.loop(minutes=10)
+    @tasks.loop(minutes=5)
     async def refresh_contests(self):
         try:
             self.reset_contest('dmoj')
@@ -321,12 +298,6 @@ class ContestCog(commands.Cog):
             await self.parse_atcoder_contests()
         except:
             pass
-
-        # try:
-        #     self.reset_contest('codechef')
-        #     await self.parse_codechef_contests()
-        # except:
-        #     pass
 
         self.set_time()
         self.generate_stream()

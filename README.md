@@ -1,7 +1,7 @@
 # Practice-Bot
 The all-competitive-programming-purpose Discord bot!
 
-Discord to AtCoder/CodeChef/Codeforces/CSES/DMOJ/Leetcode/Szkopuł/WCIPEG integration. Handles problems, accounts, ratings, contests, and submitting. Everything for your competitive programming server needs!
+Discord to DMOJ/Codeforces/AtCoder/Leetcode/CSES/Szkopuł integration. Handles problems, accounts, ratings, contests, and submitting. Everything for your competitive programming server needs!
 
 [![Discord Bots](https://top.gg/api/widget/status/691416325557452861.svg)](https://top.gg/bot/691416325557452861)
 [![Discord Bots](https://top.gg/api/widget/servers/691416325557452861.svg)](https://top.gg/bot/691416325557452861)
@@ -14,10 +14,7 @@ Support this bot by voting for it [here](https://top.gg/bot/691416325557452861/v
 
 ## What's New 
 
-### December 2020 \[BETA\]
- * CodeChef is here! Added contest support for CodeChef
-
-### November 2020
+### November 2020 \[BETA\]
  * Added problem support for Leetcode
  * Added some new informational commands. See [commands](https://github.com/kevinjycui/Practice-Bot/wiki/Commands) for more details
 
@@ -39,12 +36,11 @@ Support this bot by voting for it [here](https://top.gg/bot/691416325557452861/v
 ## Online Judges
 | | Random Problems | Suggested Problems | Contest Notifications | Rating Roles | Account Link | Submission |
 |---|---|---|---|---|---|---|
-| AtCoder | ✔ | ❌ | ✔ | ❌ | ❌ | ❌ |
-| CodeChef | ❌ | ❌ | ✔ | ❌ | ❌ | ❌ |
-| Codeforces | ✔ | ✔ | ✔ | ✔ | ✔ | ❌ |
-| CSES | ✔ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | DMOJ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
+| Codeforces | ✔ | ✔ | ✔ | ✔ | ✔ | ❌ |
+| AtCoder | ✔ | ❌ | ✔ | ❌ | ❌ | ❌ |
 | Leetcode | ✔ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| CSES | ✔ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | Szkopuł | ✔ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | ~~WCIPEG~~* |  |  |  |  |  |  |
 
@@ -56,12 +52,11 @@ Support this bot by voting for it [here](https://top.gg/bot/691416325557452861/v
  - [Codeforces API](https://codeforces.com/apiHelp)
  - [kenkoooo/AtCoderProblems](https://github.com/kenkoooo/AtCoderProb✔ems)
  - [Leetcode API](https://leetcode.com/api/problems/algorithms/)
- - [CodeChef](https://www.codechef.com/)
+ - [WCIPEG](https://wcipeg.com/main)
  - [CSES](https://cses.fi/)
  - [Szkopuł](https://szkopul.edu.pl/)
- - [WCIPEG](https://wcipeg.com/main)
 
- **Not affiliated with AtCoder, CodeChef, Codeforces, CSES, DMOJ, Leetcode, Szkopuł, or WCIPEG. Sites are only used as tools for this bot.*
+ **Not affiliated with DMOJ, Codeforces, AtCoder, Leetcode, WCIPEG, CSES, or Szkopuł. Sites are only used as tools for this bot.*
 
 ## Contributions
 Contributions are welcomed and encouraged!
