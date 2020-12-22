@@ -14,7 +14,11 @@ Support this bot by voting for it [here](https://top.gg/bot/691416325557452861/v
 
 ## What's New 
 
-### November 2020 \[BETA\]
+### December 2020 \[BETA\]
+ * CodeChef is here! Added contest support for CodeChef
+ * TopCoder is here! Added contest support for TopCoder
+
+### November 2020
  * Added problem support for Leetcode
  * Added some new informational commands. See [commands](https://github.com/kevinjycui/Practice-Bot/wiki/Commands) for more details
 
@@ -37,11 +41,13 @@ Support this bot by voting for it [here](https://top.gg/bot/691416325557452861/v
 | | Random Problems | Suggested Problems | Contest Notifications | Rating Roles | Account Link | Submission |
 |---|---|---|---|---|---|---|
 | AtCoder | ✔ | ❌ | ✔ | ❌ | ❌ | ❌ |
+| CodeChef | ❌ | ❌ | ✔ | ❌ | ❌ | ❌ |
 | Codeforces | ✔ | ✔ | ✔ | ✔ | ✔ | ❌ |
 | CSES | ✔ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | DMOJ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
 | Leetcode | ✔ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | Szkopuł | ✔ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| TopCoder | ❌ | ❌ | ✔ | ❌ | ❌ | ❌ |
 | ~~WCIPEG~~* |  |  |  |  |  |  |
 
 **Support for WCIPEG has been discontinued as [PEG Judge shut down at the end of July 2020](https://wcipeg.com/announcement/9383)*
@@ -55,8 +61,9 @@ Support this bot by voting for it [here](https://top.gg/bot/691416325557452861/v
  - [WCIPEG](https://wcipeg.com/main)
  - [CSES](https://cses.fi/)
  - [Szkopuł](https://szkopul.edu.pl/)
+ - [Kontests API](https://kontests.net/api)
 
- **Not affiliated with DMOJ, Codeforces, AtCoder, Leetcode, WCIPEG, CSES, or Szkopuł. Sites are only used as tools for this bot.*
+ **Not affiliated with any of the online judges used. Sites are only used as tools for this bot.*
 
 ## Contributions
 Contributions are welcomed and encouraged!
