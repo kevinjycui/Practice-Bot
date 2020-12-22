@@ -49,12 +49,12 @@ class ContestCog(commands.Cog):
     dmoj_contests = []
     cf_contests = []
     atcoder_contests = []
-    codechef_contests = []
+    # codechef_contests = []
 
     dmoj_contest_titles = []
     cf_contest_titles = []
     atcoder_contest_titles = []
-    codechef_contest_titles = []
+    # codechef_contest_titles = []
 
     contest_objects = []
 
@@ -105,9 +105,9 @@ class ContestCog(commands.Cog):
         elif oj == 'atcoder':
             self.atcoder_contests = []
             self.atcoder_contest_titles = []
-        elif oj == 'codechef':
-            self.codechef_contests = []
-            self.codechef_contest_titles = []
+        # elif oj == 'codechef':
+        #     self.codechef_contests = []
+        #     self.codechef_contest_titles = []
 
     def set_time(self):
         self.fetch_time = time()
@@ -179,24 +179,24 @@ class ContestCog(commands.Cog):
                     self.atcoder_contests.append(Contest(contest_data))
         self.atcoder_contests = list(set(self.atcoder_contests))
 
-    async def parse_codechef_contests(self):
-        contests = await webc.webget_text('https://www.codechef.com/contests/')
-        soup = bs.BeautifulSoup(contests, 'lxml')
-        for contest in soup.find_all('table', attrs={'class': 'dataTable'})[1].find('tbody').find_all('tr'):
-            details = contest.find_all('td')
-            if datetime.strptime(details[2].attrs['data-starttime'].split('+')[0] + '+' + details[2].attrs['data-starttime'].split('+')[1].replace(':', ''), '%Y-%m-%dT%H:%M:%S%z').timestamp() > time():
-                contest_data = {
-                    'title': ':trophy: %s' % details[1].find('a').contents[0],
-                    'description': 'https://www.codechef.com/' + details[0].contents[0],
-                    'oj': 'codechef',
-                    'thumbnail': self.onlineJudges.thumbnails['codechef'],
-                    'Start Time': (details[2].attrs['data-starttime'].split('+')[0] + '+' + details[2].attrs['data-starttime'].split('+')[1].replace(':', '')).replace('T', ' '),
-                    'End Time': (details[3].attrs['data-endtime'].split('+')[0] + '+' + details[3].attrs['data-endtime'].split('+')[1].replace(':', '')).replace('T', ' ')
-                }
-                if contest_data['title'] not in self.codechef_contest_titles:
-                    self.codechef_contest_titles.append(contest_data['title'])
-                    self.codechef_contests.append(Contest(contest_data))
-        self.codechef_contests = list(set(self.codechef_contests))
+    # async def parse_codechef_contests(self):
+    #     contests = await webc.webget_text('https://www.codechef.com/contests/')
+    #     soup = bs.BeautifulSoup(contests, 'lxml')
+    #     for contest in soup.find_all('table', attrs={'class': 'dataTable'})[1].find('tbody').find_all('tr'):
+    #         details = contest.find_all('td')
+    #         if datetime.strptime(details[2].attrs['data-starttime'].split('+')[0] + '+' + details[2].attrs['data-starttime'].split('+')[1].replace(':', ''), '%Y-%m-%dT%H:%M:%S%z').timestamp() > time():
+    #             contest_data = {
+    #                 'title': ':trophy: %s' % details[1].find('a').contents[0],
+    #                 'description': 'https://www.codechef.com/' + details[0].contents[0],
+    #                 'oj': 'codechef',
+    #                 'thumbnail': self.onlineJudges.thumbnails['codechef'],
+    #                 'Start Time': (details[2].attrs['data-starttime'].split('+')[0] + '+' + details[2].attrs['data-starttime'].split('+')[1].replace(':', '')).replace('T', ' '),
+    #                 'End Time': (details[3].attrs['data-endtime'].split('+')[0] + '+' + details[3].attrs['data-endtime'].split('+')[1].replace(':', '')).replace('T', ' ')
+    #             }
+    #             if contest_data['title'] not in self.codechef_contest_titles:
+    #                 self.codechef_contest_titles.append(contest_data['title'])
+    #                 self.codechef_contests.append(Contest(contest_data))
+    #     self.codechef_contests = list(set(self.codechef_contests))
 
     def embed_contest(self, contest):
         embed = discord.Embed(title=contest.asdict()['title'], description=contest.asdict()['description'])
@@ -222,7 +222,7 @@ class ContestCog(commands.Cog):
         return embed
         
     def generate_stream(self):
-        self.contest_objects = list(set(self.dmoj_contests + self.cf_contests + self.atcoder_contests + self.codechef_contests))
+        self.contest_objects = list(set(self.dmoj_contests + self.cf_contests + self.atcoder_contests)) # + self.codechef_contests))
 
     def update_contest_cache(self):
         with open('data/contests.json', 'w') as json_file:
@@ -322,11 +322,11 @@ class ContestCog(commands.Cog):
         except:
             pass
 
-        try:
-            self.reset_contest('codechef')
-            await self.parse_codechef_contests()
-        except:
-            pass
+        # try:
+        #     self.reset_contest('codechef')
+        #     await self.parse_codechef_contests()
+        # except:
+        #     pass
 
         self.set_time()
         self.generate_stream()

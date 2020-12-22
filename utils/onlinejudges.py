@@ -5,9 +5,9 @@ class NoSuchOJException(Exception):
         self.oj = oj
 
 class OnlineJudges:
-    judges = ('dmoj', 'codeforces', 'atcoder', 'leetcode', 'cses', 'szkopul', 'codechef')
+    judges = ('dmoj', 'codeforces', 'atcoder', 'leetcode', 'cses', 'szkopul')
     problem_judges = ('dmoj', 'codeforces', 'atcoder', 'leetcode', 'cses', 'szkopul')
-    contest_judges = ('dmoj', 'codeforces', 'atcoder', 'codechef')
+    contest_judges = ('dmoj', 'codeforces', 'atcoder')
     accounts = ('dmoj', 'codeforces')
     formal_names = {
         'dmoj': 'DMOJ',
@@ -15,8 +15,8 @@ class OnlineJudges:
         'atcoder': 'AtCoder',
         'cses': 'CSES',
         'szkopul': 'Szkopuł',
-        'leetcode': 'Leetcode',
-        'codechef': 'CodeChef'
+        'leetcode': 'Leetcode'
+        # 'codechef': 'CodeChef'
     }
     aliases = {
         'cf': 'codeforces',
