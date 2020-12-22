@@ -15,7 +15,7 @@ Support this bot by voting for it [here](https://top.gg/bot/691416325557452861/v
 ## What's New 
 
 ### December 2020 \[BETA\]
- * CodeChef is here! Added problem and contest support for CodeChef
+ * CodeChef is here! Added contest support for CodeChef
 
 ### November 2020
  * Added problem support for Leetcode
@@ -40,7 +40,7 @@ Support this bot by voting for it [here](https://top.gg/bot/691416325557452861/v
 | | Random Problems | Suggested Problems | Contest Notifications | Rating Roles | Account Link | Submission |
 |---|---|---|---|---|---|---|
 | AtCoder | ✔ | ❌ | ✔ | ❌ | ❌ | ❌ |
-| CodeChef | ✔ | ❌ | ✔ | ❌ | ❌ | ❌ |
+| CodeChef | ❌ | ❌ | ✔ | ❌ | ❌ | ❌ |
 | Codeforces | ✔ | ✔ | ✔ | ✔ | ✔ | ❌ |
 | CSES | ✔ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | DMOJ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
