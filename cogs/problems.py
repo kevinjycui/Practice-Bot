@@ -64,10 +64,10 @@ class ProblemCog(commands.Cog):
     dmoj_problems = {}
     cf_problems = None
     at_problems = None
-    cses_problems = {}
-    szkopul_problems = {}
-    leetcode_problems = {}
-    leetcode_problems_paid = {}
+    cses_problems = []
+    szkopul_problems = []
+    leetcode_problems = []
+    leetcode_problems_paid = []
 
     dmoj_sessions = {}
     cf_sessions = {}
@@ -125,6 +125,7 @@ class ProblemCog(commands.Cog):
             problem_req = await webc.webget_json('https://dmoj.ca/api/v2/problems')
             problems = problem_req['data']['objects']
             self.statuses['dmoj'] =  1
+            self.dmoj_problems = {}
             for problem in problems:
                 self.dmoj_problems[problem['code']] = problem
             self.problems_by_points['dmoj'] = {}
@@ -170,6 +171,7 @@ class ProblemCog(commands.Cog):
         try:
             problems = await webc.webget_text('https://cses.fi/problemset/list/')
             self.statuses['cses'] =  1
+            self.cses_problems = []
             soup = bs.BeautifulSoup(problems, 'lxml')
             task_lists = soup.find_all('ul', attrs={'class' : 'task-list'})
             task_groups = soup.find_all('h2')
@@ -189,7 +191,7 @@ class ProblemCog(commands.Cog):
                         'rate': rate,
                         'group': group
                     }
-                    self.cses_problems[id] = cses_data
+                    self.cses_problems.append(cses_data)
         except Exception as e:
             self.statuses['cses'] = 0
             raise e
@@ -201,7 +203,7 @@ class ProblemCog(commands.Cog):
             soup = bs.BeautifulSoup(problems, 'lxml')
             rows = soup.find_all('tr')
             if self.szkopul_page == 1:
-                self.szkopul_problems = {}
+                self.szkopul_problems = []
             if len(rows) == 1:
                 return
             for row in rows:
@@ -225,7 +227,7 @@ class ProblemCog(commands.Cog):
                 if int(submitters) > 0:
                     problem_data['percent_correct'] = data[4].contents[0]
                     problem_data['average'] = data[5].contents[0]
-                self.szkopul_problems[id] = problem_data
+                self.szkopul_problems.append(problem_data)
             self.szkopul_page += 1
         except Exception as e:
             self.statuses['szkopul'] = 0
@@ -235,6 +237,8 @@ class ProblemCog(commands.Cog):
         try:
             problems = await webc.webget_json('https://leetcode.com/api/problems/algorithms/')
             self.statuses['leetcode'] = 1
+            self.leetcode_problems_paid = []
+            self.leetcode_problems = []
             problemlist = problems['stat_status_pairs']
             for problem in problemlist:
                 id = problem['stat']['frontend_question_id']
@@ -254,9 +258,9 @@ class ProblemCog(commands.Cog):
                     'paid': str(paid)
                 }
                 if paid:
-                    self.leetcode_problems_paid[id] = problem_data
+                    self.leetcode_problems_paid.append(problem_data)
                 else:
-                    self.leetcode_problems[id] = problem_data
+                    self.leetcode_problems.append(problem_data)
         except Exception as e:
             self.statuses['leetcode'] = 0
             raise e
@@ -482,11 +486,11 @@ class ProblemCog(commands.Cog):
             return self.embed_atcoder_problem(prob)
 
         elif oj == 'cses':
-            prob = rand.choice(list(self.cses_problems.values()))
+            prob = rand.choice(self.cses_problems)
             return self.embed_cses_problem(prob)
 
         elif oj == 'szkopul':
-            prob = rand.choice(list(self.szkopul_problems.values()))
+            prob = rand.choice(self.szkopul_problems)
             return self.embed_szkopul_problem(prob)
 
         elif oj == 'leetcode':
