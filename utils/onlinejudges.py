@@ -7,7 +7,7 @@ class NoSuchOJException(Exception):
 class OnlineJudges:
     judges = ('dmoj', 'codeforces', 'atcoder', 'leetcode', 'cses', 'szkopul', 'codechef', 'topcoder')
     problem_judges = ('dmoj', 'codeforces', 'atcoder', 'leetcode', 'cses', 'szkopul')
-    contest_judges = ('dmoj', 'codeforces', 'atcoder', 'codechef', 'topcoder')
+    contest_judges = ('dmoj', 'codeforces', 'atcoder', 'leetcode', 'codechef', 'topcoder')
     accounts = ('dmoj', 'codeforces')
     formal_names = {
         'dmoj': 'DMOJ',
@@ -25,6 +25,7 @@ class OnlineJudges:
         'ac': 'atcoder',
         'szkopuł': 'szkopul',
         'lc': 'leetcode',
+        'leet': 'leetcode',
         'cc': 'codechef',
         'chef': 'codechef',
         'tc': 'topcoder',

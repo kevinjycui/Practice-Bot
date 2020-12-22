@@ -55,6 +55,7 @@ class ContestCog(commands.Cog):
     dmoj_contests = []
     cf_contests = []
     atcoder_contests = []
+    leetcode_contests = []
     codechef_contests = []
     topcoder_contests = []
 
@@ -124,7 +125,6 @@ class ContestCog(commands.Cog):
                     'title': ':trophy: %s' % details['name'],
                     'description': url,
                     'oj': 'dmoj',
-                    'thumbnail': self.onlineJudges.thumbnails['dmoj'],
                     'Start Time': datetime.strptime(details['start_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z').strftime('%Y-%m-%d %H:%M:%S%z'),
                     'End Time': datetime.strptime(details['end_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z').strftime('%Y-%m-%d %H:%M:%S%z')
                 }
@@ -134,9 +134,7 @@ class ContestCog(commands.Cog):
                     contest_data['Tags'] = ', '.join(spec['tags'])
                 contest_data['Rated'] ='Yes' if spec['is_rated'] else 'No'
                 contest_data['Format'] = spec['format']['name']
-                contest_obj = Contest(contest_data)
-                if contest_obj not in self.dmoj_contests:
-                    self.dmoj_contests.append(contest_obj)
+                self.dmoj_contests.append(Contest(contest_data))
         self.dmoj_contests = list(set(self.dmoj_contests))
 
     async def parse_cf_contests(self):
@@ -149,14 +147,11 @@ class ContestCog(commands.Cog):
                     'title': ':trophy: %s' % details['name'],
                     'description': url,
                     'oj': 'codeforces',
-                    'thumbnail': self.onlineJudges.thumbnails['codeforces'],
                     'Type': details['type'],
                     'Start Time': datetime.utcfromtimestamp(details['startTimeSeconds']).strftime('%Y-%m-%d %H:%M:%S%z'),
                     'Duration': '%s:%s:%s' % (str(details['durationSeconds']//(24*3600)).zfill(2), str(details['durationSeconds']%(24*3600)//3600).zfill(2), str(details['durationSeconds']%3600//60).zfill(2))
                 }
-                contest_obj = Contest(contest_data)
-                if contest_obj not in self.cf_contests:
-                    self.cf_contests.append(contest_obj)
+                self.cf_contests.append(Contest(contest_data))
         self.cf_contests = list(set(self.cf_contests))
 
     async def parse_atcoder_contests(self):
@@ -169,15 +164,28 @@ class ContestCog(commands.Cog):
                     'title': ':trophy: %s' % details[1].find('a').contents[0],
                     'description': 'https://atcoder.jp' + details[1].find('a')['href'],
                     'oj': 'atcoder',
-                    'thumbnail': self.onlineJudges.thumbnails['atcoder'],
                     'Start Time': datetime.strptime(details[0].find('a').find('time').contents[0], '%Y-%m-%d %H:%M:%S%z').strftime('%Y-%m-%d %H:%M:%S%z'),
                     'Duration':  details[2].contents[0] + ':00',
                     'Rated Range': details[3].contents[0]
                 }
-                contest_obj = Contest(contest_data)
-                if contest_obj not in self.atcoder_contests:
-                    self.atcoder_contests.append(contest_obj)
+                self.atcoder_contests.append(Contest(contest_data))
         self.atcoder_contests = list(set(self.atcoder_contests))
+
+    async def parse_leetcode_contests(self):
+        contests = await webc.webget_json('https://kontests.net/api/v1/leet_code')
+        for contest in contests:
+            start_time = datetime.strptime(contest['start_time'].split('.')[0], '%Y-%m-%dT%H:%M:%S').strftime('%Y-%m-%d %H:%M:%S') + '+0000'
+            if contest['status'] == 'BEFORE':
+                contest_data = {
+                    'title': ':trophy: %s' % contest['name'],
+                    'description': contest['url'],
+                    'oj': 'leetcode',
+                    'Start Time': start_time,
+                    'End Time': datetime.strptime(contest['end_time'].split('.')[0], '%Y-%m-%dT%H:%M:%S').strftime('%Y-%m-%d %H:%M:%S') + '+0000',
+                    'Duration': '%s:%s:%s' % (str(float(contest['duration'])//(24*3600)).zfill(2), str(float(contest['duration'])%(24*3600)//3600).zfill(2), str(float(contest['duration'])%3600//60).zfill(2))
+                }
+                self.leetcode_contests.append(Contest(contest_data))
+        self.leetcode_contests = list(set(self.leetcode_contests))
 
     async def parse_codechef_contests(self):
         contests = await webc.webget_json('https://kontests.net/api/v1/code_chef')
@@ -187,14 +195,11 @@ class ContestCog(commands.Cog):
                     'title': ':trophy: %s' % contest['name'],
                     'description': contest['url'].split('?')[0],
                     'oj': 'codechef',
-                    'thumbnail': self.onlineJudges.thumbnails['codechef'],
                     'Start Time': datetime.strptime(contest['start_time'].split('.')[0], '%Y-%m-%dT%H:%M:%S').strftime('%Y-%m-%d %H:%M:%S') + '+0000',
                     'End Time': datetime.strptime(contest['end_time'].split('.')[0], '%Y-%m-%dT%H:%M:%S').strftime('%Y-%m-%d %H:%M:%S') + '+0000',
                     'Duration': '%s:%s:%s' % (str(float(contest['duration'])//(24*3600)).zfill(2), str(float(contest['duration'])%(24*3600)//3600).zfill(2), str(float(contest['duration'])%3600//60).zfill(2))
                 }
-                contest_obj = Contest(contest_data)
-                if contest_obj not in self.codechef_contests:
-                    self.codechef_contests.append(contest_obj)
+                self.codechef_contests.append(Contest(contest_data))
         self.codechef_contests = list(set(self.codechef_contests))
 
     async def parse_topcoder_contests(self):
@@ -206,22 +211,19 @@ class ContestCog(commands.Cog):
                     'title': ':trophy: %s' % contest['name'],
                     'description': contest['url'],
                     'oj': 'topcoder',
-                    'thumbnail': self.onlineJudges.thumbnails['topcoder'],
                     'Start Time': start_time,
                     'End Time': datetime.strptime(contest['end_time'].split('.')[0], '%Y-%m-%dT%H:%M:%S').strftime('%Y-%m-%d %H:%M:%S') + '+0000',
                     'Duration': '%s:%s:%s' % (str(float(contest['duration'])//(24*3600)).zfill(2), str(float(contest['duration'])%(24*3600)//3600).zfill(2), str(float(contest['duration'])%3600//60).zfill(2))
                 }
-                contest_obj = Contest(contest_data)
-                if contest_obj not in self.topcoder_contests:
-                    self.topcoder_contests.append(contest_obj)
+                self.topcoder_contests.append(Contest(contest_data))
         self.topcoder_contests = list(set(self.topcoder_contests))
 
     def embed_contest(self, contest):
         embed = discord.Embed(title=contest.asdict()['title'], description=contest.asdict()['description'])
-        embed.set_thumbnail(url=contest.asdict()['thumbnail'])
+        embed.set_thumbnail(url=self.onlineJudges.thumbnails[contest.asdict()['oj']])
         embed.colour = self.onlineJudges.colours[contest.asdict()['oj']]
         for key in list(contest.asdict().keys()):
-            if key not in ('title', 'description', 'thumbnail', 'oj'):
+            if key not in ('title', 'description', 'oj'):
                 embed.add_field(name=key, value=contest.asdict()[key], inline=False)
         return embed
 
@@ -241,7 +243,7 @@ class ContestCog(commands.Cog):
         return embed
         
     def generate_stream(self):
-        self.contest_objects = list(set(self.dmoj_contests + self.cf_contests + self.atcoder_contests + self.codechef_contests + self.topcoder_contests))
+        self.contest_objects = list(set(self.dmoj_contests + self.cf_contests + self.atcoder_contests + self.leetcode_contests + self.codechef_contests + self.topcoder_contests))
 
     def update_contest_cache(self):
         with open('data/contests.json', 'w') as json_file:
@@ -339,6 +341,12 @@ class ContestCog(commands.Cog):
         try:
             self.reset_contest('atcoder')
             await self.parse_atcoder_contests()
+        except:
+            pass
+
+        try:
+            self.reset_contest('leetcode')
+            await self.parse_leetcode_contests()
         except:
             pass
 
