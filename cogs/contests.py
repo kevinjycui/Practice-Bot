@@ -185,7 +185,7 @@ class ContestCog(commands.Cog):
             if contest['status'] == 'BEFORE':
                 contest_data = {
                     'title': ':trophy: %s' % contest['name'],
-                    'description': contest['url'],
+                    'description': contest['url'].split('?')[0],
                     'oj': 'codechef',
                     'thumbnail': self.onlineJudges.thumbnails['codechef'],
                     'Start Time': datetime.strptime(contest['start_time'].split('.')[0], '%Y-%m-%dT%H:%M:%S').strftime('%Y-%m-%d %H:%M:%S') + '+0000',
@@ -200,13 +200,14 @@ class ContestCog(commands.Cog):
     async def parse_topcoder_contests(self):
         contests = await webc.webget_json('https://kontests.net/api/v1/top_coder')
         for contest in contests:
-            if contest['status'] == 'BEFORE':
+            start_time = datetime.strptime(contest['start_time'].split('.')[0], '%Y-%m-%dT%H:%M:%S').strftime('%Y-%m-%d %H:%M:%S') + '+0000'
+            if contest['status'] == 'BEFORE' and datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S%z').timestamp() - time() <= 60*60*24*7:
                 contest_data = {
                     'title': ':trophy: %s' % contest['name'],
                     'description': contest['url'],
                     'oj': 'topcoder',
                     'thumbnail': self.onlineJudges.thumbnails['topcoder'],
-                    'Start Time': datetime.strptime(contest['start_time'].split('.')[0], '%Y-%m-%dT%H:%M:%S').strftime('%Y-%m-%d %H:%M:%S') + '+0000',
+                    'Start Time': start_time,
                     'End Time': datetime.strptime(contest['end_time'].split('.')[0], '%Y-%m-%dT%H:%M:%S').strftime('%Y-%m-%d %H:%M:%S') + '+0000',
                     'Duration': '%s:%s:%s' % (str(float(contest['duration'])//(24*3600)).zfill(2), str(float(contest['duration'])%(24*3600)//3600).zfill(2), str(float(contest['duration'])%3600//60).zfill(2))
                 }
