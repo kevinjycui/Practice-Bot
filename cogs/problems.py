@@ -65,7 +65,7 @@ class ProblemCog(commands.Cog):
     cf_problems = None
     at_problems = None
     cses_problems = []
-    szkopul_problems = []
+    szkopul_problems = {}
     leetcode_problems = []
     leetcode_problems_paid = []
 
@@ -109,15 +109,17 @@ class ProblemCog(commands.Cog):
     async def oj(self, ctx, oj: str=''):
         if oj == '':
             status_list = '```'
-            for oj in self.onlineJudges.judges:
+            for oj in self.onlineJudges.problem_judges:
                 status_list += '%s status: %s. Last fetched, %d minutes ago\n' % (self.onlineJudges.formal_names[oj], 'OK' if self.statuses[oj] == 1 else 'Unable to connect', (time()-self.fetch_times[oj])//60)
             await ctx.send(status_list[:-1] + '```')
         else:
             try:
                 oj = self.onlineJudges.get_oj(oj)
+                if oj not in self.onlineJudges.problem_judges:
+                    raise NoSuchOJException(oj)
                 await ctx.send('```%s status: %s. Last fetched, %d minutes ago```' % (self.onlineJudges.formal_names[oj], 'OK' if self.statuses[oj] == 1 else 'Unable to connect', (time()-self.fetch_times[oj])//60))
             except NoSuchOJException:
-                await ctx.send(ctx.message.author.display_name + ', Sorry, no online judge found. Search only for online judges used by this bot ' + str(self.onlineJudges))
+                await ctx.send(ctx.message.author.display_name + ', Sorry, no online judge found. Search only for online judges used for getting problems this bot ' + self.onlineJudges.problem_judges_str())
 
 
     async def parse_dmoj_problems(self):
@@ -201,10 +203,12 @@ class ProblemCog(commands.Cog):
             self.statuses['szkopul'] =  1
             soup = bs.BeautifulSoup(problems, 'lxml')
             rows = soup.find_all('tr')
-            if self.szkopul_page == 1:
-                self.szkopul_problems = []
             if len(rows) == 1:
+                self.szkopul_problems = [p for p in self.szkopul_problems if p['updated']]
                 return
+            if self.szkopul_page == 1:
+                for problem in self.szkopul_problems:
+                    problem['updated'] = False
             for row in rows:
                 data = row.find_all('td')
                 if data == []:
@@ -221,12 +225,13 @@ class ProblemCog(commands.Cog):
                     'title': title,
                     'url': url,
                     'tags': tags,
-                    'submitters': submitters
+                    'submitters': submitters,
+                    'updated': True
                 }
                 if int(submitters) > 0:
                     problem_data['percent_correct'] = data[4].contents[0]
                     problem_data['average'] = data[5].contents[0]
-                self.szkopul_problems.append(problem_data)
+                self.szkopul_problems[id] = problem_data
             self.szkopul_page += 1
         except Exception as e:
             self.statuses['szkopul'] = 0
@@ -331,7 +336,7 @@ class ProblemCog(commands.Cog):
 
     async def get_random_problem(self, oj=None, points=None, maximum=None, iden=None, paid=False):
         if oj is None:
-            oj = rand.choice(self.onlineJudges.judges)
+            oj = rand.choice(self.onlineJudges.problem_judges)
 
         oj = self.onlineJudges.get_oj(oj)
         
@@ -489,7 +494,7 @@ class ProblemCog(commands.Cog):
             return self.embed_cses_problem(prob)
 
         elif oj == 'szkopul':
-            prob = rand.choice(self.szkopul_problems)
+            prob = rand.choice(list(self.szkopul_problems.values()))
             return self.embed_szkopul_problem(prob)
 
         elif oj == 'leetcode':
@@ -524,7 +529,7 @@ class ProblemCog(commands.Cog):
         except IndexError:
             await ctx.send(ctx.message.author.display_name + ', No problem was found. This may be due to the bot updating the problem cache. Please wait a moment, then try again.')
         except NoSuchOJException:
-            await ctx.send(ctx.message.author.display_name + ', Invalid query. The online judge must be one of the following: %s.' % str(self.onlineJudges))
+            await ctx.send(ctx.message.author.display_name + ', Invalid query. The online judge must be one of the following: %s.' % self.onlineJudges.problem_judges_str())
         except InvalidParametersException as e:
             await ctx.send(ctx.message.author.display_name + ', ' + str(e))
         except OnlineJudgeHTTPException as e:
@@ -716,7 +721,7 @@ class ProblemCog(commands.Cog):
     async def refresh_szkopul_problems_before(self):
         await self.bot.wait_until_ready()
 
-    @tasks.loop(hours=28)
+    @tasks.loop(hours=1)
     async def refresh_leetcode_problems(self):
         await self.parse_leetcode_problems()
         self.fetch_times['leetcode'] = time()

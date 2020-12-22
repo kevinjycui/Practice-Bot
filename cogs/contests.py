@@ -20,12 +20,18 @@ class Contest(object):
         return self.data
 
     def __eq__(self, other):
+        if self.data['oj'] == 'topcoder' and other.data['oj'] == 'topcoder':
+            return self.data['title'] == other.data['title']
         return self.data['description'] == other.data['description']
 
     def __gt__(self, other):
+        if self.data['oj'] == 'topcoder' and other.data['oj'] == 'topcoder':
+            return self.data['title'] > other.data['title']
         return self.data['description'] > other.data['description']
 
     def __str__(self):
+        if self.data['oj'] == 'topcoder':
+            return self.data['title']
         return self.data['description']
 
     def __hash__(self):
@@ -49,10 +55,8 @@ class ContestCog(commands.Cog):
     dmoj_contests = []
     cf_contests = []
     atcoder_contests = []
-
-    dmoj_contest_titles = []
-    cf_contest_titles = []
-    atcoder_contest_titles = []
+    codechef_contests = []
+    topcoder_contests = []
 
     contest_objects = []
 
@@ -96,13 +100,14 @@ class ContestCog(commands.Cog):
     def reset_contest(self, oj):
         if oj == 'dmoj':
             self.dmoj_contests = []
-            self.dmoj_contest_titles = []
         elif oj == 'codeforces':
             self.cf_contests = []
-            self.cf_contest_titles = []
         elif oj == 'atcoder':
             self.atcoder_contests = []
-            self.atcoder_contest_titles = []
+        elif oj == 'codechef':
+            self.codechef_contests = []
+        elif oj == 'topcoder':
+            self.topcoder_contests = []
 
     def set_time(self):
         self.fetch_time = time()
@@ -119,7 +124,7 @@ class ContestCog(commands.Cog):
                     'title': ':trophy: %s' % details['name'],
                     'description': url,
                     'oj': 'dmoj',
-                    'thumbnail': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/dmoj-thumbnail.png',
+                    'thumbnail': self.onlineJudges.thumbnails['dmoj'],
                     'Start Time': datetime.strptime(details['start_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z').strftime('%Y-%m-%d %H:%M:%S%z'),
                     'End Time': datetime.strptime(details['end_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z').strftime('%Y-%m-%d %H:%M:%S%z')
                 }
@@ -129,9 +134,9 @@ class ContestCog(commands.Cog):
                     contest_data['Tags'] = ', '.join(spec['tags'])
                 contest_data['Rated'] ='Yes' if spec['is_rated'] else 'No'
                 contest_data['Format'] = spec['format']['name']
-                if contest_data['title'] not in self.dmoj_contest_titles:
-                    self.dmoj_contest_titles.append(contest_data['title'])
-                    self.dmoj_contests.append(Contest(contest_data))
+                contest_obj = Contest(contest_data)
+                if contest_obj not in self.dmoj_contests:
+                    self.dmoj_contests.append(contest_obj)
         self.dmoj_contests = list(set(self.dmoj_contests))
 
     async def parse_cf_contests(self):
@@ -144,14 +149,14 @@ class ContestCog(commands.Cog):
                     'title': ':trophy: %s' % details['name'],
                     'description': url,
                     'oj': 'codeforces',
-                    'thumbnail': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/cf-thumbnail.png',
+                    'thumbnail': self.onlineJudges.thumbnails['codeforces'],
                     'Type': details['type'],
-                    'Start Time': datetime.utcfromtimestamp(details['startTimeSeconds']).strftime('%Y-%m-%d %H:%M:%S'),
-                    'Time Limit': '%s:%s:%s' % (str(details['durationSeconds']//(24*3600)).zfill(2), str(details['durationSeconds']%(24*3600)//3600).zfill(2), str(details['durationSeconds']%3600//60).zfill(2))
+                    'Start Time': datetime.utcfromtimestamp(details['startTimeSeconds']).strftime('%Y-%m-%d %H:%M:%S%z'),
+                    'Duration': '%s:%s:%s' % (str(details['durationSeconds']//(24*3600)).zfill(2), str(details['durationSeconds']%(24*3600)//3600).zfill(2), str(details['durationSeconds']%3600//60).zfill(2))
                 }
-                if contest_data['title'] not in self.cf_contest_titles:
-                    self.cf_contest_titles.append(contest_data['title'])
-                    self.cf_contests.append(Contest(contest_data))
+                contest_obj = Contest(contest_data)
+                if contest_obj not in self.cf_contests:
+                    self.cf_contests.append(contest_obj)
         self.cf_contests = list(set(self.cf_contests))
 
     async def parse_atcoder_contests(self):
@@ -164,15 +169,51 @@ class ContestCog(commands.Cog):
                     'title': ':trophy: %s' % details[1].find('a').contents[0],
                     'description': 'https://atcoder.jp' + details[1].find('a')['href'],
                     'oj': 'atcoder',
-                    'thumbnail': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/at-thumbnail.png',
+                    'thumbnail': self.onlineJudges.thumbnails['atcoder'],
                     'Start Time': datetime.strptime(details[0].find('a').find('time').contents[0], '%Y-%m-%d %H:%M:%S%z').strftime('%Y-%m-%d %H:%M:%S%z'),
-                    'Time Limit':  details[2].contents[0] + ':00',
+                    'Duration':  details[2].contents[0] + ':00',
                     'Rated Range': details[3].contents[0]
                 }
-                if contest_data['title'] not in self.atcoder_contest_titles:
-                    self.atcoder_contest_titles.append(contest_data['title'])
-                    self.atcoder_contests.append(Contest(contest_data))
+                contest_obj = Contest(contest_data)
+                if contest_obj not in self.atcoder_contests:
+                    self.atcoder_contests.append(contest_obj)
         self.atcoder_contests = list(set(self.atcoder_contests))
+
+    async def parse_codechef_contests(self):
+        contests = await webc.webget_json('https://kontests.net/api/v1/code_chef')
+        for contest in contests:
+            if contest['status'] == 'BEFORE':
+                contest_data = {
+                    'title': ':trophy: %s' % contest['name'],
+                    'description': contest['url'],
+                    'oj': 'codechef',
+                    'thumbnail': self.onlineJudges.thumbnails['codechef'],
+                    'Start Time': datetime.strptime(contest['start_time'].split('.')[0], '%Y-%m-%dT%H:%M:%S').strftime('%Y-%m-%d %H:%M:%S') + '+0000',
+                    'End Time': datetime.strptime(contest['end_time'].split('.')[0], '%Y-%m-%dT%H:%M:%S').strftime('%Y-%m-%d %H:%M:%S') + '+0000',
+                    'Duration': '%s:%s:%s' % (str(float(contest['duration'])//(24*3600)).zfill(2), str(float(contest['duration'])%(24*3600)//3600).zfill(2), str(float(contest['duration'])%3600//60).zfill(2))
+                }
+                contest_obj = Contest(contest_data)
+                if contest_obj not in self.codechef_contests:
+                    self.codechef_contests.append(contest_obj)
+        self.codechef_contests = list(set(self.codechef_contests))
+
+    async def parse_topcoder_contests(self):
+        contests = await webc.webget_json('https://kontests.net/api/v1/top_coder')
+        for contest in contests:
+            if contest['status'] == 'BEFORE':
+                contest_data = {
+                    'title': ':trophy: %s' % contest['name'],
+                    'description': contest['url'],
+                    'oj': 'topcoder',
+                    'thumbnail': self.onlineJudges.thumbnails['topcoder'],
+                    'Start Time': datetime.strptime(contest['start_time'].split('.')[0], '%Y-%m-%dT%H:%M:%S').strftime('%Y-%m-%d %H:%M:%S') + '+0000',
+                    'End Time': datetime.strptime(contest['end_time'].split('.')[0], '%Y-%m-%dT%H:%M:%S').strftime('%Y-%m-%d %H:%M:%S') + '+0000',
+                    'Duration': '%s:%s:%s' % (str(float(contest['duration'])//(24*3600)).zfill(2), str(float(contest['duration'])%(24*3600)//3600).zfill(2), str(float(contest['duration'])%3600//60).zfill(2))
+                }
+                contest_obj = Contest(contest_data)
+                if contest_obj not in self.topcoder_contests:
+                    self.topcoder_contests.append(contest_obj)
+        self.topcoder_contests = list(set(self.topcoder_contests))
 
     def embed_contest(self, contest):
         embed = discord.Embed(title=contest.asdict()['title'], description=contest.asdict()['description'])
@@ -191,6 +232,7 @@ class ContestCog(commands.Cog):
         if oj is not None:
             embed = discord.Embed(title='%d %s%s Contests' % (len(contests), ' New' if new else '', self.onlineJudges.formal_names[oj]))
             embed.set_thumbnail(url=self.onlineJudges.thumbnails[oj])
+            embed.colour = self.onlineJudges.colours[oj]
         else:
             embed = discord.Embed(title='%d%s Contests' % (len(contests), ' New' if new else ''))
         for contest in sorted(contests):
@@ -198,7 +240,7 @@ class ContestCog(commands.Cog):
         return embed
         
     def generate_stream(self):
-        self.contest_objects = list(set(self.dmoj_contests + self.cf_contests + self.atcoder_contests))
+        self.contest_objects = list(set(self.dmoj_contests + self.cf_contests + self.atcoder_contests + self.codechef_contests + self.topcoder_contests))
 
     def update_contest_cache(self):
         with open('data/contests.json', 'w') as json_file:
@@ -227,7 +269,7 @@ class ContestCog(commands.Cog):
         except NoContestsAvailableException as e:
             await ctx.send(ctx.message.author.display_name + ', ' + str(e))
         except NoSuchOJException:
-            await ctx.send(ctx.message.author.display_name + ', Invalid query. The online judge must be one of the following: %s.' % str(self.onlineJudges))
+            await ctx.send(ctx.message.author.display_name + ', Invalid query. The online judge must be one of the following: %s.' % self.onlineJudges.contest_judges_str())
 
     @commands.command()
     @commands.has_permissions(manage_channels=True)
@@ -298,6 +340,20 @@ class ContestCog(commands.Cog):
             await self.parse_atcoder_contests()
         except:
             pass
+
+        try:
+            self.reset_contest('codechef')
+            await self.parse_codechef_contests()
+        except:
+            pass
+
+        try:
+            self.reset_contest('topcoder')
+            await self.parse_topcoder_contests()
+        except:
+            pass
+        await self.parse_codechef_contests()
+        await self.parse_topcoder_contests()
 
         self.set_time()
         self.generate_stream()
