@@ -23,8 +23,8 @@ class OnlineJudges:
         'at': 'atcoder',
         'ac': 'atcoder',
         'szkopuł': 'szkopul',
-        'lc': 'leetcode',
-        'cc': 'codechef'
+        'lc': 'leetcode'
+        # 'cc': 'codechef'
     }
     thumbnails = {
         'dmoj': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/dmoj-thumbnail.png',
@@ -32,8 +32,8 @@ class OnlineJudges:
         'atcoder': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/at-thumbnail.png',
         'cses': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/cses-thumbnail.png',
         'szkopul': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/szkopul-thumbnail.png',
-        'leetcode': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/lc-thumbnail.png',
-        'codechef': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/cc-thumbnail.png'
+        'leetcode': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/lc-thumbnail.png'
+        # 'codechef': 'https://raw.githubusercontent.com/kevinjycui/Practice-Bot/master/assets/cc-thumbnail.png'
     }
     colours = {
         'dmoj': discord.Colour(int('fcdc00', 16)),
@@ -41,8 +41,8 @@ class OnlineJudges:
         'atcoder': discord.Colour(int('f5f5f5', 16)),
         'cses': discord.Colour(int('f6e0a8', 16)),
         'szkopul': discord.Colour(int('f93800', 16)),
-        'leetcode': discord.Colour(int('f89f1b', 16)),
-        'codechef': discord.Colour(int('5c4435', 16))
+        'leetcode': discord.Colour(int('f89f1b', 16))
+        # 'codechef': discord.Colour(int('5c4435', 16))
     }
     judge_to_aliases = {}
     for judge in judges:
