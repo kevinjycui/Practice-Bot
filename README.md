@@ -1,7 +1,7 @@
 # Practice-Bot
 The all-competitive-programming-purpose Discord bot!
 
-Discord to DMOJ/Codeforces/AtCoder/Leetcode/CSES/Szkopuł integration. Handles problems, accounts, ratings, contests, and submitting. Everything for your competitive programming server needs!
+Discord to AtCoder/Codeforces/CSES/DMOJ/Leetcode/Szkopuł/WCIPEG integration. Handles problems, accounts, ratings, contests, and submitting. Everything for your competitive programming server needs!
 
 [![Discord Bots](https://top.gg/api/widget/status/691416325557452861.svg)](https://top.gg/bot/691416325557452861)
 [![Discord Bots](https://top.gg/api/widget/servers/691416325557452861.svg)](https://top.gg/bot/691416325557452861)
@@ -36,11 +36,11 @@ Support this bot by voting for it [here](https://top.gg/bot/691416325557452861/v
 ## Online Judges
 | | Random Problems | Suggested Problems | Contest Notifications | Rating Roles | Account Link | Submission |
 |---|---|---|---|---|---|---|
-| DMOJ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
-| Codeforces | ✔ | ✔ | ✔ | ✔ | ✔ | ❌ |
 | AtCoder | ✔ | ❌ | ✔ | ❌ | ❌ | ❌ |
-| Leetcode | ✔ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Codeforces | ✔ | ✔ | ✔ | ✔ | ✔ | ❌ |
 | CSES | ✔ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| DMOJ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
+| Leetcode | ✔ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | Szkopuł | ✔ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | ~~WCIPEG~~* |  |  |  |  |  |  |
 
