@@ -175,7 +175,6 @@ class ProblemCog(commands.Cog):
             soup = bs.BeautifulSoup(problems, 'lxml')
             task_lists = soup.find_all('ul', attrs={'class' : 'task-list'})
             task_groups = soup.find_all('h2')
-            self.cses_problems = {}
             for index in range(1, len(task_groups)):
                 tasks = task_lists[index].find_all('li', attrs={'class' : 'task'})
                 for task in tasks:
