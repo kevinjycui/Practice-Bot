@@ -671,7 +671,7 @@ class ProblemCog(commands.Cog):
         if str(after.status) == 'offline' and str(before.status) != 'offline' and after.id in self.dmoj_sessions.keys():
             await after.send('Attention! You have been logged out of the account %s due to being offline (Note that your account will still be linked to your Discord account, but will now be unable to submit to problems)' % self.dmoj_sessions.pop(after.id))
 
-    @tasks.loop(hours=3)
+    @tasks.loop(hours=24)
     async def refresh_dmoj_problems(self):
         await self.parse_dmoj_problems()
         self.fetch_times['dmoj'] = time()
@@ -680,7 +680,7 @@ class ProblemCog(commands.Cog):
     async def refresh_dmoj_problems_before(self):
         await self.bot.wait_until_ready()
 
-    @tasks.loop(hours=3)
+    @tasks.loop(hours=25)
     async def refresh_cf_problems(self):
         await self.parse_cf_problems()
         self.fetch_times['codeforces'] = time()
@@ -689,7 +689,7 @@ class ProblemCog(commands.Cog):
     async def refresh_cf_problems_before(self):
         await self.bot.wait_until_ready()
 
-    @tasks.loop(hours=3)
+    @tasks.loop(hours=26)
     async def refresh_atcoder_problems(self):
         await self.parse_atcoder_problems()
         self.fetch_times['atcoder'] = time()
@@ -698,7 +698,7 @@ class ProblemCog(commands.Cog):
     async def refresh_atcoder_problems_before(self):
         await self.bot.wait_until_ready()
 
-    @tasks.loop(hours=3)
+    @tasks.loop(hours=24*7)
     async def refresh_cses_problems(self):
         await self.parse_cses_problems()
         self.fetch_times['cses'] = time()
@@ -707,7 +707,7 @@ class ProblemCog(commands.Cog):
     async def refresh_cses_problems_before(self):
         await self.bot.wait_until_ready()
 
-    @tasks.loop(hours=3)
+    @tasks.loop(hours=27)
     async def refresh_szkopul_problems(self):
         await self.parse_szkopul_problems()
         self.fetch_times['szkopul'] = time()
@@ -716,7 +716,7 @@ class ProblemCog(commands.Cog):
     async def refresh_szkopul_problems_before(self):
         await self.bot.wait_until_ready()
 
-    @tasks.loop(hours=3)
+    @tasks.loop(hours=28)
     async def refresh_leetcode_problems(self):
         await self.parse_leetcode_problems()
         self.fetch_times['leetcode'] = time()
