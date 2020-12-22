@@ -671,7 +671,7 @@ class ProblemCog(commands.Cog):
         if str(after.status) == 'offline' and str(before.status) != 'offline' and after.id in self.dmoj_sessions.keys():
             await after.send('Attention! You have been logged out of the account %s due to being offline (Note that your account will still be linked to your Discord account, but will now be unable to submit to problems)' % self.dmoj_sessions.pop(after.id))
 
-    @tasks.loop(hours=24)
+    @tasks.loop(hours=23)
     async def refresh_dmoj_problems(self):
         await self.parse_dmoj_problems()
         self.fetch_times['dmoj'] = time()
