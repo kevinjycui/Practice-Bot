@@ -1,7 +1,7 @@
 # Practice-Bot
-The all-competitive-programming-purpose Discord bot!
+The all-purpose competitive programming Discord bot!
 
-Discord to AtCoder/Codeforces/CSES/DMOJ/Leetcode/Szkopuł/WCIPEG integration. Handles problems, accounts, ratings, contests, and submitting. Everything for your competitive programming server needs!
+Discord to AtCoder/CodeChef/Codeforces/CSES/DMOJ/LeetCode/Szkopuł/TopCoder/WCIPEG integration. Handles problems, accounts, ratings, contests, and submitting. Everything for your competitive programming server needs!
 
 [![Discord Bots](https://top.gg/api/widget/status/691416325557452861.svg)](https://top.gg/bot/691416325557452861)
 [![Discord Bots](https://top.gg/api/widget/servers/691416325557452861.svg)](https://top.gg/bot/691416325557452861)
@@ -17,10 +17,10 @@ Support this bot by voting for it [here](https://top.gg/bot/691416325557452861/v
 ### December 2020 \[BETA\]
  * CodeChef is here! Added contest support for CodeChef
  * TopCoder is here! Added contest support for TopCoder
- * Added contest support for Leetcode
+ * Added contest support for LeetCode
 
 ### November 2020
- * Added problem support for Leetcode
+ * Added problem support for LeetCode
  * Added some new informational commands. See [commands](https://github.com/kevinjycui/Practice-Bot/wiki/Commands) for more details
 
 ### September 2020
@@ -46,7 +46,7 @@ Support this bot by voting for it [here](https://top.gg/bot/691416325557452861/v
 | Codeforces | ✔ | ✔ | ✔ | ✔ | ✔ | ❌ |
 | CSES | ✔ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | DMOJ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
-| Leetcode | ✔ | ❌ | ✔ | ❌ | ❌ | ❌ |
+| LeetCode | ✔ | ❌ | ✔ | ❌ | ❌ | ❌ |
 | Szkopuł | ✔ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | TopCoder | ❌ | ❌ | ✔ | ❌ | ❌ | ❌ |
 | ~~WCIPEG~~* |  |  |  |  |  |  |
@@ -58,7 +58,7 @@ Support this bot by voting for it [here](https://top.gg/bot/691416325557452861/v
  - [DMOJ API](https://dmoj.ca/api/)
  - [Codeforces API](https://codeforces.com/apiHelp)
  - [kenkoooo/AtCoderProblems](https://github.com/kenkoooo/AtCoderProb✔ems)
- - [Leetcode API](https://leetcode.com/api/problems/algorithms/)
+ - [LeetCode API](https://leetcode.com/api/problems/algorithms/)
  - [WCIPEG](https://wcipeg.com/main)
  - [CSES](https://cses.fi/)
  - [Szkopuł](https://szkopul.edu.pl/)
