@@ -712,7 +712,7 @@ class ProblemCog(commands.Cog):
     async def refresh_cses_problems_before(self):
         await self.bot.wait_until_ready()
 
-    @tasks.loop(hours=27)
+    @tasks.loop(hours=1, minutes=27)
     async def refresh_szkopul_problems(self):
         await self.parse_szkopul_problems()
         self.fetch_times['szkopul'] = time()
@@ -721,7 +721,7 @@ class ProblemCog(commands.Cog):
     async def refresh_szkopul_problems_before(self):
         await self.bot.wait_until_ready()
 
-    @tasks.loop(hours=1)
+    @tasks.loop(hours=28)
     async def refresh_leetcode_problems(self):
         await self.parse_leetcode_problems()
         self.fetch_times['leetcode'] = time()

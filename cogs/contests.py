@@ -321,7 +321,7 @@ class ContestCog(commands.Cog):
             return datetime.strptime(contest.asdict()['Start Time'], '%Y-%m-%d %H:%M:%S%z') > datetime.now(pytz.UTC) - timedelta(days=7)
         return datetime.strptime(contest.asdict()['Start Time'], '%Y-%m-%d %H:%M:%S') > datetime.now() - timedelta(days=7)
 
-    @tasks.loop(minutes=5)
+    @tasks.loop(minutes=7)
     async def refresh_contests(self):
         try:
             self.reset_contest('dmoj')
