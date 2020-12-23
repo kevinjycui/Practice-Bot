@@ -15,7 +15,7 @@ class OnlineJudges:
         'atcoder': 'AtCoder',
         'cses': 'CSES',
         'szkopul': 'Szkopuł',
-        'leetcode': 'Leetcode',
+        'leetcode': 'LeetCode',
         'codechef': 'CodeChef',
         'topcoder': 'TopCoder'
     }
