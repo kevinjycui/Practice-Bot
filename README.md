@@ -17,6 +17,7 @@ Support this bot by voting for it [here](https://top.gg/bot/691416325557452861/v
 ### December 2020 \[BETA\]
  * CodeChef is here! Added contest support for CodeChef
  * TopCoder is here! Added contest support for TopCoder
+ * Added contest support for Leetcode
 
 ### November 2020
  * Added problem support for Leetcode
@@ -45,7 +46,7 @@ Support this bot by voting for it [here](https://top.gg/bot/691416325557452861/v
 | Codeforces | ✔ | ✔ | ✔ | ✔ | ✔ | ❌ |
 | CSES | ✔ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | DMOJ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
-| Leetcode | ✔ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Leetcode | ✔ | ❌ | ✔ | ❌ | ❌ | ❌ |
 | Szkopuł | ✔ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | TopCoder | ❌ | ❌ | ✔ | ❌ | ❌ | ❌ |
 | ~~WCIPEG~~* |  |  |  |  |  |  |
