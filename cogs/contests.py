@@ -9,7 +9,7 @@ import bs4 as bs
 import pytz
 from connector import mySQLConnection as query
 from utils.onlinejudges import OnlineJudges, NoSuchOJException
-from utils.webclient import webc
+import requests
 
 
 class Contest(object):
@@ -113,13 +113,13 @@ class ContestCog(commands.Cog):
     def set_time(self):
         self.fetch_time = time()
 
-    async def parse_dmoj_contests(self):
-        contest_req = await webc.webget_json('https://dmoj.ca/api/v2/contests')
+    def parse_dmoj_contests(self):
+        contest_req = requests.get('https://dmoj.ca/api/v2/contests').json()
         contests = contest_req['data']['objects']
         for details in contests:
             name = details['key']
             if datetime.strptime(details['start_time'].replace(':', ''), '%Y-%m-%dT%H%M%S%z').timestamp() > time():
-                spec = webc.webget_json('https://dmoj.ca/api/v2/contest/' + name)['data']['object']
+                spec = requests.get('https://dmoj.ca/api/v2/contest/' + name).json()['data']['object']
                 url = 'https://dmoj.ca/contest/' + name
                 contest_data = {
                     'title': ':trophy: %s' % details['name'],
@@ -136,8 +136,8 @@ class ContestCog(commands.Cog):
                 contest_data['Format'] = spec['format']['name']
                 self.dmoj_contests.append(Contest(contest_data))
 
-    async def parse_cf_contests(self):
-        contests = await webc.webget_json('https://codeforces.com/api/contest.list')
+    def parse_cf_contests(self):
+        contests = requests.get('https://codeforces.com/api/contest.list').json()
         for contest in range(len(contests.get('result', []))):
             details = contests['result'][contest]
             if details['phase'] == 'BEFORE':
@@ -152,8 +152,8 @@ class ContestCog(commands.Cog):
                 }
                 self.cf_contests.append(Contest(contest_data))
 
-    async def parse_atcoder_contests(self):
-        contests = await webc.webget_text('https://atcoder.jp/contests/?lang=en')
+    def parse_atcoder_contests(self):
+        contests = requests.get('https://atcoder.jp/contests/?lang=en').text
         soup = bs.BeautifulSoup(contests, 'lxml')
         for contest in soup.find_all('table')[1 + len(soup.find_all('div', attrs={'id': 'contest-table-action'}))].find('tbody').find_all('tr'):
             details = contest.find_all('td')
@@ -168,8 +168,8 @@ class ContestCog(commands.Cog):
                 }
                 self.atcoder_contests.append(Contest(contest_data))
 
-    async def parse_external_contest_api(self):
-        contests = await webc.webget_json('https://kontests.net/api/v1/all')
+    def parse_external_contest_api(self):
+        contests = requests.get('https://kontests.net/api/v1/all').json()
         for contest in contests:
             if contest['site'] == 'LeetCode':
                 self.parse_leetcode_contest(contest)
@@ -325,19 +325,19 @@ class ContestCog(commands.Cog):
     async def refresh_contests(self):
         try:
             self.reset_contest('dmoj')
-            await self.parse_dmoj_contests()
+            self.parse_dmoj_contests()
         except:
             pass
 
         try:
             self.reset_contest('codeforces')
-            await self.parse_cf_contests()
+            self.parse_cf_contests()
         except:
             pass
 
         try:
             self.reset_contest('atcoder')
-            await self.parse_atcoder_contests()
+            self.parse_atcoder_contests()
         except:
             pass
 
@@ -345,7 +345,7 @@ class ContestCog(commands.Cog):
             self.reset_contest('leetcode')
             self.reset_contest('codechef')
             self.reset_contest('topcoder')
-            await self.parse_external_contest_api()
+            self.parse_external_contest_api()
         except:
             pass
 
