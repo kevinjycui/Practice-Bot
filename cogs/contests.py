@@ -186,7 +186,7 @@ class ContestCog(commands.Cog):
                 'oj': 'leetcode',
                 'Start Time': datetime.strptime(contest['start_time'].split('.')[0], '%Y-%m-%dT%H:%M:%S').strftime('%Y-%m-%d %H:%M:%S') + '+0000',
                 'End Time': datetime.strptime(contest['end_time'].split('.')[0], '%Y-%m-%dT%H:%M:%S').strftime('%Y-%m-%d %H:%M:%S') + '+0000',
-                'Duration': '%s:%s:%s' % (str(float(contest['duration'])//(24*3600)).zfill(2), str(float(contest['duration'])%(24*3600)//3600).zfill(2), str(float(contest['duration'])%3600//60).zfill(2))
+                'Duration': '%s:%s:%s' % (str(int(float(contest['duration']))//(24*3600)).zfill(2), str(int(float(contest['duration']))%(24*3600)//3600).zfill(2), str(int(float(contest['duration']))%3600//60).zfill(2))
             }
             self.leetcode_contests.append(Contest(contest_data))
 
@@ -198,7 +198,7 @@ class ContestCog(commands.Cog):
                 'oj': 'codechef',
                 'Start Time': datetime.strptime(contest['start_time'].split('.')[0], '%Y-%m-%dT%H:%M:%S').strftime('%Y-%m-%d %H:%M:%S') + '+0000',
                 'End Time': datetime.strptime(contest['end_time'].split('.')[0], '%Y-%m-%dT%H:%M:%S').strftime('%Y-%m-%d %H:%M:%S') + '+0000',
-                'Duration': '%s:%s:%s' % (str(float(contest['duration'])//(24*3600)).zfill(2), str(float(contest['duration'])%(24*3600)//3600).zfill(2), str(float(contest['duration'])%3600//60).zfill(2))
+                'Duration': '%s:%s:%s' % (str(int(float(contest['duration']))//(24*3600)).zfill(2), str(int(float(contest['duration']))%(24*3600)//3600).zfill(2), str(int(float(contest['duration']))%3600//60).zfill(2))
             }
             self.codechef_contests.append(Contest(contest_data))
 
@@ -211,7 +211,7 @@ class ContestCog(commands.Cog):
                 'oj': 'topcoder',
                 'Start Time': start_time,
                 'End Time': datetime.strptime(contest['end_time'].split('.')[0], '%Y-%m-%dT%H:%M:%S').strftime('%Y-%m-%d %H:%M:%S') + '+0000',
-                'Duration': '%s:%s:%s' % (str(float(contest['duration'])//(24*3600)).zfill(2), str(float(contest['duration'])%(24*3600)//3600).zfill(2), str(float(contest['duration'])%3600//60).zfill(2))
+                'Duration': '%s:%s:%s' % (str(int(float(contest['duration']))//(24*3600)).zfill(2), str(int(float(contest['duration']))%(24*3600)//3600).zfill(2), str(int(float(contest['duration']))%3600//60).zfill(2))
             }
             self.topcoder_contests.append(Contest(contest_data))
 
