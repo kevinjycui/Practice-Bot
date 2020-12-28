@@ -302,10 +302,10 @@ class ContestCog(commands.Cog):
             old_sub_int = query.get_subbed_ojs(channel.id)
             old_sub_bin = '{0:b}'.format(old_sub_int).zfill(len(self.onlineJudges.contest_judges))
             sub_bin = old_sub_bin
-        selected = 'all '
+        selected = 'the selected '
         if len(ojs) == 0:
             sub_bin = '1'*len(self.onlineJudges.contest_judges)
-            selected = 'the selected '
+            selected = 'all '
         sub_bin_mutable = list(sub_bin)
         for oj in ojs:
             sub_bin_mutable[self.onlineJudges.contest_judges.index(oj)] = '1'
