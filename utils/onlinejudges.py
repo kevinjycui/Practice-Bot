@@ -83,10 +83,10 @@ class OnlineJudges:
         output = ''
         for judge in self.problem_judges:
             output += self.formal_names[judge] + ' (' + ', '.join([judge] + self.judge_to_aliases[judge])  + '), '
-        return output
+        return output[:-1]
 
     def contest_judges_str(self):
         output = ''
         for judge in self.contest_judges:
             output += self.formal_names[judge] + ' (' + ', '.join([judge] + self.judge_to_aliases[judge])  + '), '
-        return output
+        return output[:-1]

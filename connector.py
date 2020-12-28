@@ -30,6 +30,7 @@ db = pymysql.connect('localhost', user, password, database)
 #     cursor.execute("DROP TABLE IF EXISTS subscriptions_contests")
 #     cursor.execute("""CREATE TABLE subscriptions_contests (
 #         channel_id BIGINT NOT NULL,
+#         subint INT DEFAULT 63,
 #         PRIMARY KEY (channel_id))""")
 #     cursor.execute("DROP TABLE IF EXISTS users")
 #     cursor.execute("""CREATE TABLE users (
@@ -295,6 +296,20 @@ class MySQLConnection(object):
             handles[row[1]] = row[0]
         return handles
 
+    def get_subbed_ojs(self, channel_id):
+        if not self.sanitize_id(channel_id):
+            return -1
+        sql = "SELECT subint FROM subscriptions_contests WHERE channel_id = %d" % channel_id
+        result = self.readone_query(sql)
+        if result is None:
+            return False
+        return result[0]
+
+    def update_subbed_ojs(self, channel_id, subint):
+        sql = "UPDATE subscriptions_contests SET subint = '%s' WHERE channel_id = %d" % (subint, channel_id)
+        self.set_query(sql)
+        return 0
+
     def sub_channel(self, channel_id):
         if not self.sanitize_id(channel_id):
             return -1
@@ -307,7 +322,7 @@ class MySQLConnection(object):
     def unsub_channel(self, channel_id):
         if not self.sanitize_id(channel_id):
             return -1
-        sql = "DELETE FROM subscriptions_contests WHERE channel_id = %d" % (channel_id)
+        sql = "DELETE FROM subscriptions_contests WHERE channel_id = %d" % channel_id
         self.set_query(sql)
         return 0
 

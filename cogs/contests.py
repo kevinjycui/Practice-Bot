@@ -274,16 +274,51 @@ class ContestCog(commands.Cog):
     @commands.command()
     @commands.has_permissions(manage_channels=True)
     @commands.guild_only()
-    async def sub(self, ctx, channel: discord.TextChannel=None):
+    async def sub(self, ctx, channel: discord.TextChannel=None, *args):
+
         determiner = 'That'
         if channel is None:
             channel = ctx.message.channel
             determiner = 'This'
-        if query.exists('subscriptions_contests', 'channel_id', channel.id):
-            await ctx.send(ctx.message.author.display_name + ', %s channel is already subscribed to contest notifications.' % determiner)
+
+        exists = query.exists('subscriptions_contests', 'channel_id', channel.id)
+
+        old_sub_int = None
+        old_sub_bin = None
+
+        ojs = []
+        for arg in args:
+            try:
+                oj = self.onlineJudges.get_oj(arg)
+                if oj not in self.onlineJudges.contest_judges:
+                    raise NoSuchOJException
+                ojs.append(oj)
+            except NoSuchOJException:
+                await ctx.send(ctx.message.author.display_name + ', Invalid query. The online judges must be one of the following: %s.' % self.onlineJudges.contest_judges_str())
+                return
+
+        sub_bin = '0'*len(self.onlineJudges.contest_judges)
+        if exists:
+            old_sub_int = query.get_subbed_ojs(channel.id)
+            old_sub_bin = '{0:b}'.format(old_sub_int).zfill(len(self.onlineJudges.contest_judges))
+            sub_bin = old_sub_bin
+        selected = 'all '
+        if len(ojs) == 0:
+            sub_bin = '1'*len(self.onlineJudges.contest_judges)
+            selected = 'the selected '
+        sub_bin_mutable = list(sub_bin)
+        for oj in ojs:
+            sub_bin_mutable[self.onlineJudges.contest_judges.index(oj)] = '1'
+        sub_bin = ''.join(sub_bin_mutable)
+        sub_int = int(sub_bin, 2)
+
+        if exists and sub_int == old_sub_int:
+            await ctx.send(ctx.message.author.display_name + ', %s channel is already subscribed to %scontest notifications.' % (determiner, selected))
             return
-        query.sub_channel(channel.id)
-        await ctx.send(ctx.message.author.display_name + ', ' + channel.mention + ' subscribed to contest notifications.')
+        if not exists:
+            query.sub_channel(channel.id)
+        query.update_subbed_ojs(channel.id, sub_int)
+        await ctx.send(ctx.message.author.display_name + ', ' + channel.mention + ' subscribed to %scontest notifications.' % selected)
 
     @commands.command()
     @commands.guild_only()
@@ -291,7 +326,12 @@ class ContestCog(commands.Cog):
         clist = ctx.message.author.display_name + ', Contest notification channels in this server:\n'
         for text_channel in ctx.message.guild.text_channels:
             if query.exists('subscriptions_contests', 'channel_id', text_channel.id):
-                clist += text_channel.mention + '\n'
+                sub_bin = '{0:b}'.format(query.get_subbed_ojs(text_channel.id)).zfill(len(self.onlineJudges.contest_judges))
+                ojs = []
+                for i, b in enumerate(sub_bin):
+                    if b == '1':
+                        ojs.append(self.onlineJudges.contest_judges[i])
+                clist += text_channel.mention + ' `' + ', '.join(ojs) + '`\n'
         if clist == ctx.message.author.display_name + ', Contest notification channels in this server:\n':
             await ctx.send(ctx.message.author.display_name + ', There are no channels subscribed to contest notifications in this server :slight_frown:')
         else:
@@ -300,16 +340,56 @@ class ContestCog(commands.Cog):
     @commands.command()
     @commands.has_permissions(manage_channels=True)
     @commands.guild_only()
-    async def unsub(self, ctx, channel: discord.TextChannel=None):
+    async def unsub(self, ctx, channel: discord.TextChannel=None, *args):
+
         determiner = 'That'
         if channel is None:
             channel = ctx.message.channel
             determiner = 'This'
-        if not query.exists('subscriptions_contests', 'channel_id', channel.id):
+
+        exists = query.exists('subscriptions_contests', 'channel_id', channel.id)
+
+        if not exists:
             await ctx.send(ctx.message.author.display_name + ', %s channel is already not subscribed to contest notifications.' % determiner)
             return
-        query.unsub_channel(channel.id)
-        await ctx.send(ctx.message.author.display_name + ', ' + channel.mention + ' is no longer a contest notification channel.')
+
+        old_sub_int = None
+        old_sub_bin = None
+
+        ojs = []
+        for arg in args:
+            try:
+                oj = self.onlineJudges.get_oj(arg)
+                if oj not in self.onlineJudges.contest_judges:
+                    raise NoSuchOJException
+                ojs.append(oj)
+            except NoSuchOJException:
+                await ctx.send(ctx.message.author.display_name + ', Invalid query. The online judges must be one of the following: %s.' % self.onlineJudges.contest_judges_str())
+                return
+
+        sub_bin = '1'*len(self.onlineJudges.contest_judges)
+        if exists:
+            old_sub_int = query.get_subbed_ojs(channel.id)
+            old_sub_bin = '{0:b}'.format(old_sub_int).zfill(len(self.onlineJudges.contest_judges))
+            sub_bin = old_sub_bin
+        if len(ojs) == 0:
+            sub_bin = '0'*len(self.onlineJudges.contest_judges)
+        sub_bin_mutable = list(sub_bin)
+        for oj in ojs:
+            sub_bin_mutable[self.onlineJudges.contest_judges.index(oj)] = '0'
+        sub_bin = ''.join(sub_bin_mutable)
+        sub_int = int(sub_bin, 2)
+
+        if sub_int == old_sub_int:
+            await ctx.send(ctx.message.author.display_name + ', %s channel is already not subscribed to the selected contest notifications.' % determiner)
+            return
+            
+        if sub_int == 0:
+            query.unsub_channel(channel.id)
+            await ctx.send(ctx.message.author.display_name + ', ' + channel.mention + ' is no longer a contest notification channel.')
+        else:
+            query.update_subbed_ojs(channel.id, sub_int)
+            await ctx.send(ctx.message.author.display_name + ', ' + channel.mention + ' has been unsubscribed from contest notifications from the selected online judges')
 
     def is_upcoming(self, contest):
         if '+' in contest.asdict()['Start Time']:
@@ -355,9 +435,14 @@ class ContestCog(commands.Cog):
         new_contests = list(set(self.contest_objects).difference(set(self.contest_cache)))
 
         for channel_id in query.get_all_subs():
+            sub_bin = '{0:b}'.format(query.get_subbed_ojs(channel_id)).zfill(len(self.onlineJudges.contest_judges))
+            channel_subbed = []
+            for new_contest in new_contests:
+                if sub_bin[self.onlineJudges.contest_judges.index(new_contest.asdict()['oj'])] == '1':
+                    channel_subbed.append(new_contest)
             try:
                 channel = self.bot.get_channel(channel_id)
-                await channel.send(embed=self.embed_multiple_contests(new_contests, new=True))
+                await channel.send(embed=self.embed_multiple_contests(channel_subbed, new=True))
             except:
                 pass
 
