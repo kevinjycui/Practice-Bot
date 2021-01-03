@@ -14,6 +14,7 @@ from connector import mySQLConnection as query
 from utils.onlinejudges import OnlineJudges, NoSuchOJException
 from utils.country import Country, InvalidCountryException
 from utils.webclient import webc
+import requests
 import json
 import re
 from time import time
@@ -139,9 +140,9 @@ class ProblemCog(commands.Cog):
             self.statuses['dmoj'] = 0
             raise e
 
-    async def parse_cf_problems(self):
+    def parse_cf_problems(self):
         try:
-            problems = await webc.webget_json('https://codeforces.com/api/problemset.problems')
+            problems = requests.get('https://codeforces.com/api/problemset.problems').json()
             self.statuses['codeforces'] =  1
             self.cf_problems = problems['result']['problems']
             self.problems_by_points['codeforces'] = {}
@@ -154,9 +155,9 @@ class ProblemCog(commands.Cog):
             self.statuses['codeforces'] = 0
             raise e
 
-    async def parse_atcoder_problems(self):
+    def parse_atcoder_problems(self):
         try:
-            problems = await webc.webget_json('https://kenkoooo.com/atcoder/resources/merged-problems.json')
+            problems = requests.get('https://kenkoooo.com/atcoder/resources/merged-problems.json').json()
             self.statuses['atcoder'] =  1
             self.atcoder_problems = problems
             self.problems_by_points['atcoder'] = {}
@@ -169,9 +170,9 @@ class ProblemCog(commands.Cog):
             self.statuses['atcoder'] = 0
             raise e
 
-    async def parse_cses_problems(self):
+    def parse_cses_problems(self):
         try:
-            problems = await webc.webget_text('https://cses.fi/problemset/list/')
+            problems = requests.get('https://cses.fi/problemset/list/').text
             self.statuses['cses'] =  1
             self.cses_problems = []
             soup = bs.BeautifulSoup(problems, 'lxml')
@@ -197,9 +198,9 @@ class ProblemCog(commands.Cog):
             self.statuses['cses'] = 0
             raise e
 
-    async def parse_szkopul_problems(self):
+    def parse_szkopul_problems(self):
         try:
-            problems = await webc.webget_text('https://szkopul.edu.pl/problemset/?page=%d' % self.szkopul_page)
+            problems = requests.get('https://szkopul.edu.pl/problemset/?page=%d' % self.szkopul_page).text
             self.statuses['szkopul'] =  1
             soup = bs.BeautifulSoup(problems, 'lxml')
             rows = soup.find_all('tr')
@@ -237,9 +238,9 @@ class ProblemCog(commands.Cog):
             self.statuses['szkopul'] = 0
             raise e
 
-    async def parse_leetcode_problems(self):
+    def parse_leetcode_problems(self):
         try:
-            problems = await webc.webget_json('https://leetcode.com/api/problems/algorithms/')
+            problems = requests.get('https://leetcode.com/api/problems/algorithms/').json()
             self.statuses['leetcode'] = 1
             self.leetcode_problems_paid = []
             self.leetcode_problems = []
@@ -687,7 +688,7 @@ class ProblemCog(commands.Cog):
 
     @tasks.loop(hours=25)
     async def refresh_cf_problems(self):
-        await self.parse_cf_problems()
+        self.parse_cf_problems()
         self.fetch_times['codeforces'] = time()
 
     @refresh_cf_problems.before_loop
@@ -696,7 +697,7 @@ class ProblemCog(commands.Cog):
 
     @tasks.loop(hours=26)
     async def refresh_atcoder_problems(self):
-        await self.parse_atcoder_problems()
+        self.parse_atcoder_problems()
         self.fetch_times['atcoder'] = time()
 
     @refresh_atcoder_problems.before_loop
@@ -705,7 +706,7 @@ class ProblemCog(commands.Cog):
 
     @tasks.loop(hours=24*7)
     async def refresh_cses_problems(self):
-        await self.parse_cses_problems()
+        self.parse_cses_problems()
         self.fetch_times['cses'] = time()
 
     @refresh_cses_problems.before_loop
@@ -714,7 +715,7 @@ class ProblemCog(commands.Cog):
 
     @tasks.loop(hours=1, minutes=27)
     async def refresh_szkopul_problems(self):
-        await self.parse_szkopul_problems()
+        self.parse_szkopul_problems()
         self.fetch_times['szkopul'] = time()
 
     @refresh_szkopul_problems.before_loop
@@ -723,7 +724,7 @@ class ProblemCog(commands.Cog):
 
     @tasks.loop(hours=28)
     async def refresh_leetcode_problems(self):
-        await self.parse_leetcode_problems()
+        self.parse_leetcode_problems()
         self.fetch_times['leetcode'] = time()
 
     @refresh_leetcode_problems.before_loop
