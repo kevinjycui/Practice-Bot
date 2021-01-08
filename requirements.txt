@@ -8,7 +8,7 @@ dblpy==0.3.4
 discord==1.0.1
 discord.py==1.5.0
 idna==2.9
-lxml==4.5.0
+lxml==4.6.2
 multidict==4.7.5
 PyMySQL==0.9.3
 pytz==2020.1
