@@ -129,7 +129,7 @@ bot.remove_command('help')
 
 @bot.command()
 async def help(ctx):
-    await ctx.send(ctx.message.author.display_name + ', Here is a full list of my commands! https://github.com/kevinjycui/Practice-Bot/wiki/Commands')
+    await ctx.send(ctx.message.author.display_name + ', Here is a full list of my commands! <https://github.com/kevinjycui/Practice-Bot/wiki/Commands>')
 
 
 @bot.event

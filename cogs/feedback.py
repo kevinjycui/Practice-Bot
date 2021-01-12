@@ -19,7 +19,8 @@ class FeedbackCog(commands.Cog):
 
         user = self.bot.get_user(self.bot.owner_id)
         await user.send('```From: %s\n%s```' % (ctx.message.author.name, content))
-        await ctx.send(ctx.message.author.display_name + ', Suggestion sent!\n```From: You\nTo: The Dev\nAt: ' + datetime.now().strftime('%d/%m/%Y %H:%M:%S') + '\n' + content + '```')
+        content = content.replace('`', '')
+        await ctx.send(ctx.message.author.display_name + ', Suggestion sent!\n```From: You\nTo: The Dev\nAt: ' + datetime.now().strftime('%d/%m/%Y %H:%M:%S') + '\n' + content + '```\n_If you want to add more to your suggestion, consider submitting an issue (this will allow the developer to interact with you but you will no longer be anonymous)_\n<https://github.com/kevinjycui/Practice-Bot/issues>')
 
 def setup(bot):
     bot.add_cog(FeedbackCog(bot))

@@ -21,15 +21,18 @@ from time import time
 
 
 class InvalidParametersException(Exception):
-    def __init__(self, cses=False, szkopul=False):
+    def __init__(self, cses=False, szkopul=False, leetcode=False):
         self.cses = cses
         self.szkopul = szkopul
+        self.leetcode = leetcode
     
     def __str__(self):
         if self.cses:
             return 'Sorry, I couldn\'t find any problems with those parameters. :cry: (Note that CSES problems do not have points)'
         elif self.szkopul:
             return 'Sorry, I couldn\'t find any problems with those parameters. :cry: (Note that Szkopuł problems do not have points)'
+        elif self.leetcode:
+            return 'Sorry, I couldn\'t find any problems with those paramaters. :cry: (Note that LeetCode difficulty ratings are either 1, 2, or 3)'
         return 'Sorry, I couldn\'t find any problems with those parameters. :cry:'
 
 class OnlineJudgeHTTPException(Exception):
@@ -147,10 +150,10 @@ class ProblemCog(commands.Cog):
             self.cf_problems = problems['result']['problems']
             self.problems_by_points['codeforces'] = {}
             for details in self.cf_problems:
-                if 'points' in details.keys():
-                    if details['points'] not in self.problems_by_points['codeforces']:
-                        self.problems_by_points['codeforces'][details['points']] = []
-                    self.problems_by_points['codeforces'][details['points']].append(details)
+                if 'rating' in details.keys():
+                    if details['rating'] not in self.problems_by_points['codeforces']:
+                        self.problems_by_points['codeforces'][details['rating']] = []
+                    self.problems_by_points['codeforces'][details['rating']].append(details)
         except Exception as e:
             self.statuses['codeforces'] = 0
             raise e
@@ -343,6 +346,8 @@ class ProblemCog(commands.Cog):
         
         if oj == 'cses' and points is not None:
             raise InvalidParametersException(cses=True)
+        elif oj == 'szkopul' and points is not None:
+            raise InvalidParametersException(szkopul=True)
 
         temp_dmoj_problems = {}
         temp_cf_problems = []
@@ -424,32 +429,34 @@ class ProblemCog(commands.Cog):
             if not maximum.isdigit():
                 raise InvalidQueryException()
             maximum = int(maximum)
-            possibilities = []
-            for point in list(problem_list[oj].keys()):
-                if point >= points and point <= maximum:
-                    possibilities.append(point)
-            if len(possibilities) == 0:
-                if suggestions_on and oj == 'dmoj':
-                    while len(possibilities) == 0:
-                        self.dmoj_user_suggests[iden].expand_pp_range()
-                        points, maximum = map(int, self.dmoj_user_suggests[iden].get_pp_range())
-                        for point in list(problem_list[oj].keys()):
-                            if point >= points and point <= maximum:
-                                possibilities.append(point)
-                        if points <= 1 and maximum >= 50 and len(possibilities) == 0:
-                            raise InvalidParametersException()
-                elif suggestions_on and oj == 'codeforces':
-                    while len(possibilities) == 0:
-                        self.cf_user_suggests[iden].expand_pp_range()
-                        points, maximum = map(int, self.cf_user_suggests[iden].get_pp_range())
-                        for point in list(problem_list[oj].keys()):
-                            if point >= points and point <= maximum:
-                                possibilities.append(point)
-                        if points <= 1 and maximum >= 50 and len(possibilities) == 0:
-                            raise InvalidParametersException()
-                else:
-                    raise InvalidParametersException()
-            points = rand.choice(possibilities)
+
+            if oj != 'leetcode':
+                possibilities = []
+                for point in list(problem_list[oj].keys()):
+                    if point >= points and point <= maximum:
+                        possibilities.append(point)
+                if len(possibilities) == 0:
+                    if suggestions_on and oj == 'dmoj':
+                        while len(possibilities) == 0:
+                            self.dmoj_user_suggests[iden].expand_pp_range()
+                            points, maximum = map(int, self.dmoj_user_suggests[iden].get_pp_range())
+                            for point in list(problem_list[oj].keys()):
+                                if point >= points and point <= maximum:
+                                    possibilities.append(point)
+                            if points <= 1 and maximum >= 50 and len(possibilities) == 0:
+                                raise InvalidParametersException()
+                    elif suggestions_on and oj == 'codeforces':
+                        while len(possibilities) == 0:
+                            self.cf_user_suggests[iden].expand_pp_range()
+                            points, maximum = map(int, self.cf_user_suggests[iden].get_pp_range())
+                            for point in list(problem_list[oj].keys()):
+                                if point >= points and point <= maximum:
+                                    possibilities.append(point)
+                            if points <= 1 and maximum >= 50 and len(possibilities) == 0:
+                                raise InvalidParametersException()
+                    else:
+                        raise InvalidParametersException()
+                points = rand.choice(possibilities)
             
         if oj == 'dmoj':
             if not self.dmoj_problems:
@@ -499,8 +506,22 @@ class ProblemCog(commands.Cog):
             return self.embed_szkopul_problem(prob)
 
         elif oj == 'leetcode':
-            if paid:
-                prob = rand.choice(self.leetcode_problems + self.leetcode_problems_paid)
+            if points is not None:
+                if points not in (1, 2, 3):
+                    raise InvalidParametersException(leetcode=True)
+                if maximum is not None:
+                    if maximum not in (1, 2, 3) or maximum < points:
+                        raise InvalidParametersException(leetcode=True)
+                    else:
+                        points = rand.randint(points, maximum)
+                def is_level(prob):
+                    return prob['level'] == points
+                if paid:
+                    prob = rand.choice(list(filter(is_level, self.leetcode_problems + self.leetcode_problems_paid)))
+                else:
+                    prob = rand.choice(list(filter(is_level, self.leetcode_problems)))
+            elif paid:
+                    prob = rand.choice(self.leetcode_problems + self.leetcode_problems_paid)
             else:
                 prob = rand.choice(self.leetcode_problems)
             return self.embed_leetcode_problem(prob)
