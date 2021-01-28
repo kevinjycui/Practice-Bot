@@ -14,6 +14,10 @@ Support this bot by voting for it [here](https://top.gg/bot/691416325557452861/v
 
 ## What's New 
 
+### Januray 2021 \[ALPHA\]
+ * Random problem parameters for Codeforces now refers to rating rather than points
+ * LeetCode random problems now have parameters for difficulty level (1, 2, 3)
+
 ### December 2020 \[BETA\]
  * CodeChef is here! Added contest support for CodeChef
  * TopCoder is here! Added contest support for TopCoder
