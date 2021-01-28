@@ -137,11 +137,12 @@ class SearcherCog(commands.Cog):
             message += 'CPU Time: `' + ((str(response['cpuTime']) + 's') if response['cpuTime'] is not None else 'N/A') + '`\n'
             message += 'Memory: `' + ((str(response['memory']) + 'KB') if response['memory'] is not None else 'N/A') + '`\n'
             try:
+                output_message = ''
                 if len(response['output']) > 0:
-                    message += '\n```' + response['output'] + '```'
+                    output_message += '\n```' + response['output'] + '```'
                 else:
-                    message += '\n```\n```'
-                await ctx.send(ctx.message.author.display_name + message)
+                    output_message += '\n```\n```'
+                await ctx.send(ctx.message.author.display_name + message + output_message)
 
             except discord.errors.HTTPException:
                 with open('data/solution.txt', 'w+') as f:
