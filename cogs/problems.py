@@ -255,7 +255,7 @@ class ProblemCog(commands.Cog):
                 total_acs = problem['stat']['total_acs']
                 total_submitted = problem['stat']['total_submitted']
                 level = problem['difficulty']['level']
-                paid = problem['paid_only'] == 'True'
+                paid = problem['paid_only']
                 problem_data = {
                     'id': id,
                     'title': title,
