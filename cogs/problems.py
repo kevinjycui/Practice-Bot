@@ -25,7 +25,7 @@ class InvalidParametersException(Exception):
         self.cses = cses
         self.szkopul = szkopul
         self.leetcode = leetcode
-    
+
     def __str__(self):
         if self.cses:
             return 'Sorry, I couldn\'t find any problems with those parameters. :cry: (Note that CSES problems do not have points)'
@@ -49,7 +49,7 @@ class InvalidQueryException(Exception):
 class ProblemNotFoundException(Exception):
     def __init__(self):
         self.message = ''
-    
+
     def __str__(self):
         return self.message
 
@@ -255,7 +255,7 @@ class ProblemCog(commands.Cog):
                 total_acs = problem['stat']['total_acs']
                 total_submitted = problem['stat']['total_submitted']
                 level = problem['difficulty']['level']
-                paid = problem['paid_only'] == 'True'
+                paid = problem['paid_only']
                 problem_data = {
                     'id': id,
                     'title': title,
@@ -263,7 +263,7 @@ class ProblemCog(commands.Cog):
                     'total_acs': total_acs,
                     'total_submitted': total_submitted,
                     'level': level,
-                    'paid': str(paid)
+                    'paid': paid
                 }
                 if paid:
                     self.leetcode_problems_paid.append(problem_data)
@@ -335,7 +335,7 @@ class ProblemCog(commands.Cog):
         embed.add_field(name='Total ACs', value=prob['total_acs'], inline=False)
         embed.add_field(name='Total Submitted', value=prob['total_submitted'], inline=False)
         embed.add_field(name='Level', value=prob['level'], inline=False)
-        embed.add_field(name='Paid?', value='Yes' if prob['paid'] == 'True' else 'No', inline=False)
+        embed.add_field(name='Paid?', value='Yes' if prob['paid'] else 'No', inline=False)
         return prob['title'], prob['url'], embed
 
     async def get_random_problem(self, oj=None, points=None, maximum=None, iden=None, paid=False):
@@ -343,7 +343,7 @@ class ProblemCog(commands.Cog):
             oj = rand.choice(self.onlineJudges.problem_judges)
 
         oj = self.onlineJudges.get_oj(oj)
-        
+
         if oj == 'cses' and points is not None:
             raise InvalidParametersException(cses=True)
         elif oj == 'szkopul' and points is not None:
@@ -371,7 +371,7 @@ class ProblemCog(commands.Cog):
                         self.cf_user_suggests[iden] = CodeforcesUserSuggester(user_data[iden]['codeforces'])
                         await self.cf_user_suggests[iden].update_pp_range()
                     points, maximum = self.cf_user_suggests[iden].get_pp_range()
-                
+
             if not user_data[iden]['can_repeat']:
                 if oj == 'dmoj' and user_data[iden]['dmoj'] is not None:
                     user_response = await webc.webget_json('https://dmoj.ca/api/user/info/%s' % user_data[iden]['dmoj'])
@@ -419,7 +419,7 @@ class ProblemCog(commands.Cog):
                 problem_list = self.cf_problems
         else:
             problem_list = self.problems_by_points
-                                    
+
         if points is not None:
             if not points.isdigit():
                 raise InvalidQueryException()
@@ -457,11 +457,11 @@ class ProblemCog(commands.Cog):
                     else:
                         raise InvalidParametersException()
                 points = rand.choice(possibilities)
-            
+
         if oj == 'dmoj':
             if not self.dmoj_problems:
                 raise OnlineJudgeHTTPException('DMOJ')
-                
+
             if points is None:
                 name, prob = rand.choice(list(problem_list.items()))
             elif points in problem_list['dmoj'] and len(problem_list['dmoj'][points]) > 0:
@@ -472,7 +472,7 @@ class ProblemCog(commands.Cog):
                 user_data[iden]['last_dmoj_problem'] = name
                 query.update_user(iden, 'last_dmoj_problem', name)
             return self.embed_dmoj_problem(name, prob, suggestions_on)
-            
+
         elif oj == 'codeforces':
             if not self.cf_problems:
                 raise OnlineJudgeHTTPException('Codeforces')
@@ -525,7 +525,7 @@ class ProblemCog(commands.Cog):
             else:
                 prob = rand.choice(self.leetcode_problems)
             return self.embed_leetcode_problem(prob)
-        
+
         else:
             raise NoSuchOJException(oj)
 
@@ -590,7 +590,7 @@ class ProblemCog(commands.Cog):
                     await ctx.send(ctx.message.author.display_name + ', random problems will no longer be suggested based on your existing solves')
                 return
         await ctx.send(ctx.message.author.display_name + ', You are not linked to any accounts')
-        
+
     @commands.command(aliases=['toggleCountry', 'togglecountry', 'setCountry'])
     async def setcountry(self, ctx, code=''):
         try:
@@ -692,7 +692,7 @@ class ProblemCog(commands.Cog):
             await ctx.send(ctx.message.author.display_name + ', ' + responseText + '\nTrack your submission here: https://dmoj.ca/submission/' + str(id))
         except InvalidDMOJSessionException:
             await ctx.send(ctx.message.author.display_name + ', Failed to connect, or problem not available. Make sure you are submitting to a valid problem, check your authentication, and try again.')
-        
+
     @commands.Cog.listener()
     async def on_member_update(self, before, after):
         if str(after.status) == 'offline' and str(before.status) != 'offline' and after.id in self.dmoj_sessions.keys():
@@ -702,7 +702,7 @@ class ProblemCog(commands.Cog):
     async def refresh_dmoj_problems(self):
         await self.parse_dmoj_problems()
         self.fetch_times['dmoj'] = time()
-        
+
     @refresh_dmoj_problems.before_loop
     async def refresh_dmoj_problems_before(self):
         await self.bot.wait_until_ready()
@@ -773,6 +773,6 @@ class ProblemCog(commands.Cog):
         user_data = query.get_user(user.id)
         query.update_user(user.id, 'tea', user_data[user.id]['tea']+1)
         await ctx.send(ctx.message.author.display_name + ', sent a cup of :tea: to ' + user.mention)
-        
+
 def setup(bot):
     bot.add_cog(ProblemCog(bot))
