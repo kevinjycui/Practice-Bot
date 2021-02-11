@@ -14,11 +14,15 @@ Support this bot by voting for it [here](https://top.gg/bot/691416325557452861/v
 
 ## What's New 
 
-### Januray 2021 \[ALPHA\]
+### February 2021
+ * Leetcode bug fix, prevents paid problems from appearing as non-paid
+ * Please read [updated security details](https://github.com/kevinjycui/Practice-Bot/blob/master/VERIFICATION.md)
+
+### Januray 2021
  * Random problem parameters for Codeforces now refers to rating rather than points
  * LeetCode random problems now have parameters for difficulty level (1, 2, 3)
 
-### December 2020 \[BETA\]
+### December 2020
  * CodeChef is here! Added contest support for CodeChef
  * TopCoder is here! Added contest support for TopCoder
  * Added contest support for LeetCode
