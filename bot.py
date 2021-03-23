@@ -48,12 +48,14 @@ async def determine_prefix(bot, message):
 
 intents = discord.Intents.default()
 intents.members = True
-bot = commands.Bot(command_prefix=determine_prefix,
-                   description='The all-competitive-programming-purpose Discord bot!',
-                   owner_id=owner_id,
-                   intents=intents,
-                   fetch_offline_members=True
-                )
+bot = commands.AutoShardedBot(
+    shard_count=10,
+    command_prefix=determine_prefix,
+    description='The all-competitive-programming-purpose Discord bot!',
+    owner_id=owner_id,
+    intents=intents,
+    fetch_offline_members=True
+)
 
 async def changenick(ctx, member: discord.Member, fix):
     name = ctx.message.guild.get_member(bot.user.id).display_name
@@ -214,6 +216,7 @@ async def on_ready():
     print('Logged in as')
     print(bot.user.name)
     print(bot.user.id)
+    print('Shards:', len(bot.shards))
     print('------')
     if DEBUG:
         user = bot.get_user(bot.owner_id)
