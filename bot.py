@@ -49,7 +49,7 @@ async def determine_prefix(bot, message):
 intents = discord.Intents.default()
 intents.members = True
 bot = commands.AutoShardedBot(
-    shard_count=10,
+    shard_count=20,
     command_prefix=determine_prefix,
     description='The all-competitive-programming-purpose Discord bot!',
     owner_id=owner_id,
