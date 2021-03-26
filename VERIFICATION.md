@@ -7,7 +7,7 @@ Discord to competitive programming, online judge, and problem archives integrati
 
 ## Tell us more about the data you store and process from Discord.
 ### What Discord data do you store?
-All long-term stored data is already public. This includes online handles on competitive programming sites for users, problems solved by users, and represented country. The only piece of private data stored is API tokens for the site DMOJ: Modern Online Judge, which enables the bot to submit to problems on the user's behalf. This data is not stored in the database. Identification of users to link accounts uses a SHA-256 encrypted token to ensure proper authentication to prevent fraudulent identities.
+All long-term stored data is already public. This includes online handles on competitive programming sites for users, problems solved by users, and represented country. The only piece of private data stored is API tokens for the site DMOJ: Modern Online Judge, which enables the bot to submit to problems on the user's behalf. This data is not stored in the database. Identification of users to link accounts uses a SHA-256 encrypted token to ensure proper authentication to prevent fraudulent identities. Frequencies of commands called are logged to track performance issues, but specific arguments and data passed through commands is not.
 
 ### For what purpose(s) do you store it?
 These pieces of data are necessary for the functions of the bot. DMOJ data needs to be especially stored to prevent being Cloudflared by DMOJ.

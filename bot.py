@@ -4,6 +4,7 @@ from discord.ext import commands, tasks
 import aiohttp
 import random as rand
 import yaml
+from datetime import datetime
 import cogs.dblapi as dblapi
 import cogs.feedback as feedback
 import cogs.problems_rankings as problems_rankings
@@ -136,6 +137,8 @@ async def help(ctx):
 
 @bot.event
 async def on_command_error(ctx, error):
+    with open('command.log', 'a') as f:
+        f.write('%s: [ERROR] %s\n' % (datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 'NULL' if ctx.command is None else ctx.command.name))
     if any(
         isinstance(error, CommonError) for CommonError in (
             commands.CommandNotFound,
@@ -203,6 +206,12 @@ async def on_member_join(member):
         query.insert_ignore_user(member.id)
         server_prefix = await prefix_from_guild(member.guild)
         await member.send('Hello, %s, and welcome to %s! The default prefix for this server is `%s`, but in direct messaging, use the prefix `%s`. It would seem that you have yet to join a server that has Practice Bot! Using Practice Bot, you can link your DMOJ or Codeforces account to your Discord account to perform different commands. You may use one of the following formats:\n\n*Please use connect commands in this direct message chat only!*\n\n`%sconnect dmoj <dmoj-api-token>` (your DMOJ API token can be found by going to https://dmoj.ca/edit/profile/ and selecting the __Generate__ or __Regenerate__ option next to API Token)\n\n`%sconnect cf <codeforces-handle>`\n\nUse `%shelp` to see a full list of commands and more details.' % (member.display_name, member.guild.name, server_prefix, prefix, prefix, prefix, prefix))
+
+
+@bot.before_invoke
+async def log(ctx):
+    with open('command.log', 'a') as f:
+        f.write('%s: %s\n' % (datetime.now().strftime('%Y-%m-%d %H:%M:%S'), ctx.command.name))
 
 
 @bot.event
