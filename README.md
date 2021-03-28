@@ -14,7 +14,7 @@ Support this bot by voting for it [here](https://top.gg/bot/691416325557452861/v
 
 ## What's New 
 
-## March 2021
+### March 2021
  * Please read [updated security details](https://github.com/kevinjycui/Practice-Bot/blob/master/VERIFICATION.md)
 
 ### February 2021
