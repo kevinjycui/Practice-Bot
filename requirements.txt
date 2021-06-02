@@ -16,7 +16,7 @@ PyYAML==5.4
 ratelimiter==1.2.0.post0
 requests==2.23.0
 soupsieve==2.0
-urllib3==1.25.9
+urllib3==1.26.5
 websockets==8.1
 wikipedia==1.4.0
 yarl==1.4.2
