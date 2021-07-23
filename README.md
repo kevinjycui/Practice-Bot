@@ -14,6 +14,8 @@ Support this bot by voting for it [here](https://top.gg/bot/691416325557452861/v
 
 ## What's New 
 
+ATTENTION: As of July 2021, this bot is indefinitely no longer maintained and the production bot will be considered unstable (may be often offline). [Local setup](https://github.com/kevinjycui/Practice-Bot/wiki/Local-Setup) will still work if you want to host the bot yourself to add to your server, and pull requests contributions may still be accepted to improve the bot for local users. Sorry for the inconvenience!
+
 ### March 2021
  * Please read [updated security details](https://github.com/kevinjycui/Practice-Bot/blob/master/VERIFICATION.md)
 
